@@ -1,0 +1,25 @@
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Candidate application/build artifacts are not canonical project content
+node_modules/
+dist/
+coverage/
