@@ -1,0 +1,1223 @@
+{
+  "cases": [
+    {
+      "assertionIds": [
+        "A-T01-HORIZON-2Y",
+        "A-T01-GENERIC-NEW-RANGES",
+        "A-T01-NO-3Y-DEFAULT"
+      ],
+      "expected": {
+        "H_primary_years": 2,
+        "derived.adequacy_gate.adequacy_status": "adequate",
+        "derived.adequacy_gate.feasible_keep_as_is": true,
+        "new.distribution_CO2e_kg": [
+          2,
+          4
+        ],
+        "new.production_CO2e_kg": [
+          25,
+          70
+        ],
+        "result_capability": "range_quantitative"
+      },
+      "id": "T01",
+      "inputs": {
+        "adequacy.required_functions_met": true,
+        "adequacy.safe_to_use": true,
+        "remaining_service.without_repair.expected_years": 2,
+        "replacement.new.model": null,
+        "replacement.type": "new",
+        "security_support.adequate_for_required_use": true
+      },
+      "prohibitedInterpretations": [
+        "Use a 3-year horizon because several LCAs use 3 years.",
+        "Treat 25-70 kg CO2e as a statistical confidence interval."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC01_ADEQUATE_KEEP_GENERIC_NEW",
+      "severityIfFailed": "CRITICAL",
+      "title": "Adequate phone versus generic new replacement"
+    },
+    {
+      "assertionIds": [
+        "A-T02-HORIZON-REMAINS-UNKNOWN",
+        "A-T02-NO-3Y-FALLBACK"
+      ],
+      "expected": {
+        "H_primary_years": null,
+        "derived.adequacy_gate.adequacy_status": "adequate",
+        "missing_required_fields": [
+          "remaining_service.without_repair"
+        ],
+        "result_capability": "insufficient_information"
+      },
+      "id": "T02",
+      "inputs": {
+        "adequacy.required_functions_met": true,
+        "adequacy.safe_to_use": true,
+        "remaining_service.without_repair.expected_years": null,
+        "replacement.type": "new",
+        "security_support.adequate_for_required_use": true
+      },
+      "prohibitedInterpretations": [
+        "Assume 3 years.",
+        "Infer remaining life from device age."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC02_UNKNOWN_REMAINING_LIFE",
+      "severityIfFailed": "CRITICAL",
+      "title": "Adequate phone but remaining life unknown"
+    },
+    {
+      "assertionIds": [
+        "A-T03-AGE-NOT-ADEQUACY",
+        "A-T03-NO-OBSOLESCENCE-INFERENCE"
+      ],
+      "expected": {
+        "derived.adequacy_gate.adequacy_status": "unknown",
+        "derived.adequacy_gate.feasible_keep_as_is": "unknown",
+        "result_capability": "insufficient_information"
+      },
+      "id": "T03",
+      "inputs": {
+        "adequacy.required_functions_met": "unknown",
+        "adequacy.safe_to_use": "unknown",
+        "current_device.total_service_age_years": 6,
+        "security_support.adequate_for_required_use": "unknown"
+      },
+      "prohibitedInterpretations": [
+        "Six-year-old device is obsolete.",
+        "Six-year-old device has zero remaining life."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "MAJOR",
+      "title": "Old phone with unknown adequacy"
+    },
+    {
+      "assertionIds": [
+        "A-T04-UNSAFE-REMOVES-KEEP"
+      ],
+      "expected": {
+        "derived.adequacy_gate.adequacy_status": "inadequate",
+        "derived.adequacy_gate.feasible_keep_as_is": false,
+        "keep_as_is.feasible": false
+      },
+      "id": "T04",
+      "inputs": {
+        "adequacy.required_functions_met": true,
+        "adequacy.safe_to_use": false
+      },
+      "prohibitedInterpretations": [
+        "Keep should still win because it has the lowest carbon burden."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC03_UNSAFE_KEEP_REMOVAL",
+      "severityIfFailed": "CRITICAL",
+      "title": "Unsafe phone removes keep-as-is option"
+    },
+    {
+      "assertionIds": [
+        "A-T05-FUNCTIONAL-INadequacy"
+      ],
+      "expected": {
+        "derived.adequacy_gate.adequacy_status": "inadequate",
+        "keep_as_is.provides_equivalent_service": false
+      },
+      "id": "T05",
+      "inputs": {
+        "adequacy.required_functions_met": false,
+        "adequacy.safe_to_use": true
+      },
+      "prohibitedInterpretations": [
+        "Research may decide the stated requirement is unnecessary or irrational."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Required functions not met"
+    },
+    {
+      "assertionIds": [
+        "A-T06-SUPPORT-END-NOT-AUTO-REPLACE",
+        "A-T06-SUPPORT-IS-ADEQUACY-INPUT"
+      ],
+      "expected": {
+        "derived.adequacy_gate.adequacy_status": "adequate",
+        "replacement_forced_by_support_status": false
+      },
+      "id": "T06",
+      "inputs": {
+        "adequacy.required_functions_met": true,
+        "adequacy.safe_to_use": true,
+        "security_support.adequate_for_required_use": true,
+        "security_support.status": "ended"
+      },
+      "prohibitedInterpretations": [
+        "Ended support automatically means unsafe.",
+        "Ended support automatically requires replacement."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
+      "severityIfFailed": "MAJOR",
+      "title": "Security support ended but user judges support adequate"
+    },
+    {
+      "assertionIds": [
+        "A-T07-SUPPORT-UNKNOWN-STAYS-UNKNOWN"
+      ],
+      "expected": {
+        "derived.adequacy_gate.adequacy_status": "unknown",
+        "replacement_forced_by_support_status": false,
+        "result_capability": "insufficient_information"
+      },
+      "id": "T07",
+      "inputs": {
+        "adequacy.required_functions_met": true,
+        "adequacy.safe_to_use": true,
+        "security_support.adequate_for_required_use": "unknown",
+        "security_support.status": "ended"
+      },
+      "prohibitedInterpretations": [
+        "Ended support resolves support adequacy to false."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "MAJOR",
+      "title": "Security support ended and adequacy unknown"
+    },
+    {
+      "assertionIds": [
+        "A-T08-BATTERY-RANGE",
+        "A-T08-POST-REPAIR-SERVICE-KNOWN"
+      ],
+      "expected": {
+        "repair.climate_CO2e_kg": [
+          0.3,
+          0.7
+        ],
+        "repair.climate_status": "PROVISIONAL_GENERIC_RANGE",
+        "result_capability": "range_quantitative"
+      },
+      "id": "T08",
+      "inputs": {
+        "adequacy.problem_types": [
+          "battery"
+        ],
+        "repair.considered": true,
+        "repair.expected_adequate_service_after_repair.expected_years": 2,
+        "repair.expected_to_restore_adequacy": true,
+        "repair.type": "battery"
+      },
+      "prohibitedInterpretations": [
+        "Collapse 0.3-0.7 kg CO2e to one unlabeled exact value."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC05_BATTERY_REPAIR_KNOWN_EXTENSION",
+      "severityIfFailed": "CRITICAL",
+      "title": "Battery repair with known additional service"
+    },
+    {
+      "assertionIds": [
+        "A-T09-NO-SERVICE-EXTENSION-DEFAULT"
+      ],
+      "expected": {
+        "missing_required_fields": [
+          "repair.expected_adequate_service_after_repair"
+        ],
+        "repair.climate_CO2e_kg": [
+          0.3,
+          0.7
+        ],
+        "result_capability": "insufficient_information"
+      },
+      "id": "T09",
+      "inputs": {
+        "repair.considered": true,
+        "repair.expected_adequate_service_after_repair.expected_years": null,
+        "repair.expected_to_restore_adequacy": true,
+        "repair.type": "battery"
+      },
+      "prohibitedInterpretations": [
+        "Assume two years of battery-related extension.",
+        "Infer lifetime extension from battery repair type."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
+      "severityIfFailed": "CRITICAL",
+      "title": "Battery repair with unknown service extension"
+    },
+    {
+      "assertionIds": [
+        "A-T10-DISPLAY-RANGE"
+      ],
+      "expected": {
+        "repair.climate_CO2e_kg": [
+          3,
+          8
+        ],
+        "repair.climate_status": "PROVISIONAL_GENERIC_RANGE",
+        "result_capability": "range_quantitative"
+      },
+      "id": "T10",
+      "inputs": {
+        "repair.considered": true,
+        "repair.expected_adequate_service_after_repair.expected_years": 2,
+        "repair.expected_to_restore_adequacy": true,
+        "repair.type": "display"
+      },
+      "prohibitedInterpretations": [
+        "Treat display replacement as the same impact class as a battery."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Display repair with known service extension"
+    },
+    {
+      "assertionIds": [
+        "A-T11-MAJOR-BOARD-NO-GENERIC",
+        "A-T11-MAJOR-BOARD-UNKNOWN-NOT-ZERO"
+      ],
+      "expected": {
+        "repair.climate_CO2e_kg": null,
+        "repair.impact_status": "unsupported",
+        "result_capability": "insufficient_information"
+      },
+      "id": "T11",
+      "inputs": {
+        "repair.considered": true,
+        "repair.expected_adequate_service_after_repair.expected_years": 2,
+        "repair.model_specific_climate_CO2e_kg": null,
+        "repair.type": "major_board"
+      },
+      "prohibitedInterpretations": [
+        "Use battery range.",
+        "Use display range.",
+        "Invent a generic PCB/mainboard value."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC07_MAJOR_BOARD_UNKNOWN_IMPACT",
+      "severityIfFailed": "CRITICAL",
+      "title": "Major-board repair without model-specific impact"
+    },
+    {
+      "assertionIds": [
+        "A-T12-FP5-MODEL-OVERRIDE"
+      ],
+      "expected": {
+        "repair.climate_CO2e_kg": 17.84,
+        "repair.impact_status": "approved",
+        "repair.provenance_scope": "model_specific"
+      },
+      "id": "T12",
+      "inputs": {
+        "current_device.manufacturer": "Fairphone",
+        "current_device.model": "Fairphone 5",
+        "repair.expected_adequate_service_after_repair.expected_years": 2,
+        "repair.repair_mode": "full_module_DIY",
+        "repair.type": "major_board"
+      },
+      "prohibitedInterpretations": [
+        "Transfer 17.84 kg CO2e to Samsung, Apple, Google or generic smartphones."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "MAJOR",
+      "title": "Fairphone 5 approved major-board override"
+    },
+    {
+      "assertionIds": [
+        "A-T13-SEQUENCE-NOT-TRUNCATED",
+        "A-T13-NEXT-ACQUISITION-INCLUDED"
+      ],
+      "expected": {
+        "result_status": "calculable_or_conditional_after_sequence",
+        "service_sequence.events": [
+          {
+            "event_type": "repair",
+            "time_years": 0
+          },
+          {
+            "event_type": "buy_new",
+            "time_years": 0.5
+          }
+        ],
+        "service_sequence_covers_years": 3,
+        "service_sequence_required": true
+      },
+      "id": "T13",
+      "inputs": {
+        "common_service_horizon_years": 3,
+        "foreseeable_next_event": "buy_new",
+        "foreseeable_next_event_time_years": 0.5,
+        "repair.expected_adequate_service_after_repair.expected_years": 0.5
+      },
+      "prohibitedInterpretations": [
+        "Stop the repair pathway after 0.5 years.",
+        "Compare 0.5 years of repair service with 3 years of new-phone service."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC08_REPAIR_REPLACEMENT_SEQUENCE",
+      "severityIfFailed": "CRITICAL",
+      "title": "Short repair followed by known replacement"
+    },
+    {
+      "assertionIds": [
+        "A-T14-NO-INVENTED-NEXT-EVENT"
+      ],
+      "expected": {
+        "missing_required_fields": [
+          "foreseeable_next_event"
+        ],
+        "result_capability": "insufficient_information",
+        "service_sequence_required": true
+      },
+      "id": "T14",
+      "inputs": {
+        "common_service_horizon_years": 3,
+        "foreseeable_next_event": null,
+        "repair.expected_adequate_service_after_repair.expected_years": 0.5
+      },
+      "prohibitedInterpretations": [
+        "Assume next purchase will be new.",
+        "Stop comparison at 0.5 years and declare repair superior."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Short repair but next event unknown"
+    },
+    {
+      "assertionIds": [
+        "A-T15-NO-GENERIC-REFURB-FOOTPRINT",
+        "A-T15-ADEME-NOT-DEFAULT"
+      ],
+      "expected": {
+        "replacement.refurbished.direct_climate_CO2e_kg": null,
+        "result_capability": "qualitative_only"
+      },
+      "id": "T15",
+      "inputs": {
+        "replacement.refurbished.direct_climate_CO2e_kg": null,
+        "replacement.refurbished.expected_adequate_service_years": 3,
+        "replacement.refurbished.model_identity": "Unregistered model",
+        "replacement.type": "refurbished"
+      },
+      "prohibitedInterpretations": [
+        "Default to ADEME 7.61 kg CO2e.",
+        "Invent a percentage reduction from new."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC09_UNSUPPORTED_REFURB_FOOTPRINT",
+      "severityIfFailed": "CRITICAL",
+      "title": "Arbitrary refurbished candidate without approved footprint"
+    },
+    {
+      "assertionIds": [
+        "A-T16-ADEME-OPAQUE",
+        "A-T16-ADEME-2Y-LABEL"
+      ],
+      "expected": {
+        "reference_scenario.assumed_second_life_years": 2,
+        "reference_scenario.climate_CO2e_kg": 7.61,
+        "reference_scenario.decomposable": false,
+        "reference_scenario.status": "OPAQUE_SOURCE_SPECIFIC_REFERENCE"
+      },
+      "id": "T16",
+      "inputs": {
+        "reference_scenario": "ADEME_REFURB_REFERENCE"
+      },
+      "prohibitedInterpretations": [
+        "Add generic charging to 7.61 kg without source decomposition.",
+        "Add generic transport to 7.61 kg.",
+        "Describe 7.61 kg as universal refurbished-phone footprint."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Explicit ADEME refurbished reference scenario"
+    },
+    {
+      "assertionIds": [
+        "A-T17-GENERIC-NEW-ALLOWED"
+      ],
+      "expected": {
+        "replacement.new.distribution_CO2e_kg": [
+          2,
+          4
+        ],
+        "replacement.new.production_CO2e_kg": [
+          25,
+          70
+        ],
+        "replacement.new.provenance_scope": "generic_fallback"
+      },
+      "id": "T17",
+      "inputs": {
+        "replacement.new.manufacturer": null,
+        "replacement.new.model": null,
+        "replacement.type": "new"
+      },
+      "prohibitedInterpretations": [
+        "Invent an exact model.",
+        "Present 40 kg as an industry average."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Unknown new-phone identity uses approved generic ranges"
+    },
+    {
+      "assertionIds": [
+        "A-T18-MODEL-OVERRIDE-PRIORITY"
+      ],
+      "expected": {
+        "generic_range_used_as_primary": false,
+        "replacement.new.primary_climate_source": "model_specific"
+      },
+      "id": "T18",
+      "inputs": {
+        "replacement.new.model": "approved_registry_match",
+        "replacement.type": "new"
+      },
+      "prohibitedInterpretations": [
+        "Ignore approved model-specific evidence and continue using generic fallback as primary."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "MAJOR",
+      "title": "Exact approved new-phone model overrides fallback"
+    },
+    {
+      "assertionIds": [
+        "A-T19-REUSE-NOT-EWASTE",
+        "A-T19-NO-1TO1-CREDIT"
+      ],
+      "expected": {
+        "old_device_fate.immediate_e_waste": false,
+        "old_device_fate.market_displacement_credit": null
+      },
+      "id": "T19",
+      "inputs": {
+        "old_device_fate.fate": "reuse_by_other"
+      },
+      "prohibitedInterpretations": [
+        "One reused phone equals one avoided new phone.",
+        "Reused phone is immediate e-waste."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC10_OLD_DEVICE_FATE",
+      "severityIfFailed": "CRITICAL",
+      "title": "Old device reused by another person"
+    },
+    {
+      "assertionIds": [
+        "A-T20-STORAGE-NOT-RECYCLING"
+      ],
+      "expected": {
+        "old_device_fate.immediate_e_waste": false,
+        "old_device_fate.market_displacement_credit": null,
+        "old_device_fate.status": "dormant_or_retired"
+      },
+      "id": "T20",
+      "inputs": {
+        "old_device_fate.fate": "stored"
+      },
+      "prohibitedInterpretations": [
+        "Stored means formally recycled.",
+        "Stored means environmentally recovered."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC10_OLD_DEVICE_FATE",
+      "severityIfFailed": "MAJOR",
+      "title": "Old device stored"
+    },
+    {
+      "assertionIds": [
+        "A-T21-EXACT-MASS",
+        "A-T21-NO-GLOBAL-RATE"
+      ],
+      "expected": {
+        "individual_formal_recycling_probability_applied": false,
+        "old_device_fate.discarded_mass_g": 195,
+        "old_device_fate.immediate_e_waste": true
+      },
+      "id": "T21",
+      "inputs": {
+        "current_device.mass_g": 195,
+        "old_device_fate.fate": "formal_recycling"
+      },
+      "prohibitedInterpretations": [
+        "Apply the global 22.3% documented recycling rate to this device.",
+        "Assume 100% material recovery."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC10_OLD_DEVICE_FATE",
+      "severityIfFailed": "CRITICAL",
+      "title": "Formal recycling with exact model mass"
+    },
+    {
+      "assertionIds": [
+        "A-T22-NO-GENERIC-MASS"
+      ],
+      "expected": {
+        "old_device_fate.discarded_mass_g": null,
+        "old_device_fate.immediate_e_waste": true
+      },
+      "id": "T22",
+      "inputs": {
+        "current_device.mass_g": null,
+        "old_device_fate.fate": "formal_recycling"
+      },
+      "prohibitedInterpretations": [
+        "Insert a generic 180 g or 200 g smartphone mass."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC10_OLD_DEVICE_FATE",
+      "severityIfFailed": "CRITICAL",
+      "title": "Formal recycling with unknown mass"
+    },
+    {
+      "assertionIds": [
+        "A-T23-TRADEIN-STAYS-UNKNOWN"
+      ],
+      "expected": {
+        "old_device_fate.immediate_e_waste": "unknown",
+        "old_device_fate.market_displacement_credit": null,
+        "old_device_fate.next_use": "unknown"
+      },
+      "id": "T23",
+      "inputs": {
+        "old_device_fate.fate": "trade_in_unknown"
+      },
+      "prohibitedInterpretations": [
+        "Assume trade-in means reuse.",
+        "Assume trade-in means formal recycling."
+      ],
+      "releaseCritical": true,
+      "releaseCriticalGroup": "RC10_OLD_DEVICE_FATE",
+      "severityIfFailed": "MAJOR",
+      "title": "Trade-in with unknown downstream fate"
+    },
+    {
+      "assertionIds": [
+        "A-T24-EOL-NULL-NOT-ZERO"
+      ],
+      "expected": {
+        "generic_EOL_CO2e_kg": null,
+        "generic_EOL_status": "EXCLUDED_UNQUANTIFIED"
+      },
+      "id": "T24",
+      "inputs": {
+        "generic_EOL_model_specific_value": null
+      },
+      "prohibitedInterpretations": [
+        "Encode generic EOL as 0 kg CO2e.",
+        "Apply a generic recycling credit."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Generic EOL climate unavailable"
+    },
+    {
+      "assertionIds": [
+        "A-T25-NO-UPSTREAM-DOUBLECOUNT"
+      ],
+      "expected": {
+        "material_cards_numerical_climate_addition": 0,
+        "material_cards_role": "explanatory_only"
+      },
+      "id": "T25",
+      "inputs": {
+        "material_pathway_cards_enabled": true,
+        "product_LCA.production.includes_raw_material_extraction": true
+      },
+      "prohibitedInterpretations": [
+        "Add cobalt mining CO2e to the product production footprint.",
+        "Add gold/copper/lithium mining footprints independently when already inside the LCA boundary."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Material cards when product LCA already contains upstream extraction"
+    },
+    {
+      "assertionIds": [
+        "A-T26-SUBSTITUTION-NOT-DISPLACEMENT"
+      ],
+      "expected": {
+        "market_displacement_credit": null,
+        "purchase_counterfactual": "buy_new"
+      },
+      "id": "T26",
+      "inputs": {
+        "replacement.refurbished.if_unavailable": "buy_new"
+      },
+      "prohibitedInterpretations": [
+        "Award one avoided new phone.",
+        "Award full avoided production footprint."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "User says refurbished purchase substitutes for new in personal decision"
+    },
+    {
+      "assertionIds": [
+        "A-T27-US-0POINT40-SCENARIO",
+        "A-T27-NOT-GLOBAL"
+      ],
+      "expected": {
+        "market_displacement_rate": 0.4,
+        "market_displacement_unit": "new_devices_displaced_per_secondhand_transaction",
+        "primary_attributional_score_modified": false,
+        "scenario_scope": "US_market_specific"
+      },
+      "id": "T27",
+      "inputs": {
+        "consequential_mode": true,
+        "market": "US",
+        "scenario": "US_SECONDHAND_2026"
+      },
+      "prohibitedInterpretations": [
+        "Use 0.40 as Germany-specific.",
+        "Use 0.40 as global default.",
+        "Merge consequential credit into primary score."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Explicit U.S. consequential displacement scenario"
+    },
+    {
+      "assertionIds": [
+        "A-T28-RANGE-PRESERVED"
+      ],
+      "expected": {
+        "remaining_service.expected_years": null,
+        "remaining_service.range_years": [
+          1,
+          3
+        ],
+        "scenario_uncertainty_preserved": true
+      },
+      "id": "T28",
+      "inputs": {
+        "remaining_service.without_repair.expected_years": null,
+        "remaining_service.without_repair.high_years": 3,
+        "remaining_service.without_repair.low_years": 1
+      },
+      "prohibitedInterpretations": [
+        "Silently collapse 1-3 years to 2 years."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "User supplies remaining-life range"
+    },
+    {
+      "assertionIds": [
+        "A-T29-NO-SILENT-CLAMP"
+      ],
+      "expected": {
+        "accepted_value": null,
+        "validation_status": "error"
+      },
+      "id": "T29",
+      "inputs": {
+        "remaining_service.without_repair.expected_years": 30
+      },
+      "prohibitedInterpretations": [
+        "Clamp 30 years to 15 years.",
+        "Treat 15 years as a scientific maximum."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "MAJOR",
+      "title": "Out-of-bounds lifetime input"
+    },
+    {
+      "assertionIds": [
+        "A-T30-NO-GRID-DEFAULT",
+        "A-T30-NO-EXPERT-QUESTION"
+      ],
+      "expected": {
+        "charging_carbon_CO2e_kg": null,
+        "charging_carbon_status": "unknown_or_omitted",
+        "user_expert_parameter_required": false
+      },
+      "id": "T30",
+      "inputs": {
+        "system_context.grid_carbon_intensity_kgCO2e_per_kWh": null
+      },
+      "prohibitedInterpretations": [
+        "Ask ordinary user to provide kg CO2e/kWh.",
+        "Invent a universal grid-carbon value."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Grid carbon intensity unavailable"
+    },
+    {
+      "assertionIds": [
+        "A-T31-IDENTITY-OPTIONAL-FOR-GENERIC"
+      ],
+      "expected": {
+        "comparison_blocked_by_missing_identity": false,
+        "new.production_CO2e_kg": [
+          25,
+          70
+        ],
+        "result_capability": "range_quantitative"
+      },
+      "id": "T31",
+      "inputs": {
+        "adequacy.required_functions_met": true,
+        "adequacy.safe_to_use": true,
+        "current_device.model": null,
+        "remaining_service.without_repair.expected_years": 2,
+        "replacement.type": "new",
+        "security_support.adequate_for_required_use": true
+      },
+      "prohibitedInterpretations": [
+        "Require exact phone model before any calculation is possible."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "MAJOR",
+      "title": "Unknown current-device model does not block generic comparison"
+    },
+    {
+      "assertionIds": [
+        "A-T32-NO-GRADE-TO-LIFETIME",
+        "A-T32-NO-GRADE-TO-FOOTPRINT"
+      ],
+      "expected": {
+        "condition_descriptor_role": "descriptive_only",
+        "inferred_climate_CO2e_kg": null,
+        "inferred_remaining_life_years": null
+      },
+      "id": "T32",
+      "inputs": {
+        "replacement.refurbished.condition": "excellent"
+      },
+      "prohibitedInterpretations": [
+        "Excellent means three years remaining.",
+        "Grade A means lower refurbishment footprint."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Marketplace refurbished grade is descriptive only"
+    },
+    {
+      "assertionIds": [
+        "A-T33-OPERATIONAL-NOT-ADEQUATE"
+      ],
+      "expected": {
+        "derived.adequacy_gate.adequacy_status": "inadequate",
+        "phone_operational_equals_adequate": false
+      },
+      "id": "T33",
+      "inputs": {
+        "adequacy.required_functions_met": false,
+        "adequacy.safe_to_use": true,
+        "phone_turns_on": true
+      },
+      "prohibitedInterpretations": [
+        "If a phone turns on, keeping it necessarily supplies equivalent service."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "MAJOR",
+      "title": "Phone powers on but required functions not met"
+    },
+    {
+      "assertionIds": [
+        "A-T34-PRIMARY-HORIZON-REMAINS-CURRENT-2Y",
+        "A-T34-NO-EARLY-REPLACEMENT-AMORTIZATION"
+      ],
+      "expected": {
+        "H_primary_years": 2,
+        "new_phone_8y_lifetime_used_to_amortize_primary_decision": false
+      },
+      "id": "T34",
+      "inputs": {
+        "adequacy.required_functions_met": true,
+        "adequacy.safe_to_use": true,
+        "remaining_service.without_repair.expected_years": 2,
+        "replacement.new.expected_adequate_service_years": 8,
+        "security_support.adequate_for_required_use": true
+      },
+      "prohibitedInterpretations": [
+        "Divide new production by eight years and compare that annualized number with the existing phone.",
+        "Infer that durable replacement makes premature replacement environmentally favorable."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Long expected new-phone life must not justify early replacement"
+    },
+    {
+      "assertionIds": [
+        "A-T35-MISSING-CLASSES-DISTINCT",
+        "A-T35-NO-SILENT-DEFAULT"
+      ],
+      "expected": {
+        "missing_required_fields": [
+          {
+            "field": "remaining_service.without_repair",
+            "missingClass": "user_situation_fact"
+          },
+          {
+            "field": "repair.model_specific_climate_CO2e_kg",
+            "missingClass": "research_evidence_parameter"
+          }
+        ],
+        "result_capability": "insufficient_information"
+      },
+      "id": "T35",
+      "inputs": {
+        "remaining_service.without_repair.expected_years": null,
+        "repair.model_specific_climate_CO2e_kg": null,
+        "repair.type": "major_board"
+      },
+      "prohibitedInterpretations": [
+        "Describe both missing values simply as generic user input.",
+        "Ask the user to supply a major-board kg CO2e estimate.",
+        "Default either missing value silently."
+      ],
+      "releaseCritical": false,
+      "severityIfFailed": "CRITICAL",
+      "title": "Missing user fact and missing evidence parameter must remain distinguishable"
+    }
+  ],
+  "globalAssertions": [
+    {
+      "assert": "unknown != 0",
+      "id": "A-GLOBAL-UNKNOWN-NOT-ZERO"
+    },
+    {
+      "assert": "unknown != false",
+      "id": "A-GLOBAL-UNKNOWN-NOT-FALSE"
+    },
+    {
+      "assert": "missing_user_situation_fact must never resolve through approved_default",
+      "id": "A-GLOBAL-NO-SITUATIONAL-DEFAULT"
+    },
+    {
+      "assert": "missing_research_parameter may use approved_default only when Research has explicitly approved that fallback",
+      "id": "A-GLOBAL-RESEARCH-FALLBACK"
+    },
+    {
+      "assert": "missing_research_parameter with no approved fallback remains null/unknown",
+      "id": "A-GLOBAL-NO-UNAPPROVED-FALLBACK"
+    },
+    {
+      "assert": "options may only receive definitive comparative rankings when equivalent adequate service is represented",
+      "id": "A-GLOBAL-EQUAL-SERVICE"
+    },
+    {
+      "assert": "historic production of the currently owned device is excluded from the prospective keep decision total",
+      "id": "A-GLOBAL-SUNK-MANUFACTURING"
+    },
+    {
+      "assert": "generic_EOL_CO2e == null with status EXCLUDED_UNQUANTIFIED, not 0",
+      "id": "A-GLOBAL-NO-GENERIC-EOL-ZERO"
+    },
+    {
+      "assert": "generic_recycling_credit == null",
+      "id": "A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT"
+    },
+    {
+      "assert": "qualitative materials/water/people/ecosystem pathways do not numerically modify the climate ranking",
+      "id": "A-GLOBAL-NO-UNIFIED-HARM-SCORE"
+    }
+  ],
+  "implementationRule": {
+    "fail": "Any CRITICAL regression or prohibited inference is observed.",
+    "pass": "All CRITICAL assertions pass and every releaseCriticalChecklist item passes.",
+    "scopeBoundary": "This package validates scientific semantics only; it does not require model-registry expansion or UI redesign.",
+    "uiFreedom": "Question wording and presentation may differ, but factual meaning, branch conditions, unknown semantics, result capability and prohibited inferences must remain equivalent."
+  },
+  "logicAssertions": [
+    {
+      "expression": "safe_to_use == false => feasible_keep_as_is == false",
+      "id": "A-LOGIC-ADEQUACY-001"
+    },
+    {
+      "expression": "required_functions_met == false => adequacy_status == 'inadequate'",
+      "id": "A-LOGIC-ADEQUACY-002"
+    },
+    {
+      "expression": "support_status == 'ended' && support_adequacy == true => replacement_forced == false",
+      "id": "A-LOGIC-ADEQUACY-003"
+    },
+    {
+      "expression": "current_phone_adequate == true && remaining_life == null => H_primary == null",
+      "id": "A-LOGIC-LIFE-001"
+    },
+    {
+      "expression": "device_age must not derive remaining_life",
+      "id": "A-LOGIC-LIFE-002"
+    },
+    {
+      "expression": "repair_type == 'major_board' && model_specific_impact == null => repair_climate == null",
+      "id": "A-LOGIC-REPAIR-001"
+    },
+    {
+      "expression": "repair_service_years < common_service_horizon => ServiceSequence required",
+      "id": "A-LOGIC-REPAIR-002"
+    },
+    {
+      "expression": "arbitrary_refurbished_device && approved_direct_footprint == null => climate_value == null",
+      "id": "A-LOGIC-REFURB-001"
+    },
+    {
+      "expression": "ADEME_REFERENCE selected => value == 7.61 && decomposable == false && second_life_years == 2",
+      "id": "A-LOGIC-REFURB-002"
+    },
+    {
+      "expression": "fate == 'reuse_by_other' => immediate_e_waste == false && market_displacement_credit == null",
+      "id": "A-LOGIC-FATE-001"
+    },
+    {
+      "expression": "fate == 'unknown' => downstream fate derivatives remain unknown",
+      "id": "A-LOGIC-FATE-002"
+    },
+    {
+      "expression": "missing_user_situation_fact => approved_default forbidden",
+      "id": "A-LOGIC-MISSING-001"
+    },
+    {
+      "expression": "missing_research_parameter && approved_fallback_exists => approved_default permitted",
+      "id": "A-LOGIC-MISSING-002"
+    },
+    {
+      "expression": "missing_research_parameter && !approved_fallback_exists => null",
+      "id": "A-LOGIC-MISSING-003"
+    },
+    {
+      "expression": "generic_EOL_CO2e == null && status == 'EXCLUDED_UNQUANTIFIED'",
+      "id": "A-LOGIC-EOL-001"
+    },
+    {
+      "expression": "product_LCA includes upstream materials => material_cards numerical_climate_addition == 0",
+      "id": "A-LOGIC-MATERIALS-001"
+    }
+  ],
+  "package": {
+    "caseCount": 35,
+    "delivery": {
+      "caseCountVerified": 35,
+      "caseIdRange": "T01-T35",
+      "encoding": "UTF-8",
+      "format": "JSON",
+      "sha256OfCanonicalPayloadWithoutDeliveryChecksum": "9bba77a2997b09f96d1e16a19e84fa524cdbe8aa43abe5a559a354729e96d949"
+    },
+    "feasibleEnum": [
+      true,
+      false,
+      "unknown"
+    ],
+    "fullId": "R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0",
+    "packageId": "R&E-V0-SMARTPHONE-INPUT-TESTS",
+    "parentPackages": [
+      "R&E-V0-SMARTPHONE-1.0.0",
+      "R&E-V0-SMARTPHONE-INPUT-MODEL-1.0.0"
+    ],
+    "purpose": "Regression-test the scientific input semantics, unknown handling, adequacy gates, sequence logic, refurbishment accounting boundaries, old-device-fate semantics and prohibited inferences of the V0 smartphone vertical slice.",
+    "releaseRule": {
+      "criticalFailureBlocksAlignment": true,
+      "requiredReleaseCriticalGroups": [
+        "RC01_ADEQUATE_KEEP_GENERIC_NEW",
+        "RC02_UNKNOWN_REMAINING_LIFE",
+        "RC03_UNSAFE_KEEP_REMOVAL",
+        "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
+        "RC05_BATTERY_REPAIR_KNOWN_EXTENSION",
+        "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
+        "RC07_MAJOR_BOARD_UNKNOWN_IMPACT",
+        "RC08_REPAIR_REPLACEMENT_SEQUENCE",
+        "RC09_UNSUPPORTED_REFURB_FOOTPRINT",
+        "RC10_OLD_DEVICE_FATE"
+      ]
+    },
+    "resultCapabilityEnum": [
+      "quantitative",
+      "range_quantitative",
+      "conditional",
+      "qualitative_only",
+      "insufficient_information"
+    ],
+    "status": "IMPLEMENTATION_READY",
+    "targetWorkstream": "V0 — Cloud Prototype",
+    "version": "1.0.0",
+    "workstream": "Research & Evidence"
+  },
+  "prohibitedInterpretations": [
+    {
+      "id": "PI-001",
+      "text": "Device age determines remaining adequate life."
+    },
+    {
+      "id": "PI-002",
+      "text": "Ended software support automatically means unsafe or requires replacement."
+    },
+    {
+      "id": "PI-003",
+      "text": "A phone that powers on is necessarily adequate."
+    },
+    {
+      "id": "PI-004",
+      "text": "Repair is always environmentally preferable."
+    },
+    {
+      "id": "PI-005",
+      "text": "Refurbished is always environmentally preferable."
+    },
+    {
+      "id": "PI-006",
+      "text": "New is always environmentally worst once the current phone is genuinely inadequate."
+    },
+    {
+      "id": "PI-007",
+      "text": "Formal recycling is environmentally equivalent to continued use."
+    },
+    {
+      "id": "PI-008",
+      "text": "Giving or selling an old phone means exactly one new phone is avoided."
+    },
+    {
+      "id": "PI-009",
+      "text": "A second-hand transaction has 1:1 production displacement."
+    },
+    {
+      "id": "PI-010",
+      "text": "Missing impact values are zero."
+    },
+    {
+      "id": "PI-011",
+      "text": "The 25-70 kg CO2e production bracket is a probability distribution."
+    },
+    {
+      "id": "PI-012",
+      "text": "40 kg CO2e is the average smartphone production footprint."
+    },
+    {
+      "id": "PI-013",
+      "text": "ADEME 7.61 kg CO2e is a universal refurbished-phone footprint."
+    },
+    {
+      "id": "PI-014",
+      "text": "Historic manufacturing of the already-owned phone is a new burden caused by keeping it."
+    },
+    {
+      "id": "PI-015",
+      "text": "Annualized historic embodied emissions may be used as the primary keep-versus-replace ranking."
+    },
+    {
+      "id": "PI-016",
+      "text": "kg Sb-equivalent means kilograms of material mined."
+    },
+    {
+      "id": "PI-017",
+      "text": "m3-equivalent water means literal drinking-water volume."
+    },
+    {
+      "id": "PI-018",
+      "text": "An individual device purchase can be assigned identifiable human or ecosystem victims."
+    },
+    {
+      "id": "PI-019",
+      "text": "Material-pathway emissions may be added on top of a product LCA that already includes upstream extraction and processing."
+    },
+    {
+      "id": "PI-020",
+      "text": "A marketplace refurbished condition grade directly establishes remaining service life or climate impact."
+    }
+  ],
+  "releaseCriticalChecklist": [
+    {
+      "cases": [
+        "T01"
+      ],
+      "id": "RC01_ADEQUATE_KEEP_GENERIC_NEW",
+      "passCondition": "Adequate current phone uses user-estimated remaining service horizon and generic approved new-phone ranges."
+    },
+    {
+      "cases": [
+        "T02"
+      ],
+      "id": "RC02_UNKNOWN_REMAINING_LIFE",
+      "passCondition": "Unknown remaining service never becomes a hidden three-year default."
+    },
+    {
+      "cases": [
+        "T04"
+      ],
+      "id": "RC03_UNSAFE_KEEP_REMOVAL",
+      "passCondition": "Unsafe keep-as-is option is infeasible regardless of environmental burden."
+    },
+    {
+      "cases": [
+        "T06",
+        "T07"
+      ],
+      "id": "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
+      "passCondition": "Support expiry is an adequacy input, not an automatic replacement rule."
+    },
+    {
+      "cases": [
+        "T08"
+      ],
+      "id": "RC05_BATTERY_REPAIR_KNOWN_EXTENSION",
+      "passCondition": "Known battery repair uses provisional 0.3-0.7 kg CO2e range and explicit service extension."
+    },
+    {
+      "cases": [
+        "T09"
+      ],
+      "id": "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
+      "passCondition": "Unknown post-repair service remains unknown and prevents fabricated definitive ranking."
+    },
+    {
+      "cases": [
+        "T11"
+      ],
+      "id": "RC07_MAJOR_BOARD_UNKNOWN_IMPACT",
+      "passCondition": "No generic major-board impact is invented."
+    },
+    {
+      "cases": [
+        "T13",
+        "T14"
+      ],
+      "id": "RC08_REPAIR_REPLACEMENT_SEQUENCE",
+      "passCondition": "Short-lived repair paths include foreseeable subsequent acquisition or return insufficient_information."
+    },
+    {
+      "cases": [
+        "T15",
+        "T16"
+      ],
+      "id": "RC09_UNSUPPORTED_REFURB_FOOTPRINT",
+      "passCondition": "Arbitrary refurbished phone receives no invented footprint; ADEME reference remains opaque and source-specific."
+    },
+    {
+      "cases": [
+        "T19",
+        "T20",
+        "T21",
+        "T22",
+        "T23"
+      ],
+      "id": "RC10_OLD_DEVICE_FATE",
+      "passCondition": "Every old-device-fate branch preserves correct e-waste, mass, unknown and displacement semantics."
+    }
+  ],
+  "severityDefinitions": {
+    "CRITICAL": [
+      "silent user-situation default",
+      "unsafe or otherwise infeasible keep option retained",
+      "truncated repair/refurbishment service sequence",
+      "1:1 secondary-market displacement credit inferred",
+      "generic major-board climate estimate invented",
+      "ADEME 7.61 kg CO2e treated as universal or decomposed without evidence",
+      "missing impact converted to zero",
+      "upstream material emissions double-counted"
+    ],
+    "MAJOR": [
+      "device age used to infer remaining adequate life",
+      "software/security support expiry used as automatic replacement trigger",
+      "old-device fate inferred without evidence",
+      "approved exact model override ignored"
+    ],
+    "MINOR": [
+      "provenance/status label omitted while numerical semantics remain correct",
+      "optional contextual information absent without changing decision semantics"
+    ]
+  }
+}

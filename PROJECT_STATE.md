@@ -42,4 +42,4 @@ This is an implemented application, not a pre-build or planning-only project. Th
 
 ## Migration status
 
-The canonical governance and project-state scaffold was established in LOCAL-BOOTSTRAP-001. Cloud specialist histories and approved source packages have not yet been completely imported. The absence of a V17 source snapshot, release identifier, historical validation records, and expected specialist packages prevents verification that the current commit is the exact accepted V17 source; therefore no V17 baseline tag has been created.
+The canonical governance and project-state scaffold was established in LOCAL-BOOTSTRAP-001. LOCAL-SOURCE-INTEGRATION-001 imported the approved input-test package `R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0.json` verbatim and integrated its scoped input and regression semantics. Cloud specialist histories and remaining approved packages have not yet been completely imported. The absence of a V17 source snapshot, release identifier, historical validation records, and remaining expected specialist packages prevents verification that the current commit is the exact accepted V17 source; therefore no V17 baseline tag has been created.
