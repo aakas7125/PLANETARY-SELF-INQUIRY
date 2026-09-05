@@ -10,6 +10,14 @@
 
 This records the validated V17 smartphone V0 presentation revision: four signposted stages, progressive disclosure, branch-relevant public inputs, and a service-timeline explanation. It preserves the existing decision model, evidence boundaries, AP provenance, unknown handling, and user choice.
 
+## Recoverable archive
+
+The complete V17 static source, package lock, validation suites, QA harness, and hosting configuration are preserved as a split, base64-encoded gzip archive in [source/RECOVER.md](source/RECOVER.md).
+
+Archive SHA-256: `0d96fd751a8d000716c8a00e46408e1d4881e3438cd07d5cd121aa51e24196d3`
+
+The recovery instructions verify the archive before extraction. This supports reproducibility without creating a parallel active implementation line.
+
 ## Reproduction inventory
 
 | Path | SHA-256 |
