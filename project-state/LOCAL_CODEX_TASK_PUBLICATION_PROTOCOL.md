@@ -70,3 +70,15 @@ A task becoming `IN_PROGRESS` does not authorize scope expansion. A task is not 
 Local Codex must not treat GitHub Issues as permission to change scientific semantics, AP attribution, product scope, accepted defaults, contracts, or canonical behavior unless the task explicitly authorizes that change and the required HQ/owner approvals are present.
 
 When an issue is `BLOCKED`, `VERIFIED_FOR_HQ_REVIEW`, `ACCEPTED`, `REJECTED`, `SUPERSEDED`, or `CANCELLED`, it must not be executed again unless HQ publishes a new task or explicitly changes its status with the required authority.
+
+## HQ operating rule
+
+After each meaningful HQ response or work chunk, HQ must end in exactly one of these states:
+
+1. Authorize or publish a bounded task for Local Codex through GitHub when local execution is the correct next step.
+2. Issue or publish a bounded instruction or handoff through GitHub to Research & Evidence or AP Framework & Corpus when specialist work is the correct next step.
+3. Declare that neither route is currently possible, state the exact blocker, identify whether owner intervention is genuinely required, and ask the owner only for that intervention.
+
+Routine HQ-owned closure actions—receiving-state updates, governance documentation, task publication, acceptance or rejection records, and push authorization within standing rules—should be completed in the same work chunk where possible before selecting the ending state.
+
+HQ must not stop at a prose recommendation when it already has enough authority and information to publish the next bounded GitHub action. HQ must not create artificial work merely to satisfy this rule.
