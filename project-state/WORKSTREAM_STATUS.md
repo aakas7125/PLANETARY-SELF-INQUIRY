@@ -1,16 +1,12 @@
 # Workstream Status
 
-Last updated: 2026-09-05
+Last updated: 2026-09-06
 
 | Workstream | Status | Repository state |
 | --- | --- | --- |
-| Canonical local governance | Bootstrapped | Constitution, project state, decision log, limitations, and queue created |
-| Existing application | Present | React/TypeScript/Vite source remains in its working `src/` architecture |
-| Automated deterministic tests | Present, locally passing | 33 Vitest tests under `src/tests/` |
-| Specialist contract migration | Pending source import | Expected historical packages are absent; contract files remain pending |
-| Evidence registry migration | Pending source import | Empty canonical registries created; no claims or sources reconstructed |
-| V17 baseline identity | Not verified | No exact V17 snapshot, identifier, or validation bundle available locally |
-| Cloud history migration | In progress | Cloud specialist histories have not been represented as completely imported |
-| Antigravity evaluation | Intake audit completed | Candidate clone is preserved separately at `D:\My Love\PLANETARY-SELF-INQUIRY-ANTIGRAVITY`; no implementation imported |
-
-Repository documents and imported verbatim source packages will become the durable project record. Until specialist histories are imported and reconciled, their absence must remain explicit.
+| Canonical local governance | Active | Constitution, owner control and publication protocol present |
+| Research contract migration | Proposed for HQ review | Accepted Research packages mapped to empirical, secondary and regression proposals on Issue #12 branch |
+| Evidence registry migration | Proposed for HQ review | Six conditional pathway claims and twelve package-only source records indexed |
+| AP contract migration | Proposed for HQ review | Separate AP derivation branch/PR; no cross-domain change |
+| V17 baseline identity | Not verified | Exact V17 source and validation evidence remain pending |
+| Antigravity evaluation | Intake completed | Candidate remains separate; no app import |

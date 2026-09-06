@@ -27,3 +27,24 @@ Use this log to record conflicts and reconciliations between verbatim source pac
 - Interim handling: AP, empirical, secondary-pathway, secondary-test, and V17-dependent contracts remain pending. Candidate code is not a substitute source.
 
 None discovered among imported packages: only one approved package is available. Absence of remaining packages must not be mistaken for agreement.
+
+## AP-DER-010 — Proposed derivation, 2026-09-06
+
+- Authority: HQ task [Issue #10](https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/issues/10); specialist verification and conditions in [Issue #9](https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/issues/9).
+- Source pins: AP-V0-INTERACTION-0.2.0, AP-CORPUS-V0.3.0 and AP_V0_INVARIANTS.md at received commit da29b79d373c90d5af6cc886253f2a763914f2d1. Source files and historical receiving review are unchanged.
+- Affected output: contracts/AP_INTERACTION_V0.md, proposed only; its section 16 maps all 20 candidate invariants to the source clauses. No accepted AP integration record is created.
+- Reconciliation: raw-answer authority and unclear handling are compatible with USER_INPUT_MODEL_V0.md. APQ5's imagined one-year scenario is not a research/service-life default. Exact Q6 consider_used_or_refurbished wording does not collapse distinct empirical pathways. Empirical truth remains with Research & Evidence. No conflicting accepted AP rule exists in the placeholder.
+- Unresolved licensing: substantial public/commercial Framework reproduction requires project-level licensing/legal resolution. Narrow project-authored paraphrase/inquiry and official links remain the specialist display boundary; no legal clearance is inferred.
+- Unresolved attribution: AP-OTH-001@1.1 retains approved claim/P3 transcript support, unresolved exact primary-video lineage, post-evidence-only use and AI-summary exclusion. No provenance upgrade is inferred.
+- Interim handling: proposed contract only, no application change or accepted regression implementation. Historical da29b79 contract promotion remains unaccepted by implication; the receiving-state review is retained.
+- Acceptance evidence: none for canonical integration. Issue #10 authorizes derivation and branch/PR publication only; HQ must separately accept, reject or request changes.
+- Index reconciliation: the AP source is physically present and specialist-verified under Issue #9, so physical absence is no longer the AP blocker. Canonical integration and the stated licensing/provenance conditions remain pending. Earlier INT-001 absence statements are historical at its recorded date, not a claim of current absence.
+
+## RE-DER-012 — Proposed empirical derivation, 2026-09-06
+
+- Authority: HQ task Issue #12; accepted Research source merge `024a95392d2e1555a3c9b598fdc291bd341c3d6b` (PR #3).
+- Sources: core 0.3.0, used/refurb 1.0.0, secondary tests 1.0.0 and recovery manifest. Both terminal-byte serializations are preserved; Git raw bytes are repository-verifiable, historical terminal-LF identity remains unresolved.
+- Affected proposal: empirical, secondary and regression contracts plus claims/sources and migration indexes. Immutable packages remain unchanged.
+- Reconciliation: input-model raw facts, unknown/default behavior and service sequence govern user inputs. Equal horizon, direct/cut-off boundary, range/status semantics, source-specific ADEME handling and unknown secondary burdens are compatible. Used/refurb package parent naming (`R&E-V0-SMARTPHONE-1.0.0`) is retained as source metadata and does not silently supersede core 0.3.0.
+- Unresolved: depreciation allocation function; individual market displacement; terminal-byte historical identity. SEC-10's source-specific scenario must retain boundary/service labels; no generic extension is inferred.
+- Acceptance: proposed only. HQ must accept this branch/PR separately; no application, AP or V17 behavior is changed.
