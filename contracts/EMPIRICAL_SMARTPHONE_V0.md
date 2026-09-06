@@ -1,6 +1,6 @@
 # Empirical Smartphone V0 Contract
 
-Status: **Proposed derivation for HQ review; not accepted canonical truth**
+Status: **Accepted canonical contract**
 
 Task: `HQ-LC-2026-09-06-001` (Issue #12). Sources accepted through PR #3 merge `024a95392d2e1555a3c9b598fdc291bd341c3d6b`; dual-serialization provenance is recorded in `provenance/source-packages/RECOVERY_MANIFEST_2026-09-05.md`.
 
