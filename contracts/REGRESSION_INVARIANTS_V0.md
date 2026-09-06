@@ -1,6 +1,6 @@
 # Regression Invariants V0 Contract
 
-Status: **Proposed derivation for HQ review: input semantics plus accepted secondary-pathway contract**
+Status: **Accepted canonical regression specification; executable application coverage pending**
 
 ## Imported authority
 
