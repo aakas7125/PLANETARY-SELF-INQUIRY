@@ -39,3 +39,12 @@ None discovered among imported packages: only one approved package is available.
 - Interim handling: proposed contract only, no application change or accepted regression implementation. Historical da29b79 contract promotion remains unaccepted by implication; the receiving-state review is retained.
 - Acceptance evidence: none for canonical integration. Issue #10 authorizes derivation and branch/PR publication only; HQ must separately accept, reject or request changes.
 - Index reconciliation: the AP source is physically present and specialist-verified under Issue #9, so physical absence is no longer the AP blocker. Canonical integration and the stated licensing/provenance conditions remain pending. Earlier INT-001 absence statements are historical at its recorded date, not a claim of current absence.
+
+## RE-DER-012 — Proposed empirical derivation, 2026-09-06
+
+- Authority: HQ task Issue #12; accepted Research source merge `024a95392d2e1555a3c9b598fdc291bd341c3d6b` (PR #3).
+- Sources: core 0.3.0, used/refurb 1.0.0, secondary tests 1.0.0 and recovery manifest. Both terminal-byte serializations are preserved; Git raw bytes are repository-verifiable, historical terminal-LF identity remains unresolved.
+- Affected proposal: empirical, secondary and regression contracts plus claims/sources and migration indexes. Immutable packages remain unchanged.
+- Reconciliation: input-model raw facts, unknown/default behavior and service sequence govern user inputs. Equal horizon, direct/cut-off boundary, range/status semantics, source-specific ADEME handling and unknown secondary burdens are compatible. Used/refurb package parent naming (`R&E-V0-SMARTPHONE-1.0.0`) is retained as source metadata and does not silently supersede core 0.3.0.
+- Unresolved: depreciation allocation function; individual market displacement; terminal-byte historical identity. SEC-10's source-specific scenario must retain boundary/service labels; no generic extension is inferred.
+- Acceptance: proposed only. HQ must accept this branch/PR separately; no application, AP or V17 behavior is changed.
