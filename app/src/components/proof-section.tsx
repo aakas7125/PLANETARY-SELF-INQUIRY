@@ -34,14 +34,14 @@ export function ProofSection() {
     {
       label: "Social instability",
       value: `${Math.round(result.stabilityIndex)}`,
-      hint: "the people othered first become the politics the four inherit",
+      hint: "those most exposed first become the politics the four inherit",
     },
   ];
 
   return (
     <section id="proof" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
       <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        The theorem
+        Follow the dependencies
       </p>
       <h2 className="mt-3 max-w-3xl font-display text-3xl sm:text-5xl">
         {names[0]}, {names[1]}, {names[2]}, {names[3]} are not a separate species.

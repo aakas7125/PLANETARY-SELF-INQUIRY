@@ -27,7 +27,7 @@ export const canonPapers: Paper[] = [
     url: "https://doi.org/10.5194/essd-18-3889-2026",
     source: "canon",
     topics: ["warming", "budget", "anthropogenic"],
-    why: "This is the closest living successor to the IPCC numbers. It says the fever is human. Your four do not live in a natural fluctuation; they live inside an attributed trend.",
+    why: "This is the closest living successor to the IPCC numbers: the fever is attributed as human. The four live inside that trend, not beside it.",
   },
   {
     id: "boundaries-2023",
@@ -42,7 +42,7 @@ export const canonPapers: Paper[] = [
     url: "https://www.science.org/doi/10.1126/sciadv.adh2458",
     source: "canon",
     topics: ["boundaries", "biosphere", "freshwater"],
-    why: "Climate is one boundary among several your household presses at once: land, water, nitrogen, the living fabric. A carbon-only fence around the four is still a fence on a failing system.",
+    why: "Climate is one boundary among several a household can press at once: land, water, nitrogen, the living fabric. A carbon-only fence is still a fence on a stressed system.",
   },
   {
     id: "poore-2018",
@@ -56,7 +56,7 @@ export const canonPapers: Paper[] = [
     url: "https://www.science.org/doi/10.1126/science.aaq0216",
     source: "canon",
     topics: ["food", "land", "consumption"],
-    why: "The plate is how a family recruits forests, rivers, and animals into its identity. What looks like care for four is often the consumption of the world that feeds them.",
+    why: "The plate reaches forests, rivers, and animals whether or not they sit at the table. What looks like care for four still travels through the world that feeds them.",
   },
   {
     id: "chancel-2022",
@@ -70,7 +70,7 @@ export const canonPapers: Paper[] = [
     url: "https://www.nature.com/articles/s41893-022-00955-z",
     source: "canon",
     topics: ["inequality", "consumption"],
-    why: "If your four live in the emitting class, protecting them by consuming more is how the poorest — and then the four — lose a livable mean.",
+    why: "If the four live in a high-emitting class, more consumption is not a private shelter. The poorest often pay first — and then the mean the four need also moves.",
   },
   {
     id: "mora-2017",
@@ -84,7 +84,7 @@ export const canonPapers: Paper[] = [
     url: "https://www.nature.com/articles/nclimate3322",
     source: "canon",
     topics: ["heat", "health"],
-    why: "The four cannot be moved into a climate that no longer exists. Deadly heat is the most bodily proof that walls are not weather.",
+    why: "The four cannot be moved into a climate that no longer exists. Deadly heat is bodily evidence that walls are not weather.",
   },
   {
     id: "lenton-2023",
@@ -97,7 +97,7 @@ export const canonPapers: Paper[] = [
     url: "https://global-tipping-points.org/",
     source: "canon",
     topics: ["tipping", "systems"],
-    why: "A family budget assumes continuity. Tipping points are the scientific name for a world that stops being continuous — the world the four must inherit.",
+    why: "A family budget assumes continuity. Tipping points name a world that can stop being continuous — the world the four would inherit.",
   },
   {
     id: "ivanova-2020",
@@ -111,7 +111,7 @@ export const canonPapers: Paper[] = [
     url: "https://iopscience.iop.org/article/10.1088/1748-9326/ab8589",
     source: "canon",
     topics: ["consumption", "mitigation"],
-    why: "The ledger on this page is not a vibe. The large items — flying, meat, cars, household energy — are the ones the literature keeps finding.",
+    why: "The large items on this ledger — flying, meat, cars, household energy — are the ones this literature keeps finding. That is evidence about leverage, not a verdict on motive.",
   },
   {
     id: "rockstrom-2026",
@@ -124,7 +124,7 @@ export const canonPapers: Paper[] = [
     url: "https://agupubs.onlinelibrary.wiley.com/journal/23284277",
     source: "canon",
     topics: ["anthropocene", "warming"],
-    why: "Naming the epoch is naming the agent. The Anthropocene is the century your four will not get to opt out of.",
+    why: "Naming the epoch is naming the agent. The Anthropocene is a century the four do not get to opt out of.",
   },
   {
     id: "ipcc-wg2",
@@ -137,7 +137,7 @@ export const canonPapers: Paper[] = [
     url: "https://www.ipcc.ch/report/ar6/wg2/",
     source: "canon",
     topics: ["impacts", "vulnerability"],
-    why: "Impacts are not evenly paid. The people a household others pay first. Limits to adaptation are the scientific name for the failure of private shelter.",
+    why: "Impacts are not evenly paid. Those with least shelter often pay first. Limits to adaptation are a scientific name for how far private shelter can go.",
   },
   {
     id: "gcb",
@@ -150,7 +150,7 @@ export const canonPapers: Paper[] = [
     url: "https://globalcarbonbudget.org/",
     source: "canon",
     topics: ["carbon", "budget"],
-    why: "A budget is a moral document. Every tonne the four spend is a tonne the young of the four cannot spend on remaining below thresholds.",
+    why: "A remaining carbon budget is a shared account. Tonnes spent now are tonnes unavailable later — including to the young among the four.",
   },
 ];
 
@@ -169,10 +169,10 @@ export function whyFromText(title: string, abstract: string): string {
     return "The living world is not scenery around a family. It is the farm, the pollinator, the disease regulator, the rain.";
   }
   if (t.includes("emission") || t.includes("carbon") || t.includes("methane") || t.includes("budget")) {
-    return "Emissions accounting is the physical name of consumption. The hole in the heart has a unit: tCO2e.";
+    return "Emissions accounting is a physical name for consumption. tCO₂e is a unit of burden, not a diagnosis of the heart.";
   }
   if (t.includes("inequal") || t.includes("justice") || t.includes("poverty") || t.includes("vulnerab")) {
-    return "The first victims are the people othered by a comfortable household. Their injury is the preview of the four's century.";
+    return "Impacts often land first on those with least shelter. That injury is also a preview of the century the four would inherit.";
   }
   if (t.includes("health") || t.includes("disease") || t.includes("mortality") || t.includes("vector")) {
     return "Bodies do not live in GDP. They live in air, heat, and pathogens that warming redistributes.";

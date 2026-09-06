@@ -94,8 +94,9 @@ export function ResearchSection() {
           <p className="mt-4 max-w-2xl text-muted-foreground">
             OpenAlex and Crossref are queried for peer-reviewed work on anthropogenic climate
             change and Earth-system impacts, then set beside a canon (IPCC lineage, planetary
-            boundaries, food, inequality, heat). Each abstract is asked the only question that
-            matters here: what does this do to a family that thought it could secede.
+            boundaries, food, inequality, heat). Each abstract can be read two ways: what the
+            paper supports, and what question it might raise for a household that hoped to
+            secede. The second reading is inquiry, not a finding.
           </p>
         </div>
         <Button
@@ -150,7 +151,7 @@ export function ResearchSection() {
               <p className="mt-3 text-sm text-foreground">{paper.abstract}</p>
             ) : null}
             <p className="mt-4 border-l-2 border-primary pl-4 text-sm text-muted-foreground">
-              For the four: {paper.why}
+              Notice: {paper.why}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <Button
@@ -183,7 +184,7 @@ export function ResearchSection() {
               ) : null}
             </div>
             {readings[paper.id] ? (
-              <div className="mt-4 rounded-2xl bg-paper px-4 py-4 text-sm leading-relaxed text-foreground">
+              <div className="mt-4 whitespace-pre-line rounded-2xl bg-paper px-4 py-4 text-sm leading-relaxed text-foreground">
                 {readings[paper.id]}
               </div>
             ) : null}

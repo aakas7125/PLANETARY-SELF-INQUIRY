@@ -30,7 +30,7 @@ export const frameworkBlocks: FrameworkBlock[] = [
     id: "otherness",
     kicker: "II. Otherness",
     title: "The four are still a fence",
-    body: "Love of four people is not yet the end of otherness. It is often otherness made tender: mine versus not-mine. The partner, the child, the parent become an extended body. Everyone beyond the fence — the farm worker, the future stranger, the animal, the river — can be used to keep the fence comfortable. The science of a shared atmosphere is the proof that this fence is a fiction. The teaching is that the fence was always the wound.",
+    body: "Love of four people is not yet the end of otherness. In this teaching it is often otherness made tender: mine versus not-mine. The partner, the child, the parent become an extended body. Everyone beyond the fence — the farm worker, the future stranger, the animal, the river — can be used to keep the fence comfortable. Science can investigate whether a shared atmosphere, hydrology, and food web respect that fence. The teaching asks whether the fence was always the wound.",
     quote:
       "The ego… manufactures this thought not out of malice but as the expression of its most fundamental operation: the construction of a self that stands apart from its predicament.",
     source: {
@@ -101,6 +101,6 @@ export const frameworkBlocks: FrameworkBlock[] = [
 ];
 
 export const frameworkNotes = [
-  "The AP Framework is the philosophical architecture published by Acharya Prashant at acharyaprashant.org/en/ap-framework. This page does not replace it. It sets its diagnosis of ego, objects, desire, fear, and otherness beside the physical science of a shared Earth system.",
+  "The AP Framework is the philosophical architecture published by Acharya Prashant at acharyaprashant.org/en/ap-framework. This page does not replace it. It sets that reading of ego, objects, desire, fear, and otherness beside the physical science of a shared Earth system. Science does not prove the metaphysics; the framework does not rewrite the measurements.",
   "Quotations are from Acharya Prashant’s public essays on climate and from the AP Framework lexicon (ego, otherness, greed/fear as desire’s forms, horizontal vs vertical axes, Change = Seeing + Intent, compassion vs mercy). Read the source essays in full.",
 ];

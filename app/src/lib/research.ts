@@ -193,16 +193,24 @@ export const interpretPaper = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Reading is unavailable in this environment." };
     }
 
-    const prompt = `You are reading a climate-science paper through Acharya Prashant's AP Framework (ego as incomplete "I"; greed and fear as desire and its defence; otherness as mine vs not-mine; consumption of man, objects, and nature; climate as symptom of inner hollowness; Change = Seeing + Intent).
+    const prompt = `You are helping a reader inspect a climate-science paper beside Planetary Self-Inquiry.
+
+Keep two layers strictly separate:
+- Empirical: only what the paper/abstract actually supports.
+- AP / self-inquiry: an optional philosophical question. Never a diagnosis of the reader.
 
 Paper: "${data.title}" (${data.venue}, ${data.year})
 Abstract: ${data.abstract || "(no abstract)"}
 
-Write exactly two short paragraphs (120-180 words total):
-1) What the paper actually shows, in plain language, as physical science.
-2) How this finding lands on a household that wants to protect "just four people" — name greed, fear, or otherness only if they are the honest mechanism, not as decoration.
+Write exactly two short paragraphs (120-180 words total). Label them exactly as follows.
 
-No bullet points. No hype. No policy slogans. Do not invent results not in the abstract.`;
+Empirical reading:
+Explain only what the paper/abstract actually supports, in plain language. Do not import AP terminology (ego, greed, fear, otherness, incompleteness, "mine") into the scientific result. Do not invent findings not in the abstract.
+
+AP lens:
+Ask what philosophical question the result might raise about the felt boundary between "mine" and the people or systems carrying these consequences. Do not say greed, fear, or otherness is the reader's honest mechanism. Do not infer the reader's motives. Make clear this is inquiry, not part of the paper's findings. The reader may answer no, practical necessity, unclear, or something else.
+
+No bullet points. No hype. No policy slogans.`;
 
     try {
       const res = await fetch("https://api.x.ai/v1/chat/completions", {

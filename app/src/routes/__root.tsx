@@ -14,7 +14,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "If you want to protect just four people, you have to protect the whole planet. A living ledger of consumption, otherness, and anthropogenic climate science, read through Acharya Prashant’s AP Framework.",
+          "If you want to protect just four people, you have to protect the whole planet. A living ledger of household consumption and climate evidence, with Acharya Prashant’s AP Framework offered as a lens for inquiry — not as a theorem already proved.",
       },
       { name: "theme-color", content: "#f2eee4" },
     ],

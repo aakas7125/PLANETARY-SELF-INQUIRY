@@ -76,7 +76,7 @@ export function CalculatorSection() {
         <p className="mt-4 max-w-2xl text-muted-foreground">
           Numbers are order-of-magnitude, from published emission factors (Poore & Nemecek;
           household consumption reviews; national grid intensities). Not a kitchen audit — a
-          seeing-device. Move the sliders. Watch the circle fail.
+          seeing-device. Move the sliders. Watch how far the circle actually reaches.
         </p>
 
         <div className="mt-10 grid items-start gap-8 lg:grid-cols-12">
@@ -170,8 +170,8 @@ export function CalculatorSection() {
                   aria-label="Electric vehicle share"
                 />
                 <p className="text-xs text-muted-foreground">
-                  An electric kilometre still carries the local grid. Greed in a quieter engine is
-                  still greed.
+                  An electric kilometre still carries the local grid. Quieter is not the same as
+                  disconnected.
                 </p>
               </div>
 
@@ -328,16 +328,16 @@ export function CalculatorSection() {
                 </div>
                 <dl className="mt-4 space-y-3 text-sm">
                   <div>
-                    <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Greed</dt>
-                    <dd className="mt-1 text-foreground">{s.greed}</dd>
+                    <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Inquiry</dt>
+                    <dd className="mt-1 text-foreground">{s.inquiry}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Fear</dt>
-                    <dd className="mt-1 text-foreground">{s.fear}</dd>
+                    <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">AP lens</dt>
+                    <dd className="mt-1 text-foreground">{s.lens}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Otherness</dt>
-                    <dd className="mt-1 text-foreground">{s.otherness}</dd>
+                    <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Notice</dt>
+                    <dd className="mt-1 text-foreground">{s.notice}</dd>
                   </div>
                 </dl>
               </article>
@@ -346,7 +346,7 @@ export function CalculatorSection() {
 
         <div className="mt-6 rounded-3xl bg-primary px-5 py-6 text-primary-foreground sm:px-8">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary-foreground/70">
-            Seeing
+            Notice
           </p>
           <div className="mt-3 space-y-3 text-sm sm:text-base">
             {result.seeing.map((line) => (

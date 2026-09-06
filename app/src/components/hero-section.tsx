@@ -8,16 +8,15 @@ export function HeroSection() {
   return (
     <section id="top" className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16">
       <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        A living ledger of otherness
+        A living ledger
       </p>
       <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[1.08] text-foreground sm:text-6xl">
         If you want to protect just four people, you have to protect the whole planet.
       </h1>
       <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        There is no private climate. Greed, fear, and the feeling of “mine versus other”
-        send a household out to consume — man, objects, nature — and the same atmosphere
-        returns the bill to the four you meant to save. This page reads recent climate
-        science, sets it beside{" "}
+        There is no private climate. This page investigates whether the people you call
+        “mine” can in fact be protected independently of the ecological and human systems
+        you call “other.” Science traces the dependencies.{" "}
         <a
           className="text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary"
           href="https://acharyaprashant.org/en/ap-framework"
@@ -25,8 +24,9 @@ export function HeroSection() {
           rel="noreferrer"
         >
           Acharya Prashant’s AP Framework
-        </a>
-        , and calculates the contradiction.
+        </a>{" "}
+        is a lens for self-inquiry — not a verdict on your motives, and not a theorem
+        already proved.
       </p>
 
       <div className="mt-10 max-w-3xl rounded-3xl bg-card p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)] sm:p-6">
@@ -47,8 +47,7 @@ export function HeroSection() {
           ))}
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
-          The circle is already drawn. The science below is what happens to everyone
-          inside it when the world outside is treated as other.
+          Name them. Then follow how far the systems that keep them alive actually reach.
         </p>
       </div>
 

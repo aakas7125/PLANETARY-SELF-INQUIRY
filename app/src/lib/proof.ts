@@ -11,7 +11,7 @@ export type ProofLink = {
 };
 
 export const proofLead =
-  "The ego draws a circle around four bodies and calls it safety. Earth-system science is the demonstration that the circle is drawn on a commons. Heat, carbon, grain, water, smoke, mosquitoes, prices, and unrest do not present passports at the gate.";
+  "Can four really be protected alone? Heat, carbon, grain, water, smoke, mosquitoes, prices, and unrest do not present passports at the gate. What follows is evidence assembled to test the claim — not a theorem already closed.";
 
 export const proofLinks: ProofLink[] = [
   {
@@ -41,7 +41,7 @@ export const proofLinks: ProofLink[] = [
     n: "03",
     title: "The plate is a supply chain",
     claim: "You cannot grow a supermarket behind a compound wall.",
-    body: "Grain, edible oils, fertiliser, and animal feed are telecoupled. A drought in one breadbasket moves through prices into every kitchen. Heat and groundwater collapse hit farm workers first — the people othered by a diet — and then they hit the four as cost, quality, and scarcity.",
+    body: "Grain, edible oils, fertiliser, and animal feed are telecoupled. A drought in one breadbasket moves through prices into every kitchen. Heat and groundwater collapse often hit farm workers first, then reach the four as cost, quality, and scarcity.",
     number: "3.3 t",
     numberLabel: "typical high-meat diet, tCO₂e per person per year",
     citation: "Poore & Nemecek, Science, 2018 — food-system environmental impacts",
@@ -96,7 +96,7 @@ export const proofLinks: ProofLink[] = [
     n: "08",
     title: "Unrest comes home",
     claim: "Food shock, heat, and displacement do not stay in the news.",
-    body: "The people a comfortable household others — the farmer, the migrant, the coastal labourer — are the first climate casualties. Their instability becomes food prices, strained cities, and politics of fear. A family cannot secede from the century. To want four people safe in a failing commons is to want a contradiction.",
+    body: "Farmers, migrants, and coastal labour are often first in line for climate damage. Their instability becomes food prices, strained cities, and politics. A family cannot secede from the century. Whether four people can be kept safe in a failing commons is the claim being tested.",
     number: "10% / 50%",
     numberLabel: "richest tenth produce about half of consumption emissions; poorest half about a tenth",
     citation: "Chancel, Nature Sustainability, 2022 — global carbon inequality",
@@ -105,4 +105,4 @@ export const proofLinks: ProofLink[] = [
 ];
 
 export const proofClose =
-  "Hence the theorem, which is only seeing: if you actually want the four to eat, sleep, and grow old, you are already committed to the habitability of the whole. Otherness is not merely unjust. It is a failed security strategy.";
+  "If you actually want the four to eat, sleep, and grow old, the question that remains is whether that can be done without the habitability of the whole. That is the claim under investigation — not a verdict on your character, and not a theorem already proved.";

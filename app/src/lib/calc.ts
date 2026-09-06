@@ -56,9 +56,9 @@ export type Slice = {
   id: string;
   label: string;
   t: number;
-  greed: string;
-  fear: string;
-  otherness: string;
+  inquiry: string;
+  lens: string;
+  notice: string;
 };
 
 export type HouseholdResult = {
@@ -110,55 +110,57 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
       id: "diet",
       label: "Food",
       t: dietT,
-      greed: "Taste, protein myth, and the plate as status.",
-      fear: "The fear of not-enough body, not-enough feast, not-enough care.",
-      otherness:
-        "The animal, the farm worker, the river drawn for feed — none of them sit at your table, so they do not count as kin.",
+      inquiry:
+        "Beyond calories, what is this plate meant to give the four — nourishment, taste, care, habit, or something else?",
+      lens: "An AP lens could ask whether wanting, comparison, or identity is involved here. Your answer may also be no, practical necessity, or unclear.",
+      notice:
+        "Feed crops, methane, and land sit behind a mixed diet. Those systems do not live inside the household photograph.",
     },
     {
       id: "flights",
       label: "Flights",
       t: flightT,
-      greed: "The world as a catalog of experiences the four must not miss.",
-      fear: "If we do not go, we will have lived a smaller life.",
-      otherness:
-        "The sky is treated as empty. One long-haul can spend a poorer person's yearly carbon in a single afternoon.",
+      inquiry: "Beyond transport, what are you hoping this flight will give you, if anything?",
+      lens: "Could comparison, fear of missing out, or the wish for a certain experience be involved — or is the reason simply practical? Unclear is a complete answer.",
+      notice:
+        "One long-haul can match a poorer person's yearly carbon in an afternoon. The sky does not keep a private tab for the four.",
     },
     {
       id: "car",
       label: "Road",
       t: carT,
-      greed: "Door-to-door comfort as a right of the enclosed family.",
-      fear: "The street as threat; the cabin as a portable house.",
-      otherness:
-        "Exhaust is exported to lungs you will never name. Heat from the engine returns to the city your four must walk.",
+      inquiry: "What does the car actually do in your life — time, safety, work, care, or something else?",
+      lens: "An AP lens could ask whether the cabin is also a way of not sharing the street. You may answer no.",
+      notice:
+        "Exhaust and engine heat leave the cabin and enter the city the four still walk.",
     },
     {
       id: "home",
       label: "Home energy",
       t: homeT + coolT,
-      greed: "A private climate inside four walls, whatever the street is doing.",
-      fear: "Heat, darkness, stillness — the body as something that must never suffer weather.",
-      otherness:
-        "The grid's coal and the outdoor heat island are someone else's weather. Air-conditioning is a machine for othering the season.",
+      inquiry: "What is the indoor climate for — health, sleep, work, comfort, or all of these?",
+      lens: "Could a wish to never meet the weather be involved? It may also be heat that is simply unsafe. Either stands.",
+      notice:
+        "The grid and the outdoor heat island are not a separate climate. Cooling the room returns heat to the street.",
     },
     {
       id: "goods",
       label: "Goods",
       t: goodsT,
-      greed: "Identity purchased, boredom medicated, love expressed as parcels.",
-      fear: "Obsolescence, comparison, the child's 'everyone has it'.",
-      otherness:
-        "A shirt has a factory, a river, and a landfill. None of them are invited into the photograph of the four.",
+      inquiry: "What role do these parcels play — need, gift, boredom, comparison, or unclear?",
+      lens: "An AP lens could ask whether a purchase is trying to complete something. Your answer may be no.",
+      notice:
+        "A shirt still has a factory, a river, and a landfill, whether or not they appear in the photograph of the four.",
     },
     {
       id: "services",
       label: "Shared systems",
       t: servicesT,
-      greed: "The quiet consumption of public machines — data, waste, cement, logistics.",
-      fear: "Life without the hidden infrastructure that holds a modern household up.",
-      otherness:
-        "Even a modest home stands on mines, servers, and roads built by people who will never enter it.",
+      inquiry:
+        "Which shared systems do you actually notice holding the household up — data, waste, cement, logistics — and which stay invisible?",
+      lens: "Is this simply modern life, or does anything in it feel like a claim that the rest of the world should stay offstage? Either answer stands.",
+      notice:
+        "A modest home still stands on mines, servers, and roads built by people who may never enter it.",
     },
   ];
 
@@ -195,30 +197,30 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
   const seeing: string[] = [];
   const top = ranked[0]!;
   seeing.push(
-    `The largest leak in the circle of the four is ${top.label.toLowerCase()} (${top.t.toFixed(1)} tCO₂e). ${top.otherness}`,
+    `This is one of the household's largest empirical burdens: ${top.label.toLowerCase()} (${top.t.toFixed(1)} tCO₂e). What role does this activity actually play in your life?`,
   );
   if (input.flightsLhe >= 2) {
     seeing.push(
-      "Flying is the fastest way a comfortable household burns the carbon of people it will never meet. Greed wants the view; fear of a small life books the seat; otherness treats the atmosphere as a free road.",
+      "Flying is among the fastest ways a household can spend carbon that other people will never have. An AP lens could ask whether wanting, comparison, or fear of a smaller life is involved. Your answer may also be no, work, family, or unclear.",
     );
   }
   if (input.diet === "high-meat" || input.diet === "average") {
     seeing.push(
-      "The plate is not private. Feed crops, methane, and cleared land are how a household recruits the living world into its hunger. Acharya Prashant names this plainly: man consuming the natural world.",
+      "The plate is not private: feed crops, methane, and cleared land sit behind many mixed diets. An AP lens could ask whether this is simply food, or also a way of recruiting the living world. You do not have to accept the lens.",
     );
   }
   if (input.cooling >= 6) {
     seeing.push(
-      "Cooling the room heats the street. The four feel relief; the city, and later the four, feel the return. Fear of weather becomes a machine that manufactures weather.",
+      "Cooling the room returns heat to the street the four still walk. What is the indoor climate for? An AP lens could ask whether wanting never to meet the weather is involved. Heat that is unsafe is also an answer.",
     );
   }
   if (input.goods >= 7) {
     seeing.push(
-      "Parcels are how incompleteness tries to complete itself. The hole is not in the warehouse. It is in the one who cannot sit still without a purchase.",
+      "Parcels are a large line in this ledger. What are they doing in the life of the four? An AP lens could ask whether wanting, comparison, or identity is involved. Your answer may also be no.",
     );
   }
   seeing.push(
-    "None of this stays outside. The same air, prices, pests, and politics that first strike the poor return, later and costlier, to the four you meant to seal away.",
+    "None of this stays outside. The same air, prices, pests, and politics that first strike the poor return, later and costlier, to the four you meant to keep apart.",
   );
 
   const whoPaysFirst =

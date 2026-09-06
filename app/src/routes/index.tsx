@@ -24,7 +24,8 @@ function Home() {
       <footer className="border-t border-border px-4 py-8 text-center text-xs text-muted-foreground">
         Protect Four is a seeing-device, not a life-cycle assessor. Science citations are
         public literature; the philosophical architecture is Acharya Prashant’s AP Framework,
-        used here for study. Quotations remain with their authors.
+        offered here as a lens for study. Quotations remain with their authors. The Protect
+        Four proposition is under investigation, not presented as a scientific theorem.
       </footer>
     </div>
   );
