@@ -1,6 +1,6 @@
 # Secondary Pathways V0 Contract
 
-Status: **Proposed derivation for HQ review; not accepted canonical truth**
+Status: **Accepted canonical contract**
 
 Authority: `R&E-V0-SMARTPHONE-USED-REFURB-PATHWAYS-1.0.0`, accepted through PR #3 merge `024a95392d2e1555a3c9b598fdc291bd341c3d6b`; exact tests are in `R&E-V0-SMARTPHONE-SECONDARY-PATHWAY-TESTS-1.0.0`.
 
