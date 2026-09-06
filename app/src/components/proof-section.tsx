@@ -1,42 +1,59 @@
 import { proofClose, proofLead, proofLinks } from "@/lib/proof";
 import { useHousehold } from "@/store/household";
 
-export function ProofSection() {
-  const result = useHousehold((s) => s.result);
-  const names = result.names;
+const dependencies = [
+  {
+    label: "Air",
+    value: "Shared atmosphere",
+    hint: "Greenhouse gases and air pollution move beyond household boundaries.",
+    sourceId: "air",
+  },
+  {
+    label: "Heat",
+    value: "Shelter & power",
+    hint: "Exposure depends on weather, buildings, health, electricity, and access to cooling.",
+    sourceId: "heat",
+  },
+  {
+    label: "Food",
+    value: "Farms to markets",
+    hint: "The kitchen depends on soils, water, labour, transport, energy, and prices.",
+    sourceId: "food",
+  },
+  {
+    label: "Water",
+    value: "Cycle & infrastructure",
+    hint: "Household supply depends on hydrology, energy, treatment, pipes, and governance.",
+    sourceId: "water",
+  },
+  {
+    label: "Smoke / pollution",
+    value: "Air systems",
+    hint: "Filters can reduce exposure; they do not make the surrounding air independent.",
+    sourceId: "smoke",
+  },
+  {
+    label: "Disease / health",
+    value: "Public health",
+    hint: "Health depends on climate, ecosystems, sanitation, care, and collective prevention.",
+    sourceId: "disease",
+  },
+  {
+    label: "Money / insurance",
+    value: "Shared risk pools",
+    hint: "Property protection depends on insurers, infrastructure, public finance, and neighbours.",
+    sourceId: "money",
+  },
+  {
+    label: "Peace / stability",
+    value: "Social systems",
+    hint: "Food, housing, displacement, institutions, and politics connect private life to the wider century.",
+    sourceId: "peace",
+  },
+];
 
-  const lived = [
-    {
-      label: "Dangerous heat days",
-      value: String(result.heatDays),
-      hint: `around ${result.place.name}, order-of-magnitude under further warming`,
-    },
-    {
-      label: "Food-price shock",
-      value: `${Math.round(result.foodShock)}`,
-      hint: "index of how exposed the kitchen is to other people's weather",
-    },
-    {
-      label: "Water stress",
-      value: `${Math.round(result.waterStress)}`,
-      hint: "the tank is a delay, not a climate",
-    },
-    {
-      label: "Smoke / foul-air days",
-      value: String(result.airDays),
-      hint: "filters buy hours, not a fire season",
-    },
-    {
-      label: "Insurance retreat",
-      value: `${Math.round(result.insuranceIndex)}`,
-      hint: "when the pool of strangers refuses the house",
-    },
-    {
-      label: "Social instability",
-      value: `${Math.round(result.stabilityIndex)}`,
-      hint: "those most exposed first become the politics the four inherit",
-    },
-  ];
+export function ProofSection() {
+  const names = useHousehold((s) => s.result.names);
 
   return (
     <section id="proof" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
@@ -49,29 +66,36 @@ export function ProofSection() {
       <p className="mt-4 max-w-2xl text-muted-foreground">{proofLead}</p>
 
       <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {lived.map((item) => (
+        {dependencies.map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl bg-card px-5 py-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]"
+            className="flex min-h-40 flex-col rounded-2xl bg-card px-5 py-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]"
           >
             <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
               {item.label}
             </p>
-            <p className="mt-1 font-display text-3xl tabular-nums text-clay">{item.value}</p>
+            <p className="mt-1 font-display text-2xl text-clay">{item.value}</p>
             <p className="mt-1 text-xs text-muted-foreground">{item.hint}</p>
+            <a
+              href={`#evidence-${item.sourceId}`}
+              className="mt-auto pt-4 text-xs text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary"
+            >
+              Inspect evidence
+            </a>
           </div>
         ))}
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
-        These are illustrative indices scaled by local climate sensitivity and this household’s
-        overshoot — not a forecast of a single year. They exist to make the pathway home visible.
+        These are dependency pathways, not numerical forecasts for this household. Follow each
+        pathway to the cited evidence below.
       </p>
 
       <ol className="mt-12 space-y-0">
         {proofLinks.map((link, i) => (
           <li
             key={link.id}
-            className="grid gap-4 border-t border-border py-8 sm:grid-cols-[4.5rem_minmax(0,1fr)_9rem] sm:gap-8"
+            id={`evidence-${link.id}`}
+            className="grid scroll-mt-24 gap-4 border-t border-border py-8 sm:grid-cols-[4.5rem_minmax(0,1fr)_9rem] sm:gap-8"
           >
             <p className="font-display text-2xl text-muted-foreground">{link.n}</p>
             <div>
@@ -99,12 +123,9 @@ export function ProofSection() {
         {proofClose}
       </blockquote>
       <p className="mt-6 max-w-2xl text-sm text-muted-foreground">
-        If this household’s consumption class were copied worldwide, a world near{" "}
-        <span className="tabular-nums text-foreground">
-          {result.classCopyWarming.toFixed(1)}°C
-        </span>{" "}
-        of warming is the kind of century the four would be asked to grow old in. That is not a
-        private risk. It is a commons wearing a family name.
+        If this household’s consumption pattern were widely copied, which shared systems would
+        carry the consequences? No temperature for that scenario is calculated here. The inquiry
+        is whether the four can be secured while depending on the same commons as everyone else.
       </p>
     </section>
   );

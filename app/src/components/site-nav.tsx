@@ -45,7 +45,7 @@ export function SiteNav() {
             <a
               key={l.href}
               href={l.href}
-              className="rounded-md px-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground sm:px-3 sm:text-sm"
+              className="rounded-md px-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground sm:px-3 sm:text-sm"
             >
               {l.label}
             </a>

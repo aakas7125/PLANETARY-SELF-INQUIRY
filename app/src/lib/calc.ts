@@ -68,28 +68,12 @@ export type HouseholdResult = {
   totalT: number;
   perPersonT: number;
   earths: number;
-  fairMultiple: number;
   budgetHours: number;
   lifetimeSharePct: number;
   landM2: number;
   waterM3: number;
-  safety: number;
-  heatDays: number;
-  floodIndex: number;
-  foodShock: number;
-  waterStress: number;
-  airDays: number;
-  diseaseIndex: number;
-  insuranceIndex: number;
-  stabilityIndex: number;
-  classCopyWarming: number;
   seeing: string[];
-  whoPaysFirst: string;
 };
-
-function clamp(n: number, a: number, b: number) {
-  return Math.min(b, Math.max(a, n));
-}
 
 export function computeHousehold(input: HouseholdInput): HouseholdResult {
   const place = getPlace(input.placeId);
@@ -167,7 +151,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
   const totalT = slices.reduce((s, x) => s + x.t, 0);
   const perPersonT = totalT / PEOPLE;
   const earths = perPersonT / FAIR_SHARE_T;
-  const fairMultiple = perPersonT / FAIR_SHARE_T;
 
   const worldPerSecond = (WORLD_EMISSIONS_GT * 1e9) / (365.25 * 24 * 3600);
   const budgetHours = (totalT / worldPerSecond) / 3600;
@@ -177,21 +160,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
 
   const landM2 = diet.land * PEOPLE + input.goods * 40;
   const waterM3 = diet.water * PEOPLE + input.homeKwh * 0.003;
-
-  const overshoot = Math.max(0, fairMultiple - 1);
-  const safety = clamp(100 * Math.exp(-0.42 * overshoot) - (input.flightsLhe + input.cooling / 5), 4, 96);
-
-  const extraWarmingFelt = 0.7;
-  const heatDays = Math.round(18 * place.heat + extraWarmingFelt * 22 * place.heat + overshoot * 6);
-  const floodIndex = clamp(28 * place.flood + overshoot * 8, 8, 98);
-  const foodShock = clamp(18 * place.food + overshoot * 14 + (diet.t - 0.7) * 6, 8, 96);
-  const waterStress = clamp(20 * place.water + overshoot * 10, 8, 98);
-  const airDays = Math.round(12 * place.air + input.carKm / 900 + extraWarmingFelt * 10 * place.air);
-  const diseaseIndex = clamp(22 * place.disease + extraWarmingFelt * 12, 8, 96);
-  const insuranceIndex = clamp(20 + overshoot * 16 + place.flood * 8 + place.sea * 8, 10, 98);
-  const stabilityIndex = clamp(16 + overshoot * 12 + place.food * 8 + place.water * 6, 10, 95);
-
-  const classCopyWarming = clamp(0.9 + (perPersonT / 4.7) * 1.4, 1.6, 3.8);
 
   const ranked = [...slices].sort((a, b) => b.t - a.t);
   const seeing: string[] = [];
@@ -223,13 +191,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
     "None of this stays outside. The same air, prices, pests, and politics that first strike the poor return, later and costlier, to the four you meant to keep apart.",
   );
 
-  const whoPaysFirst =
-    place.heat >= 1.4
-      ? "Outdoor workers, farmers, and anyone whose house cannot manufacture winter in May."
-      : place.sea >= 1.3
-        ? "Coastal labour, fishing families, and ground-floor tenants — then the insured, when the insurer leaves."
-        : "The uninsured, the undernourished, and those whose work is the weather — then, with a lag, everyone who eats.";
-
   return {
     place,
     names: input.names,
@@ -237,23 +198,11 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
     totalT,
     perPersonT,
     earths,
-    fairMultiple,
     budgetHours,
     lifetimeSharePct,
     landM2,
     waterM3,
-    safety,
-    heatDays,
-    floodIndex,
-    foodShock,
-    waterStress,
-    airDays,
-    diseaseIndex,
-    insuranceIndex,
-    stabilityIndex,
-    classCopyWarming,
     seeing: seeing.slice(0, 5),
-    whoPaysFirst,
   };
 }
 

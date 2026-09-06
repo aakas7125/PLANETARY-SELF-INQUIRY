@@ -232,15 +232,14 @@ export function CalculatorSection() {
             <div className="rounded-3xl bg-card p-5 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
               <FourOrbs result={result} />
               <p className="mt-1 text-center font-display text-lg">
-                Safety of the four
+                Shared dependencies
               </p>
-              <p className="text-center font-display text-4xl tabular-nums text-primary">
-                {Math.round(result.safety)}
-                <span className="text-xl text-muted-foreground"> / 100</span>
+              <p className="text-center font-display text-3xl text-primary sm:text-4xl">
+                Air · water · food · energy
               </p>
               <p className="mt-2 text-center text-xs text-muted-foreground">
-                An index of overshoot against a 2 tCO₂e fair share — how far the life that
-                comforts them unmakes the climate they need.
+                A household footprint can show pressure on shared systems. It cannot be converted
+                into a numerical safety score for four people.
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-4">
@@ -354,7 +353,8 @@ export function CalculatorSection() {
             ))}
           </div>
           <p className="mt-4 text-sm text-primary-foreground/80">
-            Who pays first: {result.whoPaysFirst}
+            Dependency: who is exposed first varies by place and circumstance. The four still rely
+            on shared air, food, water, energy, infrastructure, and public systems.
           </p>
         </div>
       </div>
