@@ -10,7 +10,7 @@ The following expected artifacts were not found during LOCAL-SOURCE-INTEGRATION-
 
 | Expected artifact | Why needed | Canonical destination fed | Does absence block further migration? |
 | --- | --- | --- | --- |
-| `AP-V0-INTERACTION-0.2.0` | Authoritative AP interaction rules and attribution provenance | `contracts/AP_INTERACTION_V0.md`; `tests/ap-integrity/` | Blocks authoritative AP contract integration and its full regression import; does not block repository governance |
+| `AP-V0-INTERACTION-0.2.0` (received; not physically missing) | Preserved specialist publication, verified for derivation under Issue #9 | `contracts/AP_INTERACTION_V0.md`; `tests/ap-integrity/` | HQ acceptance of proposed derivation under Issue #10 remains pending; substantial-public-reproduction licensing and AP-OTH primary-video lineage remain unresolved |
 | `R&E-V0-SMARTPHONE-0.3.0` | Approved core empirical smartphone model and claims | `contracts/EMPIRICAL_SMARTPHONE_V0.md`; evidence registries; relevant fixtures | Blocks authoritative empirical contract and claim/source registry migration |
 | `R&E-V0-SMARTPHONE-USED-REFURB-PATHWAYS-1.0.0` | Approved distinction and handling for used and refurbished pathways | `contracts/SECONDARY_PATHWAYS_V0.md`; evidence registries | Blocks authoritative secondary-pathway contract integration |
 | `R&E-V0-SMARTPHONE-SECONDARY-PATHWAY-TESTS-1.0.0` | Approved regression cases for secondary pathways | `tests/secondary-pathways/`; `contracts/REGRESSION_INVARIANTS_V0.md` | Blocks import and provenance verification of those regressions |
