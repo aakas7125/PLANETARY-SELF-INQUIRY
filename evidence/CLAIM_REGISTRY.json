@@ -1,1 +1,146 @@
-[]
+[
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "evidence_domain":  [
+                                "climate",
+                                "human_health",
+                                "ecosystems"
+                            ],
+        "statement":  "Manufacturing-related smartphone GHG emissions contribute incrementally to climate change; climate change increases risks to people and ecosystems.",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "confidence":  "high",
+        "attribution_status":  "pressure_to_outcome",
+        "evidence_scope":  [
+                               "product_class",
+                               "global_assessment"
+                           ],
+        "claim_id":  "SP-PATH-CLIMATE-001",
+        "status":  "APPROVED",
+        "conditions":  [
+                           "scenario produces GHG emissions",
+                           "no individual victim or ecosystem attribution"
+                       ],
+        "source_ids":  [
+                           "S1",
+                           "S8",
+                           "S9"
+                       ]
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "evidence_domain":  [
+                                "materials",
+                                "water",
+                                "ecosystems"
+                            ],
+        "statement":  "Metal extraction and processing can cause land, water and biodiversity impacts.",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "confidence":  "high",
+        "attribution_status":  "not_attributable_to_specific_device",
+        "evidence_scope":  [
+                               "systematic_review"
+                           ],
+        "claim_id":  "SP-PATH-MINING-ECO-001",
+        "status":  "APPROVED_QUALITATIVE",
+        "conditions":  [
+                           "relevant primary metal extraction occurs",
+                           "magnitude/location depend on mine, ore, processing and ecosystem"
+                       ],
+        "source_ids":  [
+                           "S10"
+                       ]
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "evidence_domain":  [
+                                "materials",
+                                "human_health"
+                            ],
+        "statement":  "Mining and processing can expose workers and communities to environmental and occupational hazards.",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "confidence":  "moderate",
+        "attribution_status":  "conditional_pathway",
+        "evidence_scope":  [
+                               "systematic_review",
+                               "site_specific"
+                           ],
+        "claim_id":  "SP-PATH-MINING-PEOPLE-001",
+        "status":  "QUALITATIVE",
+        "conditions":  [
+                           "relevant supply-chain geography/process"
+                       ],
+        "source_ids":  [
+                           "S10"
+                       ]
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "evidence_domain":  [
+                                "waste",
+                                "human_health"
+                            ],
+        "statement":  "Unsafe or informal e-waste processing can expose people to hazardous substances and adverse health outcomes.",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "confidence":  "high",
+        "attribution_status":  "conditional_pathway",
+        "evidence_scope":  [
+                               "authoritative_assessment"
+                           ],
+        "claim_id":  "SP-PATH-EWASTE-PEOPLE-001",
+        "status":  "APPROVED",
+        "conditions":  [
+                           "unsafe or informal handling occurs"
+                       ],
+        "source_ids":  [
+                           "S11"
+                       ]
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "evidence_domain":  [
+                                "waste",
+                                "water",
+                                "ecosystems"
+                            ],
+        "statement":  "Unsound e-waste recycling sites can contaminate soil, water and sediment with hazardous metals.",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "confidence":  "high",
+        "attribution_status":  "conditional_pathway",
+        "evidence_scope":  [
+                               "systematic_review"
+                           ],
+        "claim_id":  "SP-PATH-EWASTE-ECO-001",
+        "status":  "APPROVED",
+        "conditions":  [
+                           "unsound site handling occurs"
+                       ],
+        "source_ids":  [
+                           "S12"
+                       ]
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "evidence_domain":  [
+                                "water",
+                                "ecosystems",
+                                "human_health"
+                            ],
+        "statement":  "Smartphone production can require substantial water use; local consequences depend on geography and indicator.",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "confidence":  "high_for_water_use_low_to_moderate_for_arbitrary_phone_consequence",
+        "attribution_status":  "not_attributable_to_specific_device",
+        "evidence_scope":  [
+                               "model_specific",
+                               "product_class"
+                           ],
+        "claim_id":  "SP-PATH-WATER-001",
+        "status":  "QUALITATIVE",
+        "conditions":  [
+                           "model-specific indicator required for quantitative output"
+                       ],
+        "source_ids":  [
+                           "S1",
+                           "S2"
+                       ]
+    }
+]

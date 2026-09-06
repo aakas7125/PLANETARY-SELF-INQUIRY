@@ -1,1 +1,98 @@
-[]
+[
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Smartphone material-efficiency LCA; manufacturing, charging, repair/lifetime and 1:1 reuse scenarios.",
+        "citation":  "Cordella, Alfieri \u0026 Sanfelix, 2021, Journal of Industrial Ecology / JRC-origin research.",
+        "source_id":  "S1"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Cradle-to-grave, ISO 14040/14044/14067, 3-year functional unit; commissioned by Fairphone B.V.",
+        "citation":  "Sánchez, Baur \u0026 Eguren / Fraunhofer IZM, 2024, Fairphone 5 LCA.",
+        "source_id":  "S2"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Manufacturer lifecycle-carbon report, EUR configuration.",
+        "citation":  "Samsung Electronics, Galaxy S25 Product Environmental Report, 2025.",
+        "source_id":  "S3"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Manufacturer ISO-based product footprint; first-owner period three years.",
+        "citation":  "Apple, iPhone 16 / 16 Plus Product Environmental Report, 2024.",
+        "source_id":  "S4"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "New/refurbished reference comparison and variability.",
+        "citation":  "ADEME, 2022, Assessment of environmental impact of refurbished products.",
+        "source_id":  "S5"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "ICT LCA methodology and ADEME refurbishment/depreciation example.",
+        "citation":  "ITU-T L.1410, 11/2024.",
+        "source_id":  "S6"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Global e-waste mass and collection context.",
+        "citation":  "ITU/UNITAR, Global E-waste Monitor 2024.",
+        "source_id":  "S7"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Cumulative CO2 to warming.",
+        "citation":  "IPCC AR6 WGI.",
+        "source_id":  "S8"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Climate impacts on people/ecosystems and interdependence.",
+        "citation":  "IPCC AR6 WGII.",
+        "source_id":  "S9"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Global metal-mining land/water/biodiversity pathways.",
+        "citation":  "Giljum et al., Nature Reviews Earth \u0026 Environment, 2025.",
+        "source_id":  "S10"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "Unsafe e-waste exposure and health pathway.",
+        "citation":  "WHO, Children and Digital Dumpsites, 2021 plus updated e-waste health material.",
+        "source_id":  "S11"
+    },
+    {
+        "package_commit":  "024a95392d2e1555a3c9b598fdc291bd341c3d6b",
+        "package_provenance":  "R\u0026E-V0-SMARTPHONE-0.3.0",
+        "metadata_limit":  "Only package-provided metadata recorded; no DOI, URL, author expansion or publication details inferred.",
+        "scope":  "59 studies / 8,286 measurements.",
+        "citation":  "Systematic review of environmental heavy-metal contamination at e-waste sites.",
+        "source_id":  "S12"
+    }
+]
