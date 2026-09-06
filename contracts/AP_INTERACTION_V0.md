@@ -1,6 +1,6 @@
 # AP Interaction V0 Contract
 
-Status: **Proposed derivation for HQ review; not accepted canonical truth**
+Status: **Accepted canonical contract**
 
 Task: `HQ-LC-2026-09-05-003` (Issue #10). Specialist verification: Issue #9.
 
@@ -10,7 +10,7 @@ Derived from immutable `provenance/source-packages/AP-V0-INTERACTION-0.2.0.md`, 
 
 The detailed interaction clauses below preserve package sections 1–13 without changing their questions, enums, predicates, templates or prohibitions. Their normative language describes the proposed contract; historical specialist implementation labels do not authorize implementation or supply HQ acceptance. This task does not retroactively accept the earlier direct contract promotion in `da29b79` or alter the historical receiving-state review.
 
-The additional corpus and compatibility clauses following section 13 are part of this proposal. Any conflict must be recorded for HQ reconciliation, not resolved by silently broadening a rule. Application behavior and canonical acceptance remain separate decisions.
+The additional corpus and compatibility clauses following section 13 are part of this proposal. Any conflict must be recorded for HQ reconciliation, not resolved by silently broadening a rule. Application behavior remains a separate implementation decision; canonical contract acceptance is complete.
 
 ## 1. Mandatory category separation
 
@@ -553,7 +553,7 @@ Licensing remains an unresolved project-level dependency for substantial public/
 
 A functioning phone plus a buy-new choice cannot classify the user's inner movement (corpus section 6). Unknown AP observations remain unclear without blocking empirical comparison. Empirical consequences remain Research & Evidence's responsibility; AP attribution never establishes their truth. Protect My Four remains Project Interpretation.
 
-The earlier pending placeholder contains no competing accepted AP rule. This proposal derives only the verified input authorized by Issues #9/#10; the historical receiving review and immutable sources remain unchanged. HQ acceptance and executable regression implementation are still pending.
+The earlier pending placeholder contains no competing accepted AP rule. This proposal derives only the verified input authorized by Issues #9/#10; the historical receiving review and immutable sources remain unchanged. HQ acceptance is complete; executable regression implementation remains pending.
 
 ## 16. Derivation mapping and candidate verification
 
