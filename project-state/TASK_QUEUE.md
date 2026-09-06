@@ -2,7 +2,7 @@
 
 ## Authorized implementation tasks
 
-Repository-backed tasks are published as GitHub Issues under `project-state/LOCAL_CODEX_TASK_PUBLICATION_PROTOCOL.md`. Issue #12 is the current empirical-contract derivation proposal and remains subject to HQ review.
+Repository-backed tasks are published as GitHub Issues under `project-state/LOCAL_CODEX_TASK_PUBLICATION_PROTOCOL.md`. The accepted contract state is complete; the next authorized bridge is published as Issue #16.
 
 ## Future candidates requiring explicit authorization
 
