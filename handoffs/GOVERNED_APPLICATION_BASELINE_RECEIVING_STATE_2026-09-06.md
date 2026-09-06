@@ -1,6 +1,6 @@
 # Governed Application Baseline Receiving State — 2026-09-06
 
-Task: `HQ-LC-2026-09-06-003` (Issue #17)  
+Task: `HQ-LC-2026-09-06-003` (Issue #17)
 Status: **Candidate received and assessed; import not recommended pending validation repair and HQ review**
 
 ## Candidate identity
@@ -30,4 +30,3 @@ The test failures are not silently waived. They include missing committed `.grok
 ## Recommendation
 
 Do **not** import `app/` into canonical `main` under this task. The baseline is not mechanically safe for governed import while its committed test command fails and current `main` lacks an accepted application baseline. A later HQ-authorized task may first repair or explicitly disposition the candidate validation failures, establish the exact import allowlist, and then propose an import for separate HQ review. Issue #16 remains blocked until that later baseline is accepted.
-
