@@ -75,7 +75,7 @@ When an issue is `BLOCKED`, `VERIFIED_FOR_HQ_REVIEW`, `ACCEPTED`, `REJECTED`, `S
 
 After each meaningful HQ response or work chunk, HQ must end in exactly one of these states:
 
-1. Authorize or publish a bounded task for Local Codex through GitHub when local execution is the correct next step.
+1. Authorize or publish a bounded coding task through GitHub to Cursor as the primary coding executor, or to Local Codex when the task is specifically better suited there.
 2. Issue or publish a bounded instruction or handoff through GitHub to Research & Evidence or AP Framework & Corpus when specialist work is the correct next step.
 3. Declare that neither route is currently possible, state the exact blocker, identify whether owner intervention is genuinely required, and ask the owner only for that intervention.
 
@@ -83,9 +83,17 @@ Routine HQ-owned closure actions—receiving-state updates, governance documenta
 
 HQ must not stop at a prose recommendation when it already has enough authority and information to publish the next bounded GitHub action. HQ must not create artificial work merely to satisfy this rule.
 
+## Coding-executor selection
+
+From 2026-09-07, Cursor is the primary coding executor unless HQ records that a bounded task is specifically better suited to Local Codex.
+
+A Cursor task is executable only when its title begins with `[HQ-AUTHORIZED][CURSOR]`, its body contains `HQ-authorized for Cursor execution: YES`, its current status is `READY_FOR_CURSOR`, both approval fields are `NO`, and the same scope, dependency, acceptance, and branch/PR/direct-main fields required for Local Codex tasks are complete. Cursor records progress and final results on the same Issue and does not self-merge.
+
+This does not convert a Cursor task into Local Codex authority. Local Codex continues to require its exact existing marker and `READY_FOR_LOCAL_CODEX` state.
+
 ## Standing progression rule
 
-When HQ closes or accepts a task and no executable Local Codex Issue remains, an empty executor queue is not itself a stopping condition. HQ must inspect the active product path and determine which condition applies:
+When HQ closes or accepts a task and no executable coding-executor Issue remains, an empty executor queue is not itself a stopping condition. HQ must inspect the active product path and determine which condition applies:
 
 1. The next dependency is an HQ review, acceptance, or merge decision: complete that bounded HQ action.
 2. A blocked Issue can now be unblocked: update it or publish the next executable task.
