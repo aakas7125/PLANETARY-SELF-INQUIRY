@@ -7,6 +7,33 @@ const appDirectory = resolve(scriptsDirectory, "..");
 const repositoryDirectory = resolve(appDirectory, "..");
 
 export const IMPLEMENTATION_GAP = "requires_smartphone_implementation";
+export const EXECUTING_ASSERTION_COVERAGE = "covered_by_executing_assertion";
+
+const EXECUTED_INPUT_IDS = new Set([
+  "T01",
+  "T02",
+  "T03",
+  "T04",
+  "T05",
+  "T06",
+  "T07",
+  "A-T01-HORIZON-2Y",
+  "A-T01-GENERIC-NEW-RANGES",
+  "A-T01-NO-3Y-DEFAULT",
+  "A-T02-HORIZON-REMAINS-UNKNOWN",
+  "A-T02-NO-3Y-FALLBACK",
+  "A-T03-AGE-NOT-ADEQUACY",
+  "A-T03-NO-OBSOLESCENCE-INFERENCE",
+  "A-T04-UNSAFE-REMOVES-KEEP",
+  "A-T05-FUNCTIONAL-INadequacy",
+  "A-T06-SUPPORT-END-NOT-AUTO-REPLACE",
+  "A-T06-SUPPORT-IS-ADEQUACY-INPUT",
+  "A-T07-SUPPORT-UNKNOWN-STAYS-UNKNOWN",
+  "RC01_ADEQUATE_KEEP_GENERIC_NEW",
+  "RC02_UNKNOWN_REMAINING_LIFE",
+  "RC03_UNSAFE_KEEP_REMOVAL",
+  "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
+]);
 
 const SOURCES = {
   inputPackage:
@@ -38,14 +65,14 @@ function idList(value) {
         .filter(Boolean);
 }
 
-function rowsFor(ids, domain, coverageKind, target, source) {
+function rowsFor(ids, domain, coverageKind, target, source, statusFor = () => IMPLEMENTATION_GAP) {
   return ids.map((id) => ({
     id,
     domain,
     coverageKind,
     source,
     target,
-    status: IMPLEMENTATION_GAP,
+    status: statusFor(id),
   }));
 }
 
@@ -83,13 +110,16 @@ export function buildContractRegressionMap() {
     [...empiricalContract.matchAll(/`(SP-PATH-[A-Z-]+-\d{3})`/g)].map(([, id]) => id),
   );
 
+  const inputStatus = (id) =>
+    EXECUTED_INPUT_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
+
   return [
-    ...rowsFor(inputCaseIds, "input", "positive", TARGETS.input, SOURCES.inputPackage),
-    ...rowsFor(inputAssertionIds, "input", "positive", TARGETS.input, SOURCES.inputPackage),
-    ...rowsFor(inputGlobalIds, "input", "positive", TARGETS.input, SOURCES.inputPackage),
-    ...rowsFor(inputLogicIds, "input", "positive", TARGETS.input, SOURCES.inputPackage),
-    ...rowsFor(inputProhibitionIds, "input", "prohibition", TARGETS.input, SOURCES.inputPackage),
-    ...rowsFor(inputReleaseIds, "input", "release_gate", TARGETS.input, SOURCES.inputPackage),
+    ...rowsFor(inputCaseIds, "input", "positive", TARGETS.input, SOURCES.inputPackage, inputStatus),
+    ...rowsFor(inputAssertionIds, "input", "positive", TARGETS.input, SOURCES.inputPackage, inputStatus),
+    ...rowsFor(inputGlobalIds, "input", "positive", TARGETS.input, SOURCES.inputPackage, inputStatus),
+    ...rowsFor(inputLogicIds, "input", "positive", TARGETS.input, SOURCES.inputPackage, inputStatus),
+    ...rowsFor(inputProhibitionIds, "input", "prohibition", TARGETS.input, SOURCES.inputPackage, inputStatus),
+    ...rowsFor(inputReleaseIds, "input", "release_gate", TARGETS.input, SOURCES.inputPackage, inputStatus),
     ...rowsFor(
       secondaryCaseIds,
       "secondary",
