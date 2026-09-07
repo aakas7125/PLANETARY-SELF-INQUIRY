@@ -82,3 +82,20 @@ After each meaningful HQ response or work chunk, HQ must end in exactly one of t
 Routine HQ-owned closure actions—receiving-state updates, governance documentation, task publication, acceptance or rejection records, and push authorization within standing rules—should be completed in the same work chunk where possible before selecting the ending state.
 
 HQ must not stop at a prose recommendation when it already has enough authority and information to publish the next bounded GitHub action. HQ must not create artificial work merely to satisfy this rule.
+
+## Standing progression rule
+
+When HQ closes or accepts a task and no executable Local Codex Issue remains, an empty executor queue is not itself a stopping condition. HQ must inspect the active product path and determine which condition applies:
+
+1. The next dependency is an HQ review, acceptance, or merge decision: complete that bounded HQ action.
+2. A blocked Issue can now be unblocked: update it or publish the next executable task.
+3. A genuine blocker remains: record its exact cause and evidence, identify the actor required, and publish the smallest legitimate resolving task when possible.
+4. A genuine owner-level decision is required: ask the owner explicitly for only that decision.
+
+Every blocked Issue or intentionally unmerged PR on the active product path must state why it is blocked or unmerged and the exact event or action that clears it.
+
+Progress should follow this order unless new evidence creates a real safety, provenance, or semantic ambiguity:
+
+`governed app baseline → executable contract/AP tests → canonical smartphone UX → reusable activity/evidence schema → broader V0 activities → public-beta readiness → public hosting`
+
+HQ must not create another broad governance or validation loop merely because no executor task is ready.
