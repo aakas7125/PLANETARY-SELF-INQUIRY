@@ -6,7 +6,7 @@
 
 ## Purpose
 
-GitHub Issues are the durable task and communication control plane for Project HQ, Research & Evidence, AP Framework & Corpus, and Local Codex.
+GitHub Issues are the durable task and communication control plane for Project HQ, Research & Evidence, AP Framework & Corpus, Cursor, and Local Codex.
 
 Chats remain reasoning and execution surfaces. Once a formal Issue exists, chat prose is not executable authority and is not required for inter-workstream communication.
 
@@ -22,13 +22,14 @@ An executable task authorizes bounded work for a named workstream. It must conta
 
 Executable titles use:
 
+- `[HQ-AUTHORIZED][CURSOR] ...`
 - `[HQ-AUTHORIZED][LOCAL-CODEX] ...`
 - `[HQ-AUTHORIZED][RESEARCH] ...`
 - `[HQ-AUTHORIZED][AP] ...`
 
 Executable states include:
 
-`READY_FOR_LOCAL_CODEX`, `READY_FOR_RESEARCH`, `READY_FOR_AP`, `READY_FOR_HQ_REVIEW`, `IN_PROGRESS`, `BLOCKED`, `VERIFIED_FOR_HQ_REVIEW`, `RESOLVED`, and `SUPERSEDED`.
+`READY_FOR_CURSOR`, `READY_FOR_LOCAL_CODEX`, `READY_FOR_RESEARCH`, `READY_FOR_AP`, `READY_FOR_HQ_REVIEW`, `IN_PROGRESS`, `BLOCKED`, `VERIFIED_FOR_HQ_REVIEW`, `RESOLVED`, and `SUPERSEDED`.
 
 A workstream seeing a valid `READY_FOR_*` task must begin the bounded work, update the Issue to `IN_PROGRESS`, and not expand scope.
 
@@ -51,6 +52,7 @@ Handoff titles use:
 - `[CROSS-HANDOFF][AP→RESEARCH] ...`
 - `[CROSS-HANDOFF][RESEARCH→HQ] ...`
 - `[CROSS-HANDOFF][AP→HQ] ...`
+- `[CROSS-HANDOFF][CURSOR→HQ] ...`
 - `[CROSS-HANDOFF][LOCAL-CODEX→HQ] ...`
 - `[CROSS-HANDOFF][HQ→RESEARCH] ...`
 - `[CROSS-HANDOFF][HQ→AP] ...`
@@ -79,7 +81,7 @@ For a handoff, inspect the referenced information, acknowledge or consume it, up
 
 When HQ finds a meaningful `VERIFIED_FOR_HQ_REVIEW` or `BLOCKED` result, prerequisite completion, cross-domain discrepancy, or handoff requiring routing, HQ must inspect the repository-backed evidence and complete the appropriate governance action in the same work chunk where possible:
 
-1. publish/authorize the next bounded Local Codex task;
+1. publish/authorize the next bounded Cursor or Local Codex task, using Cursor as the primary coding executor unless the task is specifically better suited to Local Codex;
 2. publish an executable Research/AP task or appropriate handoff; or
 3. record the exact genuine blocker and request only the necessary owner intervention.
 
@@ -98,12 +100,15 @@ Cadence may later be reduced or made event/session-driven once migration stabili
 - GitHub Issue publication is durable routing, not automatic acceptance.
 - `main` remains accepted/integrated project state.
 - Research and AP may publish bounded domain packages, proposals, tests, and handoffs but may not independently promote integrated contracts.
+- Cursor may execute only explicit `[HQ-AUTHORIZED][CURSOR]` tasks containing `HQ-authorized for Cursor execution: YES` and `Current status: READY_FOR_CURSOR`, and must follow their branch/PR/direct-main constraints.
 - Local Codex may execute only explicit `[HQ-AUTHORIZED][LOCAL-CODEX]` tasks and must follow their branch/PR/direct-main constraints.
+- Cursor is the primary coding executor from 2026-09-07 onward unless HQ records why a bounded task is specifically better suited to Local Codex.
 - HQ must not accept or promote scientific, AP, product, or semantic changes without the required review.
 - Owner-level matters remain subject to `OWNER_CONTROL.md`.
 
 ## Current implementation
 
-- The HQ return intake watches formal Local Codex task results and meaningful state transitions.
+- The HQ return intake watches formal Cursor and Local Codex task results and meaningful state transitions.
+- Cursor coding tasks use `[HQ-AUTHORIZED][CURSOR]`, `HQ-authorized for Cursor execution: YES`, and `READY_FOR_CURSOR`; this protocol change does not create an automated Cursor-side intake schedule.
 - Research correction task `HQ-RE-2026-09-05-002` is separately published when the current terminal-byte handoff is converted from input to executable work.
 - The existing Local Codex task-publication protocol remains in force for Local Codex tasks.
