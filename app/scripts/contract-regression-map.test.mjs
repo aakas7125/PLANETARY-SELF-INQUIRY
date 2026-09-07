@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  EXECUTING_ASSERTION_COVERAGE,
   IMPLEMENTATION_GAP,
   buildContractRegressionMap,
   contractRegressionSources,
@@ -86,23 +87,57 @@ test("contract mapping covers every accepted source identifier exactly once", ()
   );
 });
 
-test("mapping records positive and prohibited behavior without claiming current coverage", () => {
+test("mapping records only T01–T07 input coverage backed by executing assertions", () => {
   const mapping = buildContractRegressionMap();
   const coverageKinds = new Set(mapping.map((row) => row.coverageKind));
+  const coveredInputIds = mapping
+    .filter(
+      (row) =>
+        row.domain === "input" && row.status === EXECUTING_ASSERTION_COVERAGE,
+    )
+    .map((row) => row.id);
+  const remainingInputCases = mapping
+    .filter(
+      (row) =>
+        row.domain === "input" &&
+        /^T\d{2}$/.test(row.id) &&
+        row.status === IMPLEMENTATION_GAP,
+    )
+    .map((row) => row.id);
+
+  const expectedCoveredInputIds = [
+    "T01", "T02", "T03", "T04", "T05", "T06", "T07",
+    "A-T01-HORIZON-2Y", "A-T01-GENERIC-NEW-RANGES", "A-T01-NO-3Y-DEFAULT",
+    "A-T02-HORIZON-REMAINS-UNKNOWN", "A-T02-NO-3Y-FALLBACK",
+    "A-T03-AGE-NOT-ADEQUACY", "A-T03-NO-OBSOLESCENCE-INFERENCE",
+    "A-T04-UNSAFE-REMOVES-KEEP", "A-T05-FUNCTIONAL-INadequacy",
+    "A-T06-SUPPORT-END-NOT-AUTO-REPLACE", "A-T06-SUPPORT-IS-ADEQUACY-INPUT",
+    "A-T07-SUPPORT-UNKNOWN-STAYS-UNKNOWN",
+    "RC01_ADEQUATE_KEEP_GENERIC_NEW", "RC02_UNKNOWN_REMAINING_LIFE",
+    "RC03_UNSAFE_KEEP_REMOVAL", "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
+  ];
 
   assert.deepEqual(
     [...coverageKinds].sort(),
     ["positive", "positive_and_prohibition", "prohibition", "release_gate"],
   );
-  assert.ok(mapping.every((row) => row.status === IMPLEMENTATION_GAP));
+  assert.deepEqual(coveredInputIds, expectedCoveredInputIds);
+  assert.deepEqual(remainingInputCases, expectedInputCases.slice(7));
   assert.ok(
-    plannedTestTargets().every(({ exists }) => !exists),
-    "a new smartphone behavior suite requires an explicit mapping-state update",
+    mapping
+      .filter((row) => row.domain !== "input" || !expectedCoveredInputIds.includes(row.id))
+      .every((row) => row.status === IMPLEMENTATION_GAP),
   );
+  assert.deepEqual(plannedTestTargets(), [
+    { target: "scripts/smartphone-input-contract.test.mjs", exists: true },
+    { target: "scripts/smartphone-secondary-contract.test.mjs", exists: false },
+    { target: "scripts/smartphone-ap-contract.test.mjs", exists: false },
+    { target: "scripts/smartphone-empirical-boundary.test.mjs", exists: false },
+  ]);
 });
 
 test.todo(
-  "implement the mapped input-model behavior suite (T01–T35, A-T-*, A-GLOBAL-*, A-LOGIC-*, PI-*, RC01–RC10)",
+  "implement the remaining mapped input-model behavior suite (T08–T35, uncovered A-T-*, A-GLOBAL-*, A-LOGIC-*, PI-*, RC05–RC10)",
 );
 test.todo(
   "implement the mapped secondary-pathway behavior suite (SEC-01–SEC-12 and A-SEC-*)",
