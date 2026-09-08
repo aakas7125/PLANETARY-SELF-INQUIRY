@@ -160,14 +160,14 @@ const coveredProhibitionIds = [
   "PI-007",
   "PI-008",
   "PI-009",
-  "PI-014",
-  "PI-015",
-];
-const remainingProhibitionIds = [
   "PI-010",
   "PI-011",
   "PI-012",
   "PI-013",
+  "PI-014",
+  "PI-015",
+];
+const remainingProhibitionIds = [
   "PI-016",
   "PI-017",
   "PI-018",
@@ -190,6 +190,48 @@ const cases = sourcePackage.cases.filter((candidate) => coveredCaseIds.includes(
 
 function valueAt(object, dottedPath) {
   return dottedPath.split(".").reduce((value, key) => value?.[key], object);
+}
+
+function collectOwnKeys(value, keys = new Set()) {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectOwnKeys(item, keys);
+    }
+    return keys;
+  }
+  if (value && typeof value === "object") {
+    for (const [key, nested] of Object.entries(value)) {
+      keys.add(key);
+      collectOwnKeys(nested, keys);
+    }
+  }
+  return keys;
+}
+
+function collectNumbers(value, numbers = []) {
+  if (typeof value === "number") {
+    numbers.push(value);
+    return numbers;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectNumbers(item, numbers);
+    }
+    return numbers;
+  }
+  if (value && typeof value === "object") {
+    for (const nested of Object.values(value)) {
+      collectNumbers(nested, numbers);
+    }
+  }
+  return numbers;
+}
+
+function assertMissingImpactStaysUnknown(value) {
+  assert.equal(isUnknown(value), true);
+  assert.notEqual(value, 0);
+  assert.notEqual(value, false);
+  assert.notEqual(value, "0");
 }
 
 test("T01–T35 coverage remains pinned to the immutable source cases", () => {
@@ -1481,6 +1523,203 @@ test("PI-009 does not treat a second-hand transaction as 1:1 production displace
   assert.equal("recommendation" in usScenario, false);
 });
 
+test("PI-010 does not convert missing impact values to zero", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const majorBoard = evaluateAdequacyAndUnknownState(byId.T11.inputs);
+  const arbitraryRefurbished = evaluateAdequacyAndUnknownState(byId.T15.inputs);
+  const genericNew = evaluateAdequacyAndUnknownState(byId.T17.inputs);
+  const unknownMass = evaluateAdequacyAndUnknownState(byId.T22.inputs);
+  const tradeIn = evaluateAdequacyAndUnknownState(byId.T23.inputs);
+  const eol = evaluateAdequacyAndUnknownState(byId.T24.inputs);
+  const gridUnknown = evaluateAdequacyAndUnknownState(byId.T30.inputs);
+  const missingClasses = evaluateAdequacyAndUnknownState(byId.T35.inputs);
+
+  assert.equal(byId.T11.inputs["repair.model_specific_climate_CO2e_kg"], null);
+  assert.equal(majorBoard.repair.climate_CO2e_kg, null);
+  assert.equal(majorBoard.repair.impact_status, "unsupported");
+  assertMissingImpactStaysUnknown(majorBoard.repair.climate_CO2e_kg);
+  assert.notDeepEqual(majorBoard.repair.climate_CO2e_kg, [0.3, 0.7]);
+  assert.notDeepEqual(majorBoard.repair.climate_CO2e_kg, [3, 8]);
+  assert.notEqual(majorBoard.repair.climate_CO2e_kg, 17.84);
+
+  assert.equal(byId.T15.inputs["replacement.refurbished.direct_climate_CO2e_kg"], null);
+  assert.equal(arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg, null);
+  assertMissingImpactStaysUnknown(
+    arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg,
+  );
+  assert.notEqual(arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg, 7.61);
+  assert.equal(arbitraryRefurbished.replacement.refurbished.percent_reduction_from_new, undefined);
+
+  assert.equal(byId.T22.inputs["current_device.mass_g"], null);
+  assert.equal(unknownMass.old_device_fate.discarded_mass_g, null);
+  assertMissingImpactStaysUnknown(unknownMass.old_device_fate.discarded_mass_g);
+  assert.notEqual(unknownMass.old_device_fate.discarded_mass_g, 180);
+  assert.notEqual(unknownMass.old_device_fate.discarded_mass_g, 200);
+
+  assert.equal(tradeIn.old_device_fate.market_displacement_credit, null);
+  assertMissingImpactStaysUnknown(tradeIn.old_device_fate.market_displacement_credit);
+
+  assert.equal(byId.T24.inputs["generic_EOL_model_specific_value"], null);
+  assert.equal(eol.generic_EOL_CO2e_kg, null);
+  assert.equal(eol.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assertMissingImpactStaysUnknown(eol.generic_EOL_CO2e_kg);
+  assert.equal(eol.generic_recycling_credit, null);
+  assert.notEqual(eol.generic_recycling_credit, 0);
+
+  assert.equal(byId.T30.inputs["system_context.grid_carbon_intensity_kgCO2e_per_kWh"], null);
+  assert.equal(gridUnknown.charging_carbon_CO2e_kg, null);
+  assert.equal(gridUnknown.charging_carbon_status, "unknown_or_omitted");
+  assertMissingImpactStaysUnknown(gridUnknown.charging_carbon_CO2e_kg);
+
+  assert.equal(isUnknown(byId.T35.inputs["repair.model_specific_climate_CO2e_kg"]), true);
+  assert.equal(missingClasses.repair?.climate_CO2e_kg, null);
+  assertMissingImpactStaysUnknown(missingClasses.repair?.climate_CO2e_kg);
+
+  assert.equal(keepDecision.generic_EOL_CO2e_kg, null);
+  assertMissingImpactStaysUnknown(keepDecision.generic_EOL_CO2e_kg);
+  assert.deepEqual(keepDecision.new.production_CO2e_kg, [25, 70]);
+  assert.notEqual(keepDecision.new.production_CO2e_kg, 0);
+  assert.deepEqual(genericNew.replacement.new.production_CO2e_kg, [25, 70]);
+  assert.notEqual(genericNew.replacement.new.production_CO2e_kg, 0);
+  assert.equal(keepDecision.placeholder_impact_CO2e_kg, undefined);
+  assert.equal(majorBoard.unlabeled_numeric_placeholder, undefined);
+});
+
+test("PI-011 does not treat the 25–70 kg CO2e production bracket as a probability distribution", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const genericNew = evaluateAdequacyAndUnknownState(byId.T17.inputs);
+  const keepKeys = collectOwnKeys(keepDecision);
+  const genericKeys = collectOwnKeys(genericNew);
+  const statisticalKeys = [
+    "probability_density",
+    "probability_distribution",
+    "likelihood",
+    "confidence_interval",
+    "percentile",
+    "mean",
+    "median",
+    "midpoint",
+    "sampling",
+    "sampled_values",
+  ];
+
+  assert.deepEqual(keepDecision.new.production_CO2e_kg, [25, 70]);
+  assert.equal(keepDecision.result_capability, "range_quantitative");
+  assert.equal(Array.isArray(keepDecision.new.production_CO2e_kg), true);
+  assert.equal(keepDecision.new.production_CO2e_kg.length, 2);
+  assert.notEqual(keepDecision.new.production_CO2e_kg.length, 1);
+  assert.notEqual(keepDecision.new.production_CO2e_kg, 25);
+  assert.notEqual(keepDecision.new.production_CO2e_kg, 70);
+  assert.equal(keepDecision.new.production_CO2e_kg_mean, undefined);
+  assert.equal(keepDecision.new.production_CO2e_kg_median, undefined);
+  assert.equal(keepDecision.new.production_CO2e_kg_midpoint, undefined);
+  assert.equal(keepDecision.new.production_CO2e_kg_expected, undefined);
+  assert.equal(keepDecision.new.confidence_interval, undefined);
+  assert.equal(keepDecision.new.probability_density, undefined);
+
+  assert.deepEqual(genericNew.replacement.new.production_CO2e_kg, [25, 70]);
+  assert.deepEqual(genericNew.replacement.new.distribution_CO2e_kg, [2, 4]);
+  assert.equal(genericNew.replacement.new.provenance_scope, "generic_fallback");
+  assert.equal(genericNew.replacement.new.production_CO2e_kg.length, 2);
+  assert.notEqual(genericNew.replacement.new.production_CO2e_kg.length, 1);
+  assert.equal(genericNew.replacement.new.production_CO2e_kg_mean, undefined);
+  assert.equal(genericNew.replacement.new.probability_distribution, undefined);
+  assert.equal(genericNew.replacement.new.confidence_interval, undefined);
+  assert.equal(genericNew.replacement.new.midpoint, undefined);
+  assert.equal(genericNew.replacement.new.sampling, undefined);
+
+  for (const key of statisticalKeys) {
+    assert.equal(keepKeys.has(key), false, `T01 must not expose ${key}`);
+    assert.equal(genericKeys.has(key), false, `T17 must not expose ${key}`);
+  }
+});
+
+test("PI-012 does not treat 40 kg CO2e as the average smartphone production footprint", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const genericNew = evaluateAdequacyAndUnknownState(byId.T17.inputs);
+  const majorBoard = evaluateAdequacyAndUnknownState(byId.T11.inputs);
+  const arbitraryRefurbished = evaluateAdequacyAndUnknownState(byId.T15.inputs);
+  const keepKeys = collectOwnKeys(keepDecision);
+  const genericKeys = collectOwnKeys(genericNew);
+
+  assert.deepEqual(keepDecision.new.production_CO2e_kg, [25, 70]);
+  assert.notEqual(keepDecision.new.production_CO2e_kg, 40);
+  assert.equal(keepDecision.new.production_CO2e_kg.includes(40), false);
+  assert.equal(collectNumbers(keepDecision).includes(40), false);
+  assert.equal(keepDecision.new.industry_average_CO2e_kg, undefined);
+  assert.equal(keepDecision.new.average_production_CO2e_kg, undefined);
+  assert.equal(keepDecision.new.central_estimate_CO2e_kg, undefined);
+  assert.equal(keepDecision.new.default_production_CO2e_kg, undefined);
+  assert.equal(keepDecision.average_smartphone_production_CO2e_kg, undefined);
+
+  assert.deepEqual(genericNew.replacement.new.production_CO2e_kg, [25, 70]);
+  assert.equal(genericNew.replacement.new.provenance_scope, "generic_fallback");
+  assert.notEqual(genericNew.replacement.new.production_CO2e_kg, 40);
+  assert.equal(genericNew.replacement.new.production_CO2e_kg.includes(40), false);
+  assert.equal(collectNumbers(genericNew).includes(40), false);
+  assert.equal(genericNew.replacement.new.industry_average, undefined);
+  assert.equal(genericNew.replacement.new.average, undefined);
+  assert.equal(genericNew.replacement.new.central_estimate, undefined);
+  assert.equal(genericNew.replacement.new.default_value, undefined);
+  assert.equal(genericNew.replacement.new.exact_generic_production_CO2e_kg, undefined);
+
+  assert.equal(keepKeys.has("industry_average"), false);
+  assert.equal(keepKeys.has("average"), false);
+  assert.equal(keepKeys.has("central_estimate"), false);
+  assert.equal(genericKeys.has("industry_average"), false);
+  assert.equal(genericKeys.has("average"), false);
+  assert.equal(genericKeys.has("central_estimate"), false);
+
+  assert.notEqual(majorBoard.repair.climate_CO2e_kg, 40);
+  assert.notEqual(arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg, 40);
+  assert.equal(collectNumbers(majorBoard).includes(40), false);
+  assert.equal(collectNumbers(arbitraryRefurbished).includes(40), false);
+});
+
+test("PI-013 does not treat ADEME 7.61 kg CO2e as a universal refurbished-phone footprint", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const arbitraryRefurbished = evaluateAdequacyAndUnknownState(byId.T15.inputs);
+  const ademe = evaluateAdequacyAndUnknownState(byId.T16.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const genericNew = evaluateAdequacyAndUnknownState(byId.T17.inputs);
+
+  assert.equal(byId.T15.inputs["replacement.type"], "refurbished");
+  assert.equal(byId.T15.inputs["replacement.refurbished.direct_climate_CO2e_kg"], null);
+  assert.equal(arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg, null);
+  assert.equal(isUnknown(arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg), true);
+  assert.notEqual(arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg, 7.61);
+  assert.notEqual(arbitraryRefurbished.replacement.refurbished.direct_climate_CO2e_kg, 0);
+  assert.equal(arbitraryRefurbished.reference_scenario, undefined);
+  assert.equal(arbitraryRefurbished.reference_scenario?.climate_CO2e_kg, undefined);
+  assert.equal(arbitraryRefurbished.result_capability, "qualitative_only");
+  assert.equal(arbitraryRefurbished.replacement.refurbished.percent_reduction_from_new, undefined);
+  assert.equal(collectNumbers(arbitraryRefurbished).includes(7.61), false);
+  assert.notEqual(arbitraryRefurbished.reference_scenario?.status, "generic_refurbished_footprint");
+  assert.notEqual(arbitraryRefurbished.reference_scenario?.status, "universal_refurbished_footprint");
+
+  assert.equal(byId.T16.inputs["reference_scenario"], "ADEME_REFURB_REFERENCE");
+  assert.equal(ademe.reference_scenario.climate_CO2e_kg, 7.61);
+  assert.equal(ademe.reference_scenario.decomposable, false);
+  assert.equal(ademe.reference_scenario.assumed_second_life_years, 2);
+  assert.equal(ademe.reference_scenario.status, "OPAQUE_SOURCE_SPECIFIC_REFERENCE");
+  assert.equal(ademe.reference_scenario.charging_CO2e_kg, undefined);
+  assert.equal(ademe.reference_scenario.transport_CO2e_kg, undefined);
+  assert.equal(ademe.reference_scenario.production_CO2e_kg, undefined);
+  assert.equal(ademe.reference_scenario.generic_charging_added, undefined);
+  assert.equal(ademe.reference_scenario.generic_transport_added, undefined);
+  assert.notEqual(ademe.reference_scenario.status, "generic_refurbished_footprint");
+  assert.notEqual(ademe.reference_scenario.status, "universal_refurbished_footprint");
+  assert.equal(ademe.decomposable, undefined);
+
+  assert.equal(collectNumbers(keepDecision).includes(7.61), false);
+  assert.equal(collectNumbers(genericNew).includes(7.61), false);
+  assert.equal(keepDecision.reference_scenario, undefined);
+  assert.equal(genericNew.reference_scenario, undefined);
+});
+
 test("PI-014 does not treat historic manufacturing of the owned phone as a keep burden", () => {
   const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
   const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
@@ -1546,7 +1785,7 @@ test("PI-015 does not use annualized historic embodied emissions as the primary 
   assert.equal("comparative_ranking" in keepDecision, false);
 });
 
-test("covered prohibition IDs remain the eleven executed PI identifiers", () => {
+test("covered prohibition IDs remain the fifteen executed PI identifiers", () => {
   const sourceProhibitionIds = sourcePackage.prohibitedInterpretations.map(({ id }) => id);
   assert.deepEqual(
     sourceProhibitionIds.filter((id) => coveredProhibitionIds.includes(id)),
