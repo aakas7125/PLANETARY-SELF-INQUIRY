@@ -5,6 +5,9 @@ const GENERIC_NEW_DISTRIBUTION_CO2E_KG = Object.freeze([2, 4]);
 const BATTERY_REPAIR_CO2E_KG = Object.freeze([0.3, 0.7]);
 const DISPLAY_REPAIR_CO2E_KG = Object.freeze([3, 8]);
 const FAIRPHONE_5_FULL_MODULE_DIY_MAJOR_BOARD_CO2E_KG = 17.84;
+const ADEME_REFURB_REFERENCE_CO2E_KG = 7.61;
+const ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS = 2;
+const APPROVED_NEW_REGISTRY_MATCH = "approved_registry_match";
 
 /** @typedef {true | false | "unknown"} TriState */
 /** @typedef {"adequate" | "inadequate" | "unknown"} AdequacyStatus */
@@ -149,10 +152,111 @@ function applyServiceSequence(result, input) {
 }
 
 /**
- * Evaluates the T01–T14 adequacy, unknown-state, repair-impact, and
- * service-sequence contract slice. Input keys intentionally match the
- * immutable source package's field names; no UI model, replacement
- * recommendation, or later-case semantics are introduced here.
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyReplacementEvidence(result, input) {
+  const replacementType = input["replacement.type"];
+
+  if (replacementType === "refurbished") {
+    const directClimate = input["replacement.refurbished.direct_climate_CO2e_kg"];
+    result.replacement = {
+      ...(result.replacement && typeof result.replacement === "object" ? result.replacement : {}),
+      refurbished: {
+        direct_climate_CO2e_kg: typeof directClimate === "number" ? directClimate : null,
+      },
+    };
+    if (isUnknown(directClimate)) {
+      result.result_capability = "qualitative_only";
+    }
+  }
+
+  if (replacementType === "new") {
+    const model = input["replacement.new.model"];
+    const existingReplacement =
+      result.replacement && typeof result.replacement === "object" ? result.replacement : {};
+    if (model === APPROVED_NEW_REGISTRY_MATCH) {
+      result.generic_range_used_as_primary = false;
+      result.replacement = {
+        ...existingReplacement,
+        new: {
+          primary_climate_source: "model_specific",
+        },
+      };
+    } else if (isUnknown(model)) {
+      result.replacement = {
+        ...existingReplacement,
+        new: {
+          production_CO2e_kg: [...GENERIC_NEW_PRODUCTION_CO2E_KG],
+          distribution_CO2e_kg: [...GENERIC_NEW_DISTRIBUTION_CO2E_KG],
+          provenance_scope: "generic_fallback",
+        },
+      };
+    }
+  }
+
+  if (input["reference_scenario"] === "ADEME_REFURB_REFERENCE") {
+    result.reference_scenario = {
+      assumed_second_life_years: ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS,
+      climate_CO2e_kg: ADEME_REFURB_REFERENCE_CO2E_KG,
+      decomposable: false,
+      status: "OPAQUE_SOURCE_SPECIFIC_REFERENCE",
+    };
+  }
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyOldDeviceFate(result, input) {
+  const fate = input["old_device_fate.fate"];
+  if (typeof fate !== "string") {
+    return;
+  }
+
+  if (fate === "reuse_by_other") {
+    result.old_device_fate = {
+      immediate_e_waste: false,
+      market_displacement_credit: null,
+    };
+    return;
+  }
+
+  if (fate === "stored") {
+    result.old_device_fate = {
+      immediate_e_waste: false,
+      market_displacement_credit: null,
+      status: "dormant_or_retired",
+    };
+    return;
+  }
+
+  if (fate === "formal_recycling") {
+    const mass = input["current_device.mass_g"];
+    result.old_device_fate = {
+      discarded_mass_g: typeof mass === "number" ? mass : null,
+      immediate_e_waste: true,
+    };
+    result.individual_formal_recycling_probability_applied = false;
+    return;
+  }
+
+  if (fate === "trade_in_unknown") {
+    result.old_device_fate = {
+      immediate_e_waste: UNKNOWN,
+      market_displacement_credit: null,
+      next_use: UNKNOWN,
+    };
+  }
+}
+
+/**
+ * Evaluates the T01–T23 adequacy, unknown-state, repair-impact,
+ * service-sequence, replacement-evidence, and old-device-fate contract
+ * slice. Input keys intentionally match the immutable source package's
+ * field names; no UI model, used/refurbished secondary suite, or later-case
+ * semantics are introduced here.
  *
  * @param {SmartphoneInput} input
  * @returns {DecisionResult}
@@ -205,7 +309,12 @@ export function evaluateAdequacyAndUnknownState(input) {
     appendMissingField(result, "remaining_service.without_repair");
   }
 
-  if (replacementType === "new" && adequacyStatus === "adequate" && typeof horizon === "number") {
+  if (
+    replacementType === "new" &&
+    adequacyStatus === "adequate" &&
+    typeof horizon === "number" &&
+    input["replacement.new.model"] !== APPROVED_NEW_REGISTRY_MATCH
+  ) {
     result.new = {
       production_CO2e_kg: [...GENERIC_NEW_PRODUCTION_CO2E_KG],
       distribution_CO2e_kg: [...GENERIC_NEW_DISTRIBUTION_CO2E_KG],
@@ -217,6 +326,8 @@ export function evaluateAdequacyAndUnknownState(input) {
 
   applyRepairImpact(result, input);
   applyServiceSequence(result, input);
+  applyReplacementEvidence(result, input);
+  applyOldDeviceFate(result, input);
 
   return result;
 }

@@ -1,6 +1,6 @@
 # Executable Contract Test Mapping V0
 
-Status: **Proposed mapping of accepted contracts; T01–T14 adequacy, unknown-state, repair-impact, and service-sequence slices execute, with remaining behavior unimplemented**
+Status: **Proposed mapping of accepted contracts; T01–T23 input slices execute, with remaining behavior unimplemented**
 
 Task: `HQ-LC-2026-09-06-002` (Issue #16)
 
@@ -21,7 +21,7 @@ a complete smartphone-behavior certification.
 
 | Domain | Exact identifiers mapped | Governing material | Planned behavioral test target | Coverage kind | Current state |
 | --- | --- | --- | --- | --- | --- |
-| Input model | `T01`–`T14`, their listed `A-T-*` assertions, and `RC01`–`RC08` execute. `T15`–`T35`, all other input IDs, and `RC09`–`RC10` remain mapped gaps. | `R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0.json`, `USER_INPUT_MODEL_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-input-contract.test.mjs` | Positive, prohibitions, release gates | Mixed: `covered_by_executing_assertion` only for T01–T14 scope; all remaining input rows stay `requires_smartphone_implementation` |
+| Input model | `T01`–`T23`, their listed `A-T-*` assertions, and `RC01`–`RC10` execute. `T24`–`T35` and all other input IDs remain mapped gaps. | `R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0.json`, `USER_INPUT_MODEL_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-input-contract.test.mjs` | Positive, prohibitions, release gates | Mixed: `covered_by_executing_assertion` only for T01–T23 scope; all remaining input rows stay `requires_smartphone_implementation` |
 | Secondary pathways | `SEC-01`–`SEC-12` and every source `A-SEC-*` assertion | `R&E-V0-SMARTPHONE-SECONDARY-PATHWAY-TESTS-1.0.0.md`, `SECONDARY_PATHWAYS_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-secondary-contract.test.mjs` | Positive and prohibited behavior | `requires_smartphone_implementation` |
 | AP inquiry | `APQ1_FUNCTION`–`APQ6_RESEE`; `INV-AP-01`–`INV-AP-20` | `tests/ap-integrity/AP_V0_INVARIANTS.md`, `AP_INTERACTION_V0.md` | `app/scripts/smartphone-ap-contract.test.mjs` | Positive and prohibited behavior | `requires_smartphone_implementation` |
 | Empirical claim boundary | `SP-PATH-CLIMATE-001`, `SP-PATH-MINING-ECO-001`, `SP-PATH-MINING-PEOPLE-001`, `SP-PATH-EWASTE-PEOPLE-001`, `SP-PATH-EWASTE-ECO-001`, `SP-PATH-WATER-001` | `EMPIRICAL_SMARTPHONE_V0.md` | `app/scripts/smartphone-empirical-boundary.test.mjs` | Prohibited unsupported impact/displacement claims | `requires_smartphone_implementation` |
@@ -34,12 +34,12 @@ copying, normalizing, or silently maintaining a second package serialization.
 
 - Existing baseline tests remain baseline/harness tests only; none are claimed
   as coverage for a canonical smartphone rule beyond the executed slice below.
-- `smartphone-input-contract.test.mjs` executes the immutable T01–T14 inputs
-  and their listed assertions and release groups; it does not cover T15–T35.
+- `smartphone-input-contract.test.mjs` executes the immutable T01–T23 inputs
+  and their listed assertions and release groups; it does not cover T24–T35.
 - The mapping-integrity tests distinguish those executing assertions from every
   remaining implementation gap.
 - Four explicit `todo` entries remain in the application test output. The input
-  TODO now names only T15–T35 and their uncovered assertion and release IDs;
+  TODO now names only T24–T35 and their uncovered assertion IDs;
   the other three TODOs remain wholly unimplemented suites.
 - A later implementation task must change only the registry rows backed by its
   executing assertions from `requires_smartphone_implementation`.
