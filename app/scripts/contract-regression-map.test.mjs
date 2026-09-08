@@ -87,7 +87,7 @@ test("contract mapping covers every accepted source identifier exactly once", ()
   );
 });
 
-test("mapping records T01–T35, the ten executed globals, and eleven executed logic assertions", () => {
+test("mapping records T01–T35, the ten executed globals, and sixteen executed logic assertions", () => {
   const mapping = buildContractRegressionMap();
   const coverageKinds = new Set(mapping.map((row) => row.coverageKind));
   const coveredInputIds = mapping
@@ -150,6 +150,8 @@ test("mapping records T01–T35, the ten executed globals, and eleven executed l
     "A-LOGIC-REPAIR-001", "A-LOGIC-REPAIR-002",
     "A-LOGIC-REFURB-001", "A-LOGIC-REFURB-002",
     "A-LOGIC-FATE-001", "A-LOGIC-FATE-002",
+    "A-LOGIC-MISSING-001", "A-LOGIC-MISSING-002", "A-LOGIC-MISSING-003",
+    "A-LOGIC-EOL-001", "A-LOGIC-MATERIALS-001",
     "RC01_ADEQUATE_KEEP_GENERIC_NEW", "RC02_UNKNOWN_REMAINING_LIFE",
     "RC03_UNSAFE_KEEP_REMOVAL", "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
     "RC05_BATTERY_REPAIR_KNOWN_EXTENSION", "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
@@ -177,7 +179,7 @@ test("mapping records T01–T35, the ten executed globals, and eleven executed l
 });
 
 test.todo(
-  "implement the remaining mapped input-model behavior suite (uncovered A-LOGIC-MISSING/EOL/MATERIALS, PI-*)",
+  "implement the remaining mapped input-model behavior suite (uncovered PI-*)",
 );
 test.todo(
   "implement the mapped secondary-pathway behavior suite (SEC-01–SEC-12 and A-SEC-*)",

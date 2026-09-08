@@ -143,14 +143,13 @@ const coveredLogicAssertionIds = [
   "A-LOGIC-REFURB-002",
   "A-LOGIC-FATE-001",
   "A-LOGIC-FATE-002",
-];
-const remainingLogicAssertionIds = [
   "A-LOGIC-MISSING-001",
   "A-LOGIC-MISSING-002",
   "A-LOGIC-MISSING-003",
   "A-LOGIC-EOL-001",
   "A-LOGIC-MATERIALS-001",
 ];
+const remainingLogicAssertionIds = [];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
   "RC02_UNKNOWN_REMAINING_LIFE",
@@ -1009,12 +1008,146 @@ test("A-LOGIC-FATE-002 keeps accepted unknown fate derivatives unknown", () => {
   assert.notEqual(unknownMass.old_device_fate.discarded_mass_g, 0);
 });
 
-test("covered logic assertion IDs remain the eleven executed A-LOGIC identifiers", () => {
-  const sourceLogicIds = sourcePackage.logicAssertions.map(({ id }) => id);
+test("A-LOGIC-MISSING-001 forbids approved_default for a missing user situation fact", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const missingClasses = evaluateAdequacyAndUnknownState(byId.T35.inputs);
+  const resolved = resolveMissingInput({
+    field: "remaining_service.without_repair",
+    missingClass: USER_SITUATION_FACT,
+    researchApprovedFallback: true,
+    attemptApprovedDefault: true,
+  });
+
+  assert.equal(isUnknown(byId.T35.inputs["remaining_service.without_repair.expected_years"]), true);
+  assert.equal(resolved.missingClass, USER_SITUATION_FACT);
+  assert.equal(resolved.approvedDefaultPermitted, false);
+  assert.equal(resolved.usedApprovedDefault, false);
+  assert.equal(resolved.value, UNKNOWN);
+  assert.notEqual(resolved.value, 0);
+  assert.notEqual(resolved.value, false);
+  assert.equal(typeof resolved.value === "number", false);
+  assert.equal("approvedDefault" in resolved, false);
+  assert.deepEqual(missingClasses.missing_required_fields[0], {
+    field: "remaining_service.without_repair",
+    missingClass: USER_SITUATION_FACT,
+  });
+  assert.equal(missingClasses["remaining_service.without_repair.expected_years"], undefined);
+  assert.equal(isUnknown(missingClasses.H_primary_years), true);
+  assert.notEqual(missingClasses.H_primary_years, 3);
+  assert.notEqual(missingClasses.H_primary_years, 0);
+});
+
+test("A-LOGIC-MISSING-002 permits an approved Research fallback as a gate only", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const missingClasses = evaluateAdequacyAndUnknownState(byId.T35.inputs);
+  const permitted = resolveMissingInput({
+    field: "repair.model_specific_climate_CO2e_kg",
+    missingClass: RESEARCH_EVIDENCE_PARAMETER,
+    researchApprovedFallback: true,
+    attemptApprovedDefault: true,
+  });
+
+  assert.equal(permitted.missingClass, RESEARCH_EVIDENCE_PARAMETER);
+  assert.equal(permitted.approvedDefaultPermitted, true);
+  assert.equal(permitted.usedApprovedDefault, false);
+  assert.equal(permitted.value, UNKNOWN);
+  assert.equal(isUnknown(permitted.value), true);
+  assert.equal(typeof permitted.value === "number", false);
+  assert.equal("fallbackValue" in permitted, false);
+  assert.equal("approvedDefault" in permitted, false);
+  assert.notEqual(permitted.value, 0);
+  assert.notEqual(permitted.value, false);
+  assert.equal(missingClasses.repair?.climate_CO2e_kg, null);
+  assert.equal(isUnknown(missingClasses.repair?.climate_CO2e_kg), true);
+  assert.notEqual(missingClasses.repair?.climate_CO2e_kg, 17.84);
+});
+
+test("A-LOGIC-MISSING-003 leaves an unapproved missing Research parameter null/unknown", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const missingClasses = evaluateAdequacyAndUnknownState(byId.T35.inputs);
+  const resolved = resolveMissingInput({
+    field: "repair.model_specific_climate_CO2e_kg",
+    missingClass: RESEARCH_EVIDENCE_PARAMETER,
+    researchApprovedFallback: false,
+    attemptApprovedDefault: true,
+  });
+
+  assert.equal(isUnknown(byId.T35.inputs["repair.model_specific_climate_CO2e_kg"]), true);
+  assert.equal(resolved.missingClass, RESEARCH_EVIDENCE_PARAMETER);
+  assert.equal(resolved.approvedDefaultPermitted, false);
+  assert.equal(resolved.usedApprovedDefault, false);
+  assert.equal(isUnknown(resolved.value), true);
+  assert.notEqual(resolved.value, 0);
+  assert.notEqual(resolved.value, false);
+  assert.equal(typeof resolved.value === "number", false);
+  assert.deepEqual(missingClasses.missing_required_fields[1], {
+    field: "repair.model_specific_climate_CO2e_kg",
+    missingClass: RESEARCH_EVIDENCE_PARAMETER,
+  });
+  assert.equal(missingClasses.repair?.climate_CO2e_kg, null);
+  assert.equal(isUnknown(missingClasses.repair?.climate_CO2e_kg), true);
+  assert.notEqual(missingClasses.repair?.climate_CO2e_kg, 0);
+  assert.notEqual(missingClasses.repair?.climate_CO2e_kg, 17.84);
+  assert.equal(missingClasses.result_capability, "insufficient_information");
+});
+
+test("A-LOGIC-EOL-001 keeps generic EOL null with EXCLUDED_UNQUANTIFIED", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const eol = evaluateAdequacyAndUnknownState(byId.T24.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const resolved = resolveGenericEolBoundary();
+
+  assert.equal(byId.T24.inputs["generic_EOL_model_specific_value"], null);
+  assert.equal(resolved.generic_EOL_CO2e_kg, null);
+  assert.equal(resolved.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(resolved.generic_EOL_CO2e_kg, 0);
+  assert.equal(isUnknown(resolved.generic_EOL_CO2e_kg), true);
+
+  assert.equal(eol.generic_EOL_CO2e_kg, null);
+  assert.equal(eol.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(eol.generic_EOL_CO2e_kg, 0);
+  assert.equal(isUnknown(eol.generic_EOL_CO2e_kg), true);
+  assert.equal(eol.generic_recycling_credit, null);
+
+  assert.equal(keepDecision.generic_EOL_CO2e_kg, null);
+  assert.equal(keepDecision.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(keepDecision.generic_EOL_CO2e_kg, 0);
+});
+
+test("A-LOGIC-MATERIALS-001 adds zero climate from already-included upstream material cards", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const materials = evaluateAdequacyAndUnknownState(byId.T25.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const climateAfterMaterialCards = evaluateAdequacyAndUnknownState({
+    ...byId.T01.inputs,
+    material_pathway_cards_enabled: true,
+    "product_LCA.production.includes_raw_material_extraction": true,
+  });
+
+  assert.equal(byId.T25.inputs["product_LCA.production.includes_raw_material_extraction"], true);
+  assert.equal(byId.T25.inputs.material_pathway_cards_enabled, true);
+  assert.equal(materials.material_cards_numerical_climate_addition, 0);
+  assert.equal(materials.material_cards_role, "explanatory_only");
+  assert.equal(materials.material_cards_cobalt_mining_CO2e_kg, undefined);
+  assert.equal(materials.material_cards_gold_mining_CO2e_kg, undefined);
+  assert.equal(materials.material_cards_copper_mining_CO2e_kg, undefined);
+  assert.equal(materials.material_cards_lithium_mining_CO2e_kg, undefined);
+  assert.equal(materials.unified_harm_score, null);
+
+  assert.deepEqual(keepDecision.new.production_CO2e_kg, [25, 70]);
+  assert.deepEqual(climateAfterMaterialCards.new.production_CO2e_kg, [25, 70]);
   assert.deepEqual(
-    sourceLogicIds.filter((id) => coveredLogicAssertionIds.includes(id)),
-    coveredLogicAssertionIds,
+    climateAfterMaterialCards.new.distribution_CO2e_kg,
+    keepDecision.new.distribution_CO2e_kg,
   );
+  assert.equal(climateAfterMaterialCards.material_cards_numerical_climate_addition, 0);
+  assert.equal(climateAfterMaterialCards.material_cards_role, "explanatory_only");
+  assert.equal(climateAfterMaterialCards.unified_harm_score, null);
+});
+
+test("covered logic assertion IDs remain the sixteen executed A-LOGIC identifiers", () => {
+  const sourceLogicIds = sourcePackage.logicAssertions.map(({ id }) => id);
+  assert.deepEqual(coveredLogicAssertionIds, sourceLogicIds);
   assert.deepEqual(
     sourceLogicIds.filter((id) => !coveredLogicAssertionIds.includes(id)),
     remainingLogicAssertionIds,
