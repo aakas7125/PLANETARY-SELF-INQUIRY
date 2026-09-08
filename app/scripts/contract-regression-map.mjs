@@ -133,6 +133,12 @@ const EXECUTED_INPUT_IDS = new Set([
   "A-LOGIC-MISSING-003",
   "A-LOGIC-EOL-001",
   "A-LOGIC-MATERIALS-001",
+  "PI-001",
+  "PI-002",
+  "PI-003",
+  "PI-004",
+  "PI-005",
+  "PI-006",
 ]);
 
 const SOURCES = {
