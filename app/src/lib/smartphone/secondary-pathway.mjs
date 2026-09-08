@@ -171,11 +171,9 @@ function resolveBatteryReplacement(replacement) {
     return { value: null, status: null };
   }
   const batteryRecord = /** @type {Record<string, unknown>} */ (battery);
-  // SEC-02 authorizes only the null-input provisional generic range.
-  if (
-    batteryRecord.model_specific_impact === null ||
-    batteryRecord.model_specific_impact === undefined
-  ) {
+  // SEC-02 authorizes only the exact null-input provisional generic range.
+  // Absent/undefined or other values must not silently acquire the fallback.
+  if (batteryRecord.model_specific_impact === null) {
     return {
       value: [...BATTERY_REPLACEMENT_CO2E_KG],
       status: PROVISIONAL_GENERIC_RANGE,
@@ -185,19 +183,21 @@ function resolveBatteryReplacement(replacement) {
 }
 
 /**
- * SEC-04 proves that a null source-specific selection does not apply ADEME.
- * Positive ADEME selection belongs to later authorized cases (e.g. SEC-07).
+ * SEC-04 proves that an explicit null source-specific selection does not apply ADEME.
+ * Emit false only for that exact null selection; absent or non-null unimplemented
+ * selections must not be coerced to false. Positive ADEME selection is out of scope.
  *
  * @param {SecondaryReplacement} replacement
- * @returns {boolean}
+ * @returns {false | undefined}
  */
 function resolveAdemeApplied(replacement) {
-  const selected = replacement.source_specific_reference_selected;
-  if (selected === null || selected === undefined || selected === UNKNOWN) {
+  if (
+    Object.hasOwn(replacement, "source_specific_reference_selected") &&
+    replacement.source_specific_reference_selected === null
+  ) {
     return false;
   }
-  // No positive ADEME/source-specific selection behavior in this slice.
-  return false;
+  return undefined;
 }
 
 /**
@@ -222,8 +222,12 @@ export function evaluateSecondaryPathway(replacement = {}) {
       enters_direct_acquisition_total: false,
     },
     market_displacement_credit: null,
-    ADEME_7_61_applied: ademeApplied,
   };
+
+  // Emit ADEME_7_61_applied only for SEC-04's explicit-null selection proof.
+  if (ademeApplied !== undefined) {
+    result.ADEME_7_61_applied = ademeApplied;
+  }
 
   if (refurbishmentProcess !== undefined) {
     result.refurbishment_process = refurbishmentProcess;
@@ -234,14 +238,16 @@ export function evaluateSecondaryPathway(replacement = {}) {
   }
 
   const transfer = replacement.transfer;
-  if (transfer && typeof transfer === "object") {
-    const quantified =
-      "quantified_CO2e" in transfer ? transfer.quantified_CO2e : UNKNOWN;
-    result.transfer_CO2e = {
-      value: typeof quantified === "number" ? quantified : null,
-      status:
-        typeof quantified === "number" ? "APPROVED" : UNKNOWN_NO_FALLBACK,
-    };
+  if (transfer && typeof transfer === "object" && "quantified_CO2e" in transfer) {
+    const quantified = transfer.quantified_CO2e;
+    // This slice authorizes only SEC-01's explicit null/unknown transfer.
+    // Numeric or other off-slice values must not gain APPROVED status here.
+    if (quantified === null || quantified === UNKNOWN) {
+      result.transfer_CO2e = {
+        value: null,
+        status: UNKNOWN_NO_FALLBACK,
+      };
+    }
   }
 
   if (pathway === "refurbished") {

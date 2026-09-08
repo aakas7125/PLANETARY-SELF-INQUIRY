@@ -237,3 +237,81 @@ test("used_secondhand and refurbished remain distinct across the executed slice"
   assert.equal(used.secondary_pathway, "used_secondhand");
   assert.equal(refurbished.secondary_pathway, "refurbished");
 });
+
+test("guard: ADEME_7_61_applied false only for explicit-null selection", () => {
+  // Absent selection must not emit categorical false.
+  const absentSelection = evaluateSecondaryPathway(CASES["SEC-01"]);
+  assert.equal(Object.hasOwn(absentSelection, "ADEME_7_61_applied"), false);
+
+  // Non-null unimplemented selection must not be coerced to false.
+  const unimplementedSelection = evaluateSecondaryPathway({
+    ...CASES["SEC-04"],
+    source_specific_reference_selected: "unimplemented_source_ref",
+  });
+  assert.equal(Object.hasOwn(unimplementedSelection, "ADEME_7_61_applied"), false);
+  assert.equal(unimplementedSelection.refurb_direct_CO2e.value, null);
+  assert.notEqual(unimplementedSelection.refurb_direct_CO2e.value, 7.61);
+
+  // Explicit null (SEC-04) still proves ADEME is not applied.
+  const explicitNull = evaluateSecondaryPathway(CASES["SEC-04"]);
+  assert.equal(explicitNull.ADEME_7_61_applied, false);
+});
+
+test("guard: battery fallback requires model_specific_impact === null", () => {
+  const baseEvidence = {
+    inspection_testing: true,
+    cleaning: true,
+    refurbishment_program: true,
+  };
+
+  // Absent/undefined model_specific_impact must not acquire [0.3, 0.7].
+  const absentImpact = evaluateSecondaryPathway({
+    pathway_user_selection: "refurbished",
+    process_evidence: {
+      ...baseEvidence,
+      component_replacement: [{ type: "battery" }],
+    },
+  });
+  assert.equal(Object.hasOwn(absentImpact, "battery_replacement_CO2e"), false);
+  assert.notDeepEqual(absentImpact.battery_replacement_CO2e, [0.3, 0.7]);
+
+  // Other unimplemented numeric value must not acquire the provisional fallback.
+  const otherImpact = evaluateSecondaryPathway({
+    pathway_user_selection: "refurbished",
+    process_evidence: {
+      ...baseEvidence,
+      component_replacement: [
+        {
+          type: "battery",
+          model_specific_impact: 1.25,
+        },
+      ],
+    },
+  });
+  assert.equal(Object.hasOwn(otherImpact, "battery_replacement_CO2e"), false);
+  assert.notEqual(otherImpact.battery_replacement_CO2e_status, "APPROVED_MODEL_SPECIFIC");
+
+  // Exact SEC-02 null input still receives the authorized fallback.
+  const nullImpact = evaluateSecondaryPathway(CASES["SEC-02"]);
+  assert.deepEqual(nullImpact.battery_replacement_CO2e, [0.3, 0.7]);
+  assert.equal(nullImpact.battery_replacement_CO2e_status, PROVISIONAL_GENERIC_RANGE);
+});
+
+test("guard: numeric transfer input does not gain APPROVED status in this slice", () => {
+  const numericTransfer = evaluateSecondaryPathway({
+    ...CASES["SEC-01"],
+    transfer: {
+      method: "direct_private_resale",
+      quantified_CO2e: 0.42,
+    },
+  });
+  assert.notEqual(numericTransfer.transfer_CO2e?.status, "APPROVED");
+  if (Object.hasOwn(numericTransfer, "transfer_CO2e")) {
+    assert.notEqual(numericTransfer.transfer_CO2e.status, "APPROVED");
+  }
+
+  // Explicit null/unknown transfer (SEC-01) remains UNKNOWN_NO_FALLBACK.
+  const unknownTransfer = evaluateSecondaryPathway(CASES["SEC-01"]);
+  assert.equal(unknownTransfer.transfer_CO2e.value, null);
+  assert.equal(unknownTransfer.transfer_CO2e.status, UNKNOWN_NO_FALLBACK);
+});
