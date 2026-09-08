@@ -87,7 +87,7 @@ test("contract mapping covers every accepted source identifier exactly once", ()
   );
 });
 
-test("mapping records only T01–T23 input coverage backed by executing assertions", () => {
+test("mapping records only T01–T35 input coverage backed by executing assertions", () => {
   const mapping = buildContractRegressionMap();
   const coverageKinds = new Set(mapping.map((row) => row.coverageKind));
   const coveredInputIds = mapping
@@ -109,6 +109,7 @@ test("mapping records only T01–T23 input coverage backed by executing assertio
     "T01", "T02", "T03", "T04", "T05", "T06", "T07",
     "T08", "T09", "T10", "T11", "T12", "T13", "T14",
     "T15", "T16", "T17", "T18", "T19", "T20", "T21", "T22", "T23",
+    "T24", "T25", "T26", "T27", "T28", "T29", "T30", "T31", "T32", "T33", "T34", "T35",
     "A-T01-HORIZON-2Y", "A-T01-GENERIC-NEW-RANGES", "A-T01-NO-3Y-DEFAULT",
     "A-T02-HORIZON-REMAINS-UNKNOWN", "A-T02-NO-3Y-FALLBACK",
     "A-T03-AGE-NOT-ADEQUACY", "A-T03-NO-OBSOLESCENCE-INFERENCE",
@@ -127,6 +128,17 @@ test("mapping records only T01–T23 input coverage backed by executing assertio
     "A-T20-STORAGE-NOT-RECYCLING", "A-T21-EXACT-MASS",
     "A-T21-NO-GLOBAL-RATE", "A-T22-NO-GENERIC-MASS",
     "A-T23-TRADEIN-STAYS-UNKNOWN",
+    "A-T24-EOL-NULL-NOT-ZERO", "A-T25-NO-UPSTREAM-DOUBLECOUNT",
+    "A-T26-SUBSTITUTION-NOT-DISPLACEMENT",
+    "A-T27-US-0POINT40-SCENARIO", "A-T27-NOT-GLOBAL",
+    "A-T28-RANGE-PRESERVED", "A-T29-NO-SILENT-CLAMP",
+    "A-T30-NO-GRID-DEFAULT", "A-T30-NO-EXPERT-QUESTION",
+    "A-T31-IDENTITY-OPTIONAL-FOR-GENERIC",
+    "A-T32-NO-GRADE-TO-LIFETIME", "A-T32-NO-GRADE-TO-FOOTPRINT",
+    "A-T33-OPERATIONAL-NOT-ADEQUATE",
+    "A-T34-PRIMARY-HORIZON-REMAINS-CURRENT-2Y",
+    "A-T34-NO-EARLY-REPLACEMENT-AMORTIZATION",
+    "A-T35-MISSING-CLASSES-DISTINCT", "A-T35-NO-SILENT-DEFAULT",
     "RC01_ADEQUATE_KEEP_GENERIC_NEW", "RC02_UNKNOWN_REMAINING_LIFE",
     "RC03_UNSAFE_KEEP_REMOVAL", "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
     "RC05_BATTERY_REPAIR_KNOWN_EXTENSION", "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
@@ -139,7 +151,7 @@ test("mapping records only T01–T23 input coverage backed by executing assertio
     ["positive", "positive_and_prohibition", "prohibition", "release_gate"],
   );
   assert.deepEqual(coveredInputIds, expectedCoveredInputIds);
-  assert.deepEqual(remainingInputCases, expectedInputCases.slice(23));
+  assert.deepEqual(remainingInputCases, []);
   assert.ok(
     mapping
       .filter((row) => row.domain !== "input" || !expectedCoveredInputIds.includes(row.id))
@@ -154,7 +166,7 @@ test("mapping records only T01–T23 input coverage backed by executing assertio
 });
 
 test.todo(
-  "implement the remaining mapped input-model behavior suite (T24–T35, uncovered A-T-*, A-GLOBAL-*, A-LOGIC-*, PI-*)",
+  "implement the remaining mapped input-model behavior suite (uncovered A-GLOBAL-*, A-LOGIC-*, PI-*)",
 );
 test.todo(
   "implement the mapped secondary-pathway behavior suite (SEC-01–SEC-12 and A-SEC-*)",

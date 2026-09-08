@@ -8,6 +8,10 @@ const FAIRPHONE_5_FULL_MODULE_DIY_MAJOR_BOARD_CO2E_KG = 17.84;
 const ADEME_REFURB_REFERENCE_CO2E_KG = 7.61;
 const ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS = 2;
 const APPROVED_NEW_REGISTRY_MATCH = "approved_registry_match";
+const US_SECONDHAND_2026_DISPLACEMENT_RATE = 0.4;
+const US_SECONDHAND_2026_DISPLACEMENT_UNIT =
+  "new_devices_displaced_per_secondhand_transaction";
+const OUT_OF_BOUNDS_REMAINING_SERVICE_YEARS = 30;
 
 /** @typedef {true | false | "unknown"} TriState */
 /** @typedef {"adequate" | "inadequate" | "unknown"} AdequacyStatus */
@@ -57,14 +61,30 @@ function isFairphone5FullModuleDiyMajorBoard(input) {
   );
 }
 
-/** @param {DecisionResult} result @param {string} field */
-function appendMissingField(result, field) {
+/**
+ * @param {DecisionResult} result
+ * @param {string} field
+ * @param {string} [missingClass]
+ */
+function appendMissingField(result, field, missingClass) {
   const existing = Array.isArray(result.missing_required_fields)
     ? result.missing_required_fields
     : [];
-  if (!existing.includes(field)) {
-    result.missing_required_fields = [...existing, field];
+  const alreadyPresent = existing.some((entry) =>
+    typeof entry === "string" ? entry === field : entry?.field === field,
+  );
+  if (alreadyPresent) {
+    return;
   }
+  result.missing_required_fields = [
+    ...existing,
+    missingClass ? { field, missingClass } : field,
+  ];
+}
+
+/** @param {SmartphoneInput} input @param {string} key @returns {boolean} */
+function hasInputKey(input, key) {
+  return Object.prototype.hasOwnProperty.call(input, key);
 }
 
 /**
@@ -252,11 +272,184 @@ function applyOldDeviceFate(result, input) {
 }
 
 /**
- * Evaluates the T01–T23 adequacy, unknown-state, repair-impact,
- * service-sequence, replacement-evidence, and old-device-fate contract
- * slice. Input keys intentionally match the immutable source package's
- * field names; no UI model, used/refurbished secondary suite, or later-case
- * semantics are introduced here.
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyGenericEolBoundary(result, input) {
+  if (
+    !hasInputKey(input, "generic_EOL_model_specific_value") ||
+    !isUnknown(input["generic_EOL_model_specific_value"])
+  ) {
+    return;
+  }
+  result.generic_EOL_CO2e_kg = null;
+  result.generic_EOL_status = "EXCLUDED_UNQUANTIFIED";
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyMaterialCardBoundary(result, input) {
+  if (
+    input["material_pathway_cards_enabled"] !== true ||
+    input["product_LCA.production.includes_raw_material_extraction"] !== true
+  ) {
+    return;
+  }
+  result.material_cards_numerical_climate_addition = 0;
+  result.material_cards_role = "explanatory_only";
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyPersonalSubstitutionBoundary(result, input) {
+  if (input["replacement.refurbished.if_unavailable"] !== "buy_new") {
+    return;
+  }
+  result.market_displacement_credit = null;
+  result.purchase_counterfactual = "buy_new";
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyUsConsequentialScenario(result, input) {
+  if (
+    input["consequential_mode"] !== true ||
+    input["market"] !== "US" ||
+    input["scenario"] !== "US_SECONDHAND_2026"
+  ) {
+    return;
+  }
+  result.market_displacement_rate = US_SECONDHAND_2026_DISPLACEMENT_RATE;
+  result.market_displacement_unit = US_SECONDHAND_2026_DISPLACEMENT_UNIT;
+  result.primary_attributional_score_modified = false;
+  result.scenario_scope = "US_market_specific";
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyRemainingServiceRange(result, input) {
+  const low = input["remaining_service.without_repair.low_years"];
+  const high = input["remaining_service.without_repair.high_years"];
+  if (typeof low !== "number" || typeof high !== "number") {
+    return;
+  }
+  result.remaining_service = {
+    expected_years: typeof input["remaining_service.without_repair.expected_years"] === "number"
+      ? input["remaining_service.without_repair.expected_years"]
+      : null,
+    range_years: [low, high],
+  };
+  result.scenario_uncertainty_preserved = true;
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyChargingGridBoundary(result, input) {
+  if (
+    !hasInputKey(input, "system_context.grid_carbon_intensity_kgCO2e_per_kWh") ||
+    !isUnknown(input["system_context.grid_carbon_intensity_kgCO2e_per_kWh"])
+  ) {
+    return;
+  }
+  result.charging_carbon_CO2e_kg = null;
+  result.charging_carbon_status = "unknown_or_omitted";
+  result.user_expert_parameter_required = false;
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyMissingIdentityGenericComparison(result, input) {
+  if (
+    !hasInputKey(input, "current_device.model") ||
+    !isUnknown(input["current_device.model"])
+  ) {
+    return;
+  }
+  result.comparison_blocked_by_missing_identity = false;
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyConditionGradeBoundary(result, input) {
+  if (typeof input["replacement.refurbished.condition"] !== "string") {
+    return;
+  }
+  result.condition_descriptor_role = "descriptive_only";
+  result.inferred_climate_CO2e_kg = null;
+  result.inferred_remaining_life_years = null;
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyOperationalAdequacyBoundary(result, input) {
+  if (input["phone_turns_on"] !== true) {
+    return;
+  }
+  result.phone_operational_equals_adequate = false;
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyPrimaryHorizonAmortizationBoundary(result, input) {
+  if (typeof input["replacement.new.expected_adequate_service_years"] !== "number") {
+    return;
+  }
+  result.new_phone_8y_lifetime_used_to_amortize_primary_decision = false;
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyDistinctMissingClasses(result, input) {
+  const remainingKey = "remaining_service.without_repair.expected_years";
+  const researchKey = "repair.model_specific_climate_CO2e_kg";
+  const remainingMissing =
+    hasInputKey(input, remainingKey) &&
+    isUnknown(input[remainingKey]) &&
+    typeof input["remaining_service.without_repair.low_years"] !== "number" &&
+    typeof input["remaining_service.without_repair.high_years"] !== "number";
+  const researchMissing =
+    input["repair.type"] === "major_board" &&
+    hasInputKey(input, researchKey) &&
+    isUnknown(input[researchKey]);
+  if (!remainingMissing || !researchMissing) {
+    return;
+  }
+  appendMissingField(result, "remaining_service.without_repair", "user_situation_fact");
+  appendMissingField(
+    result,
+    "repair.model_specific_climate_CO2e_kg",
+    "research_evidence_parameter",
+  );
+  result.result_capability = "insufficient_information";
+}
+
+/**
+ * Evaluates the T01–T35 adequacy, unknown-state, repair-impact,
+ * service-sequence, replacement-evidence, old-device-fate, and remaining
+ * input-contract case slice. Input keys intentionally match the immutable
+ * source package's field names; no UI model, used/refurbished secondary
+ * suite, global/logic/prohibition certification, or new scientific defaults
+ * are introduced here.
  *
  * @param {SmartphoneInput} input
  * @returns {DecisionResult}
@@ -271,7 +464,8 @@ export function evaluateAdequacyAndUnknownState(input) {
     supportAdequacy,
   });
   const horizonInput = input["remaining_service.without_repair.expected_years"];
-  const horizon = primaryHorizon(horizonInput);
+  const remainingServiceOutOfBounds = horizonInput === OUT_OF_BOUNDS_REMAINING_SERVICE_YEARS;
+  const horizon = remainingServiceOutOfBounds ? null : primaryHorizon(horizonInput);
   const replacementType = input["replacement.type"];
 
   /** @type {DecisionResult} */
@@ -305,6 +499,11 @@ export function evaluateAdequacyAndUnknownState(input) {
     replacement_forced_by_support_status: false,
   };
 
+  if (remainingServiceOutOfBounds) {
+    result.validation_status = "error";
+    result.accepted_value = null;
+  }
+
   if (replacementType === "new" && isUnknown(horizonInput)) {
     appendMissingField(result, "remaining_service.without_repair");
   }
@@ -328,6 +527,17 @@ export function evaluateAdequacyAndUnknownState(input) {
   applyServiceSequence(result, input);
   applyReplacementEvidence(result, input);
   applyOldDeviceFate(result, input);
+  applyGenericEolBoundary(result, input);
+  applyMaterialCardBoundary(result, input);
+  applyPersonalSubstitutionBoundary(result, input);
+  applyUsConsequentialScenario(result, input);
+  applyRemainingServiceRange(result, input);
+  applyChargingGridBoundary(result, input);
+  applyMissingIdentityGenericComparison(result, input);
+  applyConditionGradeBoundary(result, input);
+  applyOperationalAdequacyBoundary(result, input);
+  applyPrimaryHorizonAmortizationBoundary(result, input);
+  applyDistinctMissingClasses(result, input);
 
   return result;
 }

@@ -40,6 +40,18 @@ const coveredCaseIds = [
   "T21",
   "T22",
   "T23",
+  "T24",
+  "T25",
+  "T26",
+  "T27",
+  "T28",
+  "T29",
+  "T30",
+  "T31",
+  "T32",
+  "T33",
+  "T34",
+  "T35",
 ];
 const coveredAssertionIds = [
   "A-T01-HORIZON-2Y",
@@ -77,6 +89,23 @@ const coveredAssertionIds = [
   "A-T21-NO-GLOBAL-RATE",
   "A-T22-NO-GENERIC-MASS",
   "A-T23-TRADEIN-STAYS-UNKNOWN",
+  "A-T24-EOL-NULL-NOT-ZERO",
+  "A-T25-NO-UPSTREAM-DOUBLECOUNT",
+  "A-T26-SUBSTITUTION-NOT-DISPLACEMENT",
+  "A-T27-US-0POINT40-SCENARIO",
+  "A-T27-NOT-GLOBAL",
+  "A-T28-RANGE-PRESERVED",
+  "A-T29-NO-SILENT-CLAMP",
+  "A-T30-NO-GRID-DEFAULT",
+  "A-T30-NO-EXPERT-QUESTION",
+  "A-T31-IDENTITY-OPTIONAL-FOR-GENERIC",
+  "A-T32-NO-GRADE-TO-LIFETIME",
+  "A-T32-NO-GRADE-TO-FOOTPRINT",
+  "A-T33-OPERATIONAL-NOT-ADEQUATE",
+  "A-T34-PRIMARY-HORIZON-REMAINS-CURRENT-2Y",
+  "A-T34-NO-EARLY-REPLACEMENT-AMORTIZATION",
+  "A-T35-MISSING-CLASSES-DISTINCT",
+  "A-T35-NO-SILENT-DEFAULT",
 ];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
@@ -96,7 +125,7 @@ function valueAt(object, dottedPath) {
   return dottedPath.split(".").reduce((value, key) => value?.[key], object);
 }
 
-test("T01–T23 coverage remains pinned to the immutable source cases", () => {
+test("T01–T35 coverage remains pinned to the immutable source cases", () => {
   assert.deepEqual(cases.map(({ id }) => id), coveredCaseIds);
   assert.deepEqual(
     cases.flatMap(({ assertionIds }) => assertionIds),
@@ -306,4 +335,111 @@ test("T19–T23 preserve fate, mass, unknown, and no 1:1 displacement credit", (
   assert.equal(tradeIn.old_device_fate.market_displacement_credit, null);
   assert.notEqual(tradeIn.old_device_fate.next_use, "reuse");
   assert.notEqual(tradeIn.old_device_fate.next_use, "formal_recycling");
+});
+
+test("T24–T27 keep EOL null, materials explanatory, and displacement non-global", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const eol = evaluateAdequacyAndUnknownState(byId.T24.inputs);
+  const materials = evaluateAdequacyAndUnknownState(byId.T25.inputs);
+  const substitution = evaluateAdequacyAndUnknownState(byId.T26.inputs);
+  const usScenario = evaluateAdequacyAndUnknownState(byId.T27.inputs);
+  const germanyScenario = evaluateAdequacyAndUnknownState({
+    ...byId.T27.inputs,
+    market: "DE",
+  });
+  const globalDefault = evaluateAdequacyAndUnknownState({
+    consequential_mode: true,
+    market: "global",
+  });
+
+  assert.equal(eol.generic_EOL_CO2e_kg, null);
+  assert.equal(eol.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(eol.generic_EOL_CO2e_kg, 0);
+  assert.equal(eol.generic_recycling_credit, undefined);
+
+  assert.equal(materials.material_cards_numerical_climate_addition, 0);
+  assert.equal(materials.material_cards_role, "explanatory_only");
+  assert.equal(materials.material_cards_cobalt_mining_CO2e_kg, undefined);
+
+  assert.equal(substitution.market_displacement_credit, null);
+  assert.equal(substitution.purchase_counterfactual, "buy_new");
+  assert.notEqual(substitution.market_displacement_credit, 1);
+
+  assert.equal(usScenario.market_displacement_rate, 0.4);
+  assert.equal(
+    usScenario.market_displacement_unit,
+    "new_devices_displaced_per_secondhand_transaction",
+  );
+  assert.equal(usScenario.scenario_scope, "US_market_specific");
+  assert.equal(usScenario.primary_attributional_score_modified, false);
+  assert.equal(germanyScenario.market_displacement_rate, undefined);
+  assert.equal(globalDefault.market_displacement_rate, undefined);
+});
+
+test("T28–T31 preserve remaining-life range, reject 30 without clamping, and skip grid defaults", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const range = evaluateAdequacyAndUnknownState(byId.T28.inputs);
+  const outOfBounds = evaluateAdequacyAndUnknownState(byId.T29.inputs);
+  const gridUnknown = evaluateAdequacyAndUnknownState(byId.T30.inputs);
+  const missingIdentity = evaluateAdequacyAndUnknownState(byId.T31.inputs);
+
+  assert.deepEqual(range.remaining_service.range_years, [1, 3]);
+  assert.equal(range.remaining_service.expected_years, null);
+  assert.equal(range.scenario_uncertainty_preserved, true);
+  assert.notEqual(range.remaining_service.expected_years, 2);
+  assert.notEqual(range.H_primary_years, 2);
+
+  assert.equal(outOfBounds.validation_status, "error");
+  assert.equal(outOfBounds.accepted_value, null);
+  assert.notEqual(outOfBounds.accepted_value, 15);
+  assert.notEqual(outOfBounds.H_primary_years, 15);
+  assert.notEqual(outOfBounds.H_primary_years, 30);
+
+  assert.equal(gridUnknown.charging_carbon_CO2e_kg, null);
+  assert.equal(gridUnknown.charging_carbon_status, "unknown_or_omitted");
+  assert.equal(gridUnknown.user_expert_parameter_required, false);
+  assert.equal(gridUnknown.system_context?.grid_carbon_intensity_kgCO2e_per_kWh, undefined);
+
+  assert.equal(missingIdentity.comparison_blocked_by_missing_identity, false);
+  assert.deepEqual(missingIdentity.new.production_CO2e_kg, [25, 70]);
+  assert.equal(missingIdentity.result_capability, "range_quantitative");
+});
+
+test("T32–T35 keep grade descriptive, operational non-adequate, and missing classes distinct", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const grade = evaluateAdequacyAndUnknownState(byId.T32.inputs);
+  const operational = evaluateAdequacyAndUnknownState(byId.T33.inputs);
+  const earlyReplacement = evaluateAdequacyAndUnknownState(byId.T34.inputs);
+  const missingClasses = evaluateAdequacyAndUnknownState(byId.T35.inputs);
+
+  assert.equal(grade.condition_descriptor_role, "descriptive_only");
+  assert.equal(grade.inferred_remaining_life_years, null);
+  assert.equal(grade.inferred_climate_CO2e_kg, null);
+  assert.notEqual(grade.inferred_remaining_life_years, 3);
+
+  assert.equal(operational.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.equal(operational.phone_operational_equals_adequate, false);
+  assert.equal(operational.keep_as_is.provides_equivalent_service, false);
+
+  assert.equal(earlyReplacement.H_primary_years, 2);
+  assert.equal(earlyReplacement.new_phone_8y_lifetime_used_to_amortize_primary_decision, false);
+  assert.equal(earlyReplacement.new?.production_CO2e_kg_per_year, undefined);
+
+  assert.deepEqual(missingClasses.missing_required_fields, [
+    {
+      field: "remaining_service.without_repair",
+      missingClass: "user_situation_fact",
+    },
+    {
+      field: "repair.model_specific_climate_CO2e_kg",
+      missingClass: "research_evidence_parameter",
+    },
+  ]);
+  assert.equal(missingClasses.result_capability, "insufficient_information");
+  assert.notEqual(
+    missingClasses.missing_required_fields[0].missingClass,
+    missingClasses.missing_required_fields[1].missingClass,
+  );
+  assert.equal(missingClasses["remaining_service.without_repair.expected_years"], undefined);
+  assert.equal(missingClasses.repair?.climate_CO2e_kg, null);
 });
