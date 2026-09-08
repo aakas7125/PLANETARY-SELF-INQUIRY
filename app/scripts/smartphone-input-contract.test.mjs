@@ -150,6 +150,30 @@ const coveredLogicAssertionIds = [
   "A-LOGIC-MATERIALS-001",
 ];
 const remainingLogicAssertionIds = [];
+const coveredProhibitionIds = [
+  "PI-001",
+  "PI-002",
+  "PI-003",
+  "PI-004",
+  "PI-005",
+  "PI-006",
+];
+const remainingProhibitionIds = [
+  "PI-007",
+  "PI-008",
+  "PI-009",
+  "PI-010",
+  "PI-011",
+  "PI-012",
+  "PI-013",
+  "PI-014",
+  "PI-015",
+  "PI-016",
+  "PI-017",
+  "PI-018",
+  "PI-019",
+  "PI-020",
+];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
   "RC02_UNKNOWN_REMAINING_LIFE",
@@ -1151,5 +1175,194 @@ test("covered logic assertion IDs remain the sixteen executed A-LOGIC identifier
   assert.deepEqual(
     sourceLogicIds.filter((id) => !coveredLogicAssertionIds.includes(id)),
     remainingLogicAssertionIds,
+  );
+});
+
+test("PI-001 does not let device age determine remaining adequate life", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const unknownHorizon = evaluateAdequacyAndUnknownState(byId.T02.inputs);
+  const agedUnknownHorizon = evaluateAdequacyAndUnknownState({
+    ...byId.T02.inputs,
+    "current_device.total_service_age_years": 6,
+  });
+  const olderUnknownHorizon = evaluateAdequacyAndUnknownState({
+    ...byId.T02.inputs,
+    "current_device.total_service_age_years": 99,
+  });
+  const youngUnknownAdequacy = evaluateAdequacyAndUnknownState({
+    ...byId.T03.inputs,
+    "current_device.total_service_age_years": 1,
+  });
+  const agedUnknownAdequacy = evaluateAdequacyAndUnknownState(byId.T03.inputs);
+  const oldUnknownAdequacy = evaluateAdequacyAndUnknownState({
+    ...byId.T03.inputs,
+    "current_device.total_service_age_years": 99,
+  });
+
+  assert.equal(byId.T03.inputs["current_device.total_service_age_years"], 6);
+  assert.equal(unknownHorizon.H_primary_years, null);
+  assert.equal(agedUnknownHorizon.H_primary_years, null);
+  assert.equal(olderUnknownHorizon.H_primary_years, null);
+  assert.deepEqual(agedUnknownHorizon, olderUnknownHorizon);
+  assert.notEqual(agedUnknownHorizon.H_primary_years, 6);
+  assert.notEqual(olderUnknownHorizon.H_primary_years, 99);
+  assert.notEqual(agedUnknownHorizon.H_primary_years, 0);
+  assert.equal(agedUnknownHorizon.remaining_life, undefined);
+  assert.equal(agedUnknownHorizon.inferred_remaining_life_years, undefined);
+  assert.equal(agedUnknownAdequacy.H_primary_years, null);
+  assert.notEqual(agedUnknownAdequacy.H_primary_years, 0);
+  assert.deepEqual(oldUnknownAdequacy, youngUnknownAdequacy);
+  assert.equal(oldUnknownAdequacy.H_primary_years, youngUnknownAdequacy.H_primary_years);
+  assert.equal("obsolete" in oldUnknownAdequacy, false);
+});
+
+test("PI-002 does not treat ended software support as unsafe or forced replacement", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const supportEndedAdequate = evaluateAdequacyAndUnknownState(byId.T06.inputs);
+  const supportEndedUnknown = evaluateAdequacyAndUnknownState(byId.T07.inputs);
+
+  assert.equal(byId.T06.inputs["security_support.status"], "ended");
+  assert.equal(byId.T06.inputs["security_support.adequate_for_required_use"], true);
+  assert.equal(supportEndedAdequate.derived.adequacy_gate.adequacy_status, "adequate");
+  assert.notEqual(supportEndedAdequate.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.equal(supportEndedAdequate.replacement_forced_by_support_status, false);
+  assert.notEqual(supportEndedAdequate.replacement_forced_by_support_status, true);
+  assert.equal(supportEndedAdequate.replacement_forced, undefined);
+  assert.equal("recommendation" in supportEndedAdequate, false);
+  assert.equal("unsafe" in supportEndedAdequate, false);
+
+  assert.equal(byId.T07.inputs["security_support.status"], "ended");
+  assert.equal(byId.T07.inputs["security_support.adequate_for_required_use"], UNKNOWN);
+  assert.equal(supportEndedUnknown.derived.adequacy_gate.adequacy_status, UNKNOWN);
+  assert.notEqual(supportEndedUnknown.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.notEqual(supportEndedUnknown.derived.adequacy_gate.adequacy_status, false);
+  assert.equal(supportEndedUnknown.replacement_forced_by_support_status, false);
+  assert.equal("recommendation" in supportEndedUnknown, false);
+});
+
+test("PI-003 does not treat powering on as establishing adequacy", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const operationalOnly = evaluateAdequacyAndUnknownState(byId.T33.inputs);
+
+  assert.equal(byId.T33.inputs.phone_turns_on, true);
+  assert.equal(byId.T33.inputs["adequacy.required_functions_met"], false);
+  assert.equal(operationalOnly.phone_operational_equals_adequate, false);
+  assert.equal(operationalOnly.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.notEqual(operationalOnly.derived.adequacy_gate.adequacy_status, "adequate");
+  assert.equal(operationalOnly.keep_as_is.provides_equivalent_service, false);
+  assert.equal(operationalOnly.keep_as_is.feasible, false);
+});
+
+test("PI-004 does not treat repair as an unconditional environmental winner", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const unsupportedMajorBoard = evaluateAdequacyAndUnknownState(byId.T11.inputs);
+  const unknownPostRepair = evaluateAdequacyAndUnknownState(byId.T09.inputs);
+  const knownSequence = evaluateAdequacyAndUnknownState(byId.T13.inputs);
+  const unknownNextEvent = evaluateAdequacyAndUnknownState(byId.T14.inputs);
+  const batteryRange = evaluateAdequacyAndUnknownState(byId.T08.inputs);
+
+  assert.equal(unsupportedMajorBoard.repair.climate_CO2e_kg, null);
+  assert.equal(unsupportedMajorBoard.repair.impact_status, "unsupported");
+  assert.equal(unsupportedMajorBoard.result_capability, "insufficient_information");
+  assert.equal("winner" in unsupportedMajorBoard, false);
+  assert.equal("environmentally_preferable" in unsupportedMajorBoard, false);
+  assert.equal("environmentally_worst" in unsupportedMajorBoard, false);
+  assert.equal("recommendation" in unsupportedMajorBoard, false);
+  assert.equal(unsupportedMajorBoard.repair.always_preferable, undefined);
+
+  assert.equal(unknownPostRepair.result_capability, "insufficient_information");
+  assert.equal("winner" in unknownPostRepair, false);
+  assert.equal("environmentally_preferable" in unknownPostRepair, false);
+
+  assert.equal(knownSequence.service_sequence_required, true);
+  assert.equal(knownSequence.result_status, "calculable_or_conditional_after_sequence");
+  assert.notEqual(knownSequence.result_status, "repair_unconditionally_preferable");
+  assert.equal("winner" in knownSequence, false);
+  assert.equal("environmentally_preferable" in knownSequence, false);
+
+  assert.equal(unknownNextEvent.service_sequence_required, true);
+  assert.equal(unknownNextEvent.result_capability, "insufficient_information");
+  assert.equal("winner" in unknownNextEvent, false);
+
+  assert.deepEqual(batteryRange.repair.climate_CO2e_kg, [0.3, 0.7]);
+  assert.notEqual(batteryRange.repair.climate_CO2e_kg.length, 1);
+  assert.equal("environmentally_preferable" in batteryRange, false);
+  assert.equal("environmentally_worst" in batteryRange, false);
+});
+
+test("PI-005 does not treat refurbished as an unconditional environmental winner", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const arbitrary = evaluateAdequacyAndUnknownState(byId.T15.inputs);
+  const ademe = evaluateAdequacyAndUnknownState(byId.T16.inputs);
+
+  assert.equal(arbitrary.replacement.refurbished.direct_climate_CO2e_kg, null);
+  assert.equal(arbitrary.result_capability, "qualitative_only");
+  assert.equal(arbitrary.replacement.refurbished.percent_reduction_from_new, undefined);
+  assert.equal("winner" in arbitrary, false);
+  assert.equal("environmentally_preferable" in arbitrary, false);
+  assert.equal("environmentally_worst" in arbitrary, false);
+  assert.equal("recommendation" in arbitrary, false);
+  assert.equal(arbitrary.replacement.refurbished.always_preferable, undefined);
+  assert.notEqual(arbitrary.reference_scenario?.status, "generic_refurbished_footprint");
+
+  assert.equal(ademe.reference_scenario.status, "OPAQUE_SOURCE_SPECIFIC_REFERENCE");
+  assert.equal(ademe.reference_scenario.decomposable, false);
+  assert.notEqual(ademe.reference_scenario.status, "universal_refurbished_winner");
+  assert.equal("winner" in ademe, false);
+  assert.equal("environmentally_preferable" in ademe, false);
+  assert.equal("environmentally_worst" in ademe, false);
+});
+
+test("PI-006 does not treat new as environmentally worst once the current phone is inadequate", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const functionalGap = evaluateAdequacyAndUnknownState(byId.T05.inputs);
+  const unsafe = evaluateAdequacyAndUnknownState(byId.T04.inputs);
+  const inadequateNew = evaluateAdequacyAndUnknownState({
+    ...byId.T05.inputs,
+    "replacement.type": "new",
+    "replacement.new.model": null,
+  });
+  const genericNew = evaluateAdequacyAndUnknownState(byId.T17.inputs);
+
+  assert.equal(functionalGap.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.equal(functionalGap.keep_as_is.feasible, false);
+  assert.equal(functionalGap.keep_as_is.provides_equivalent_service, false);
+  assert.equal(functionalGap.definitive_comparative_ranking_permitted, false);
+  assert.equal("winner" in functionalGap, false);
+  assert.equal("environmentally_worst" in functionalGap, false);
+  assert.equal("environmentally_preferable" in functionalGap, false);
+  assert.equal("recommendation" in functionalGap, false);
+
+  assert.equal(unsafe.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.equal(unsafe.keep_as_is.feasible, false);
+  assert.equal(unsafe.definitive_comparative_ranking_permitted, false);
+  assert.equal("winner" in unsafe, false);
+  assert.equal("environmentally_worst" in unsafe, false);
+
+  assert.equal(inadequateNew.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.equal(inadequateNew.keep_as_is.feasible, false);
+  assert.equal(inadequateNew.definitive_comparative_ranking_permitted, false);
+  assert.equal("winner" in inadequateNew, false);
+  assert.equal("environmentally_worst" in inadequateNew, false);
+  assert.equal("environmentally_preferable" in inadequateNew, false);
+  assert.equal(inadequateNew.replacement?.new?.always_worst, undefined);
+  assert.deepEqual(inadequateNew.replacement.new.production_CO2e_kg, [25, 70]);
+  assert.notEqual(inadequateNew.replacement.new.production_CO2e_kg, 70);
+
+  assert.deepEqual(genericNew.replacement.new.production_CO2e_kg, [25, 70]);
+  assert.equal(genericNew.replacement.new.provenance_scope, "generic_fallback");
+  assert.equal("environmentally_worst" in genericNew, false);
+  assert.equal("winner" in genericNew, false);
+});
+
+test("covered prohibition IDs remain the six executed PI identifiers", () => {
+  const sourceProhibitionIds = sourcePackage.prohibitedInterpretations.map(({ id }) => id);
+  assert.deepEqual(
+    sourceProhibitionIds.filter((id) => coveredProhibitionIds.includes(id)),
+    coveredProhibitionIds,
+  );
+  assert.deepEqual(
+    sourceProhibitionIds.filter((id) => !coveredProhibitionIds.includes(id)),
+    remainingProhibitionIds,
   );
 });
