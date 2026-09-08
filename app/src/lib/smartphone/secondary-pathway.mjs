@@ -5,6 +5,9 @@
  * R&E-V0-SMARTPHONE-USED-REFURB-PATHWAYS-1.0.0, contracts/SECONDARY_PATHWAYS_V0.md.
  *
  * Separate from the input-package evaluator so secondary package boundaries stay explicit.
+ *
+ * This slice implements SEC-01–SEC-04 only. Positive ADEME source-specific selection
+ * (SEC-07) and model-specific battery impact paths are intentionally absent.
  */
 
 export const UNKNOWN = "unknown";
@@ -16,9 +19,6 @@ export const PROVISIONAL_GENERIC_RANGE = "PROVISIONAL_GENERIC_RANGE";
 
 /** Accepted battery intervention fallback from used/refurb pathways (kg CO2e). */
 const BATTERY_REPLACEMENT_CO2E_KG = Object.freeze([0.3, 0.7]);
-
-/** ADEME source-specific reference value — never a generic refurbished fallback. */
-const ADEME_REFURB_REFERENCE_CO2E_KG = 7.61;
 
 /** @typedef {"used_secondhand" | "refurbished" | "unknown"} SecondaryPathway */
 /** @typedef {Record<string, unknown>} SecondaryReplacement */
@@ -145,6 +145,9 @@ function resolveProcessUncertainty(replacement, pathway) {
 }
 
 /**
+ * Battery intervention fallback for documented replacement with null model-specific impact.
+ * Numeric / model-specific approval paths are out of scope for SEC-01–SEC-04.
+ *
  * @param {SecondaryReplacement} replacement
  * @returns {{ value: number[] | null, status: string | null }}
  */
@@ -168,6 +171,7 @@ function resolveBatteryReplacement(replacement) {
     return { value: null, status: null };
   }
   const batteryRecord = /** @type {Record<string, unknown>} */ (battery);
+  // SEC-02 authorizes only the null-input provisional generic range.
   if (
     batteryRecord.model_specific_impact === null ||
     batteryRecord.model_specific_impact === undefined
@@ -177,18 +181,12 @@ function resolveBatteryReplacement(replacement) {
       status: PROVISIONAL_GENERIC_RANGE,
     };
   }
-  if (typeof batteryRecord.model_specific_impact === "number") {
-    return {
-      value: [batteryRecord.model_specific_impact, batteryRecord.model_specific_impact],
-      status: "APPROVED_MODEL_SPECIFIC",
-    };
-  }
-  return { value: null, status: UNKNOWN_NO_FALLBACK };
+  return { value: null, status: null };
 }
 
 /**
- * ADEME 7.61 applies only when an explicit source-specific reference is selected.
- * Marketplace grade and refurbished label never select it.
+ * SEC-04 proves that a null source-specific selection does not apply ADEME.
+ * Positive ADEME selection belongs to later authorized cases (e.g. SEC-07).
  *
  * @param {SecondaryReplacement} replacement
  * @returns {boolean}
@@ -198,19 +196,7 @@ function resolveAdemeApplied(replacement) {
   if (selected === null || selected === undefined || selected === UNKNOWN) {
     return false;
   }
-  if (selected === "ADEME_REFURB_REFERENCE" || selected === ADEME_REFURB_REFERENCE_CO2E_KG) {
-    return true;
-  }
-  return false;
-}
-
-/**
- * Marketplace condition grade must not select an LCA or numerical footprint.
- *
- * @param {SecondaryReplacement} replacement
- * @returns {boolean}
- */
-function marketplaceGradeSelectsLca(replacement) {
+  // No positive ADEME/source-specific selection behavior in this slice.
   return false;
 }
 
@@ -234,11 +220,9 @@ export function evaluateSecondaryPathway(replacement = {}) {
     original_manufacturing: {
       status: PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF,
       enters_direct_acquisition_total: false,
-      avoided_production_credit: false,
     },
     market_displacement_credit: null,
     ADEME_7_61_applied: ademeApplied,
-    marketplace_grade_selected_lca: marketplaceGradeSelectsLca(replacement),
   };
 
   if (refurbishmentProcess !== undefined) {
@@ -290,19 +274,9 @@ export function evaluateSecondaryPathway(replacement = {}) {
     result.result_capability = "insufficient_information";
   }
 
-  // Commercial seller or listing metadata never fabricate preparation processes.
-  if (
-    pathway === "used_secondhand" &&
-    (replacement.seller_type === "commercial_reseller" ||
-      replacement.listing_label === "used")
-  ) {
-    result.fabricated_preparation_processes = false;
-  }
-
   return Object.freeze(result);
 }
 
 export const SECONDARY_PATHWAY_CONSTANTS = Object.freeze({
   BATTERY_REPLACEMENT_CO2E_KG,
-  ADEME_REFURB_REFERENCE_CO2E_KG,
 });
