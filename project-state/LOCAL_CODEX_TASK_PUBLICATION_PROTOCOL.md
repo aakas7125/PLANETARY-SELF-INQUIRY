@@ -85,7 +85,7 @@ Cursor, Local Codex, and every other executor remain prohibited from self-mergin
 
 After each meaningful HQ response or work chunk, HQ must end in exactly one of these states:
 
-1. Authorize or publish a bounded coding task through GitHub to Cursor as the primary coding executor, or to Local Codex when the task is specifically better suited there.
+1. Authorize or publish a bounded coding task through GitHub to Cursor as the primary coding executor, including the required wake-only dispatch comment when it becomes `READY_FOR_CURSOR`, or to Local Codex when the task is specifically better suited there.
 2. Issue or publish a bounded instruction or handoff through GitHub to Research & Evidence or AP Framework & Corpus when specialist work is the correct next step.
 3. Declare that neither route is currently possible, state the exact blocker, identify whether owner intervention is genuinely required, and ask the owner only for that intervention.
 
@@ -100,6 +100,34 @@ From 2026-09-07, Cursor is the primary coding executor unless HQ records that a 
 A Cursor task is executable only when its title begins with `[HQ-AUTHORIZED][CURSOR]`, its body contains `HQ-authorized for Cursor execution: YES`, its current status is `READY_FOR_CURSOR`, both approval fields are `NO`, and the same scope, dependency, acceptance, and branch/PR/direct-main fields required for Local Codex tasks are complete. Cursor records progress and final results on the same Issue and does not self-merge.
 
 This does not convert a Cursor task into Local Codex authority. Local Codex continues to require its exact existing marker and `READY_FOR_LOCAL_CODEX` state.
+
+## Cursor event-driven dispatch
+
+For every new Cursor task, and every legitimate transition of an existing Cursor task back to `READY_FOR_CURSOR`, HQ must perform these publication steps in order:
+
+1. verify the title begins `[HQ-AUTHORIZED][CURSOR]`;
+2. verify `HQ-authorized for Cursor execution: YES`;
+3. verify `Current status: READY_FOR_CURSOR`;
+4. verify both owner and specialist approval fields are `NO`;
+5. verify dependencies/blockers are satisfied and scope, relevant files/contracts, acceptance criteria, and branch/PR/direct-main behavior are explicit;
+6. verify dispatching the task does not violate Cursor concurrency constraints; and
+7. as the final publication step, post this exact Issue comment:
+
+```text
+[CURSOR-DISPATCH]
+
+This Issue is ready for Cursor intake.
+
+The dispatch comment is a wake signal only. Inspect the Issue itself and execute only if every repository-defined `[HQ-AUTHORIZED][CURSOR]` execution gate currently passes.
+```
+
+The dispatch comment is not execution authority. Cursor must use the Issue body and current repository state as authority, independently re-verify every gate when awakened, and mark the Issue `IN_PROGRESS` before work. A qualifying Issue is already authorized; Cursor must not ask the owner for another confirmation merely because the wake event arrived.
+
+HQ must not post duplicate dispatch comments for the same uninterrupted ready transition. It must not dispatch tasks in `IN_PROGRESS`, `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `ACCEPTED`, `RESOLVED`, or `SUPERSEDED`. A task deliberately returned to `READY_FOR_CURSOR` after one of those states receives a new dispatch because that is a new executable transition.
+
+Cursor remains prohibited from self-merging. Event-driven intake changes latency only; it does not change task authority, workstream boundaries, HQ acceptance, routine-merge gates, or owner control.
+
+An existing hourly Cursor intake may remain temporarily as recovery. Event-driven execution must not depend on it. After one complete real dispatch-to-result cycle is verified, retirement of the hourly Cursor poll is a separate administrative action.
 
 ## Standing progression rule
 

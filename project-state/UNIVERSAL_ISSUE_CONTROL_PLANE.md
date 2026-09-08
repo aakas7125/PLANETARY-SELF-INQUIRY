@@ -87,6 +87,28 @@ When HQ finds a meaningful `VERIFIED_FOR_HQ_REVIEW` or `BLOCKED` result, prerequ
 
 Routine receiving-state updates, governance records, task publication, acceptance/rejection, push authorization, and qualifying HQ-reviewed merges should be completed in the same work chunk when their conditions are already satisfied. A routine qualifying merge does not require another owner prompt. No artificial work should be created.
 
+## Cursor event-driven dispatch
+
+A native Cursor Automation may listen for GitHub Issue comments containing the exact marker `[CURSOR-DISPATCH]`. The comment is a transport and wake signal only. It never creates, expands, or substitutes for execution authority; the Issue remains the sole authoritative task record.
+
+When HQ publishes a new Cursor task or deliberately returns a previously blocked task to `READY_FOR_CURSOR`, HQ must first verify all repository execution gates, including title and authorization markers, both approval fields set to `NO`, satisfied dependencies, explicit scope, relevant files/contracts, acceptance criteria, branch/PR/direct-main behavior, and permitted concurrency. Only then, as the final publication step, HQ posts this exact comment on the same Issue:
+
+```text
+[CURSOR-DISPATCH]
+
+This Issue is ready for Cursor intake.
+
+The dispatch comment is a wake signal only. Inspect the Issue itself and execute only if every repository-defined `[HQ-AUTHORIZED][CURSOR]` execution gate currently passes.
+```
+
+HQ must not post a duplicate dispatch for the same uninterrupted `READY_FOR_CURSOR` transition. It must not dispatch a task currently marked `IN_PROGRESS`, `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `ACCEPTED`, `RESOLVED`, or `SUPERSEDED`. If HQ legitimately returns a task to `READY_FOR_CURSOR` after a blocked or review state, that new transition requires a new dispatch comment.
+
+When awakened, Cursor independently fetches and verifies the Issue itself. If every gate still passes, Cursor begins the bounded work and marks the Issue `IN_PROGRESS`; it must not ask the owner for another go-ahead. If any gate no longer passes, the comment authorizes nothing and Cursor must not execute. Cursor remains prohibited from self-merging.
+
+The durable event-driven sequence is:
+
+`HQ defines bounded task → complete READY_FOR_CURSOR Issue → [CURSOR-DISPATCH] → Cursor re-verifies gates → IN_PROGRESS → implementation/validation/PR → VERIFIED_FOR_HQ_REVIEW → HQ review/acceptance/merge when permitted → next task and dispatch`
+
 ## Routine promotion to `main`
 
 Under the standing authorization in `OWNER_CONTROL.md`, HQ may accept and merge a pull request without separate per-PR owner approval only when all of these gates hold:
@@ -106,9 +128,9 @@ If any gate fails, HQ must not merge. It must record the exact failed gate, evid
 
 ## Automation
 
-During active migration/integration, the highest supported safe polling cadence is hourly for HQ, Research, AP, and Local Codex intake. If no relevant Issue state has changed, do nothing and generate no notification.
+During active migration/integration, the highest supported safe polling cadence is hourly for HQ, Research, AP, and Local Codex intake. Cursor may temporarily retain an hourly intake poll as a recovery mechanism while event-driven dispatch is proven. Successful `[CURSOR-DISPATCH]` handling must not depend on that poll. If no relevant Issue state has changed, do nothing and generate no notification.
 
-A scheduled task attached to HQ is not equivalent to an executor-side schedule attached to the actual Research, AP, or Local Codex environment. Each executor must attach its intake to the environment that can perform its authorized work. HQ monitoring/dispatch must remain separate from executor intake.
+A scheduled task attached to HQ is not equivalent to an executor-side schedule or event automation attached to the actual Research, AP, Cursor, or Local Codex environment. Each executor must attach its intake to the environment that can perform its authorized work. HQ publication/monitoring must remain separate from executor intake.
 
 Cadence may later be reduced or made event/session-driven once migration stabilizes. Unsupported sub-hour polling must not be simulated.
 
@@ -126,6 +148,6 @@ Cadence may later be reduced or made event/session-driven once migration stabili
 ## Current implementation
 
 - The HQ return intake watches formal Cursor and Local Codex task results and meaningful state transitions.
-- Cursor coding tasks use `[HQ-AUTHORIZED][CURSOR]`, `HQ-authorized for Cursor execution: YES`, and `READY_FOR_CURSOR`; this protocol change does not create an automated Cursor-side intake schedule.
+- Cursor coding tasks use `[HQ-AUTHORIZED][CURSOR]`, `HQ-authorized for Cursor execution: YES`, and `READY_FOR_CURSOR`; HQ posts the exact `[CURSOR-DISPATCH]` wake comment only after every gate passes. The native Cursor Automation remains executor-side and independently re-verifies the Issue.
 - Research correction task `HQ-RE-2026-09-05-002` is separately published when the current terminal-byte handoff is converted from input to executable work.
 - The existing Local Codex task-publication protocol remains in force for Local Codex tasks.
