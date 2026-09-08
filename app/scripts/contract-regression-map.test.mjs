@@ -87,7 +87,7 @@ test("contract mapping covers every accepted source identifier exactly once", ()
   );
 });
 
-test("mapping records T01–T35 and the ten executed global assertions", () => {
+test("mapping records T01–T35, the ten executed globals, and seven core logic assertions", () => {
   const mapping = buildContractRegressionMap();
   const coverageKinds = new Set(mapping.map((row) => row.coverageKind));
   const coveredInputIds = mapping
@@ -145,6 +145,9 @@ test("mapping records T01–T35 and the ten executed global assertions", () => {
     "A-GLOBAL-EQUAL-SERVICE", "A-GLOBAL-SUNK-MANUFACTURING",
     "A-GLOBAL-NO-GENERIC-EOL-ZERO", "A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT",
     "A-GLOBAL-NO-UNIFIED-HARM-SCORE",
+    "A-LOGIC-ADEQUACY-001", "A-LOGIC-ADEQUACY-002", "A-LOGIC-ADEQUACY-003",
+    "A-LOGIC-LIFE-001", "A-LOGIC-LIFE-002",
+    "A-LOGIC-REPAIR-001", "A-LOGIC-REPAIR-002",
     "RC01_ADEQUATE_KEEP_GENERIC_NEW", "RC02_UNKNOWN_REMAINING_LIFE",
     "RC03_UNSAFE_KEEP_REMOVAL", "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
     "RC05_BATTERY_REPAIR_KNOWN_EXTENSION", "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
@@ -172,7 +175,7 @@ test("mapping records T01–T35 and the ten executed global assertions", () => {
 });
 
 test.todo(
-  "implement the remaining mapped input-model behavior suite (uncovered A-LOGIC-*, PI-*)",
+  "implement the remaining mapped input-model behavior suite (uncovered A-LOGIC-REFURB/FATE/MISSING/EOL/MATERIALS, PI-*)",
 );
 test.todo(
   "implement the mapped secondary-pathway behavior suite (SEC-01–SEC-12 and A-SEC-*)",

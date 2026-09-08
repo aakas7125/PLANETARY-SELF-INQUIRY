@@ -131,6 +131,26 @@ const coveredGlobalAssertionIds = [
   "A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT",
   "A-GLOBAL-NO-UNIFIED-HARM-SCORE",
 ];
+const coveredLogicAssertionIds = [
+  "A-LOGIC-ADEQUACY-001",
+  "A-LOGIC-ADEQUACY-002",
+  "A-LOGIC-ADEQUACY-003",
+  "A-LOGIC-LIFE-001",
+  "A-LOGIC-LIFE-002",
+  "A-LOGIC-REPAIR-001",
+  "A-LOGIC-REPAIR-002",
+];
+const remainingLogicAssertionIds = [
+  "A-LOGIC-REFURB-001",
+  "A-LOGIC-REFURB-002",
+  "A-LOGIC-FATE-001",
+  "A-LOGIC-FATE-002",
+  "A-LOGIC-MISSING-001",
+  "A-LOGIC-MISSING-002",
+  "A-LOGIC-MISSING-003",
+  "A-LOGIC-EOL-001",
+  "A-LOGIC-MATERIALS-001",
+];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
   "RC02_UNKNOWN_REMAINING_LIFE",
@@ -772,5 +792,143 @@ test("covered global assertion IDs remain the ten executed A-GLOBAL identifiers"
   assert.deepEqual(
     sourceGlobalIds.filter((id) => !coveredGlobalAssertionIds.includes(id)),
     [],
+  );
+});
+
+test("A-LOGIC-ADEQUACY-001 makes keep-as-is infeasible when the phone is unsafe", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const unsafe = evaluateAdequacyAndUnknownState(byId.T04.inputs);
+
+  assert.equal(byId.T04.inputs["adequacy.safe_to_use"], false);
+  assert.equal(unsafe.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.equal(unsafe.derived.adequacy_gate.feasible_keep_as_is, false);
+  assert.equal(unsafe.keep_as_is.feasible, false);
+  assert.notEqual(unsafe.derived.adequacy_gate.feasible_keep_as_is, true);
+  assert.notEqual(unsafe.keep_as_is.feasible, UNKNOWN);
+});
+
+test("A-LOGIC-ADEQUACY-002 marks adequacy inadequate when required functions are unmet", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const functionsMissing = evaluateAdequacyAndUnknownState(byId.T05.inputs);
+
+  assert.equal(byId.T05.inputs["adequacy.required_functions_met"], false);
+  assert.equal(functionsMissing.derived.adequacy_gate.adequacy_status, "inadequate");
+  assert.notEqual(functionsMissing.derived.adequacy_gate.adequacy_status, "adequate");
+  assert.notEqual(functionsMissing.derived.adequacy_gate.adequacy_status, UNKNOWN);
+  assert.equal(functionsMissing.keep_as_is.provides_equivalent_service, false);
+});
+
+test("A-LOGIC-ADEQUACY-003 does not force replacement when ended support remains adequate", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const supportEnded = evaluateAdequacyAndUnknownState(byId.T06.inputs);
+
+  assert.equal(byId.T06.inputs["security_support.status"], "ended");
+  assert.equal(byId.T06.inputs["security_support.adequate_for_required_use"], true);
+  assert.equal(supportEnded.derived.adequacy_gate.adequacy_status, "adequate");
+  assert.equal(supportEnded.replacement_forced_by_support_status, false);
+  assert.notEqual(supportEnded.replacement_forced_by_support_status, true);
+  assert.equal("recommendation" in supportEnded, false);
+  assert.equal(supportEnded.replacement_forced, undefined);
+});
+
+test("A-LOGIC-LIFE-001 keeps H_primary null when an adequate phone has null remaining life", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const unknownHorizon = evaluateAdequacyAndUnknownState(byId.T02.inputs);
+
+  assert.equal(unknownHorizon.derived.adequacy_gate.adequacy_status, "adequate");
+  assert.equal(byId.T02.inputs["remaining_service.without_repair.expected_years"], null);
+  assert.equal(unknownHorizon.H_primary_years, null);
+  assert.notEqual(unknownHorizon.H_primary_years, 0);
+  assert.notEqual(unknownHorizon.H_primary_years, 3);
+  assert.equal(isUnknown(unknownHorizon.H_primary_years), true);
+});
+
+test("A-LOGIC-LIFE-002 never derives remaining life from device age", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const unknownHorizon = evaluateAdequacyAndUnknownState(byId.T02.inputs);
+  const agedUnknownHorizon = evaluateAdequacyAndUnknownState({
+    ...byId.T02.inputs,
+    "current_device.total_service_age_years": 6,
+  });
+  const olderUnknownHorizon = evaluateAdequacyAndUnknownState({
+    ...byId.T02.inputs,
+    "current_device.total_service_age_years": 99,
+  });
+  const youngUnknownAdequacy = evaluateAdequacyAndUnknownState({
+    ...byId.T03.inputs,
+    "current_device.total_service_age_years": 1,
+  });
+  const oldUnknownAdequacy = evaluateAdequacyAndUnknownState({
+    ...byId.T03.inputs,
+    "current_device.total_service_age_years": 99,
+  });
+
+  assert.equal(unknownHorizon.H_primary_years, null);
+  assert.equal(agedUnknownHorizon.H_primary_years, null);
+  assert.equal(olderUnknownHorizon.H_primary_years, null);
+  assert.deepEqual(agedUnknownHorizon, olderUnknownHorizon);
+  assert.notEqual(agedUnknownHorizon.H_primary_years, 6);
+  assert.notEqual(olderUnknownHorizon.H_primary_years, 99);
+  assert.equal(agedUnknownHorizon.remaining_life, undefined);
+  assert.equal(agedUnknownHorizon.inferred_remaining_life_years, undefined);
+  assert.deepEqual(oldUnknownAdequacy, youngUnknownAdequacy);
+  assert.equal(oldUnknownAdequacy.H_primary_years, youngUnknownAdequacy.H_primary_years);
+  assert.equal("obsolete" in oldUnknownAdequacy, false);
+  assert.notEqual(oldUnknownAdequacy.H_primary_years, 0);
+});
+
+test("A-LOGIC-REPAIR-001 keeps major-board climate null without model-specific impact", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const majorBoard = evaluateAdequacyAndUnknownState(byId.T11.inputs);
+
+  assert.equal(byId.T11.inputs["repair.type"], "major_board");
+  assert.equal(byId.T11.inputs["repair.model_specific_climate_CO2e_kg"], null);
+  assert.equal(majorBoard.repair.climate_CO2e_kg, null);
+  assert.equal(majorBoard.repair.impact_status, "unsupported");
+  assert.notEqual(majorBoard.repair.climate_CO2e_kg, 0);
+  assert.notDeepEqual(majorBoard.repair.climate_CO2e_kg, [0.3, 0.7]);
+  assert.notDeepEqual(majorBoard.repair.climate_CO2e_kg, [3, 8]);
+  assert.notEqual(majorBoard.repair.climate_CO2e_kg, 17.84);
+  assert.equal(majorBoard.result_capability, "insufficient_information");
+});
+
+test("A-LOGIC-REPAIR-002 requires a service sequence for short repair service", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const knownNext = evaluateAdequacyAndUnknownState(byId.T13.inputs);
+  const unknownNext = evaluateAdequacyAndUnknownState(byId.T14.inputs);
+
+  assert.ok(
+    byId.T13.inputs["repair.expected_adequate_service_after_repair.expected_years"] <
+      byId.T13.inputs.common_service_horizon_years,
+  );
+  assert.equal(knownNext.service_sequence_required, true);
+  assert.equal(knownNext.service_sequence_covers_years, 3);
+  assert.deepEqual(knownNext.service_sequence.events, [
+    { event_type: "repair", time_years: 0 },
+    { event_type: "buy_new", time_years: 0.5 },
+  ]);
+  assert.equal(knownNext.result_status, "calculable_or_conditional_after_sequence");
+
+  assert.ok(
+    byId.T14.inputs["repair.expected_adequate_service_after_repair.expected_years"] <
+      byId.T14.inputs.common_service_horizon_years,
+  );
+  assert.equal(unknownNext.service_sequence_required, true);
+  assert.equal(unknownNext.result_capability, "insufficient_information");
+  assert.deepEqual(unknownNext.missing_required_fields, ["foreseeable_next_event"]);
+  assert.equal(unknownNext.service_sequence, undefined);
+  assert.notEqual(unknownNext.foreseeable_next_event, "buy_new");
+  assert.notEqual(unknownNext.result_status, "calculable_or_conditional_after_sequence");
+});
+
+test("covered logic assertion IDs remain the seven executed core A-LOGIC identifiers", () => {
+  const sourceLogicIds = sourcePackage.logicAssertions.map(({ id }) => id);
+  assert.deepEqual(
+    sourceLogicIds.filter((id) => coveredLogicAssertionIds.includes(id)),
+    coveredLogicAssertionIds,
+  );
+  assert.deepEqual(
+    sourceLogicIds.filter((id) => !coveredLogicAssertionIds.includes(id)),
+    remainingLogicAssertionIds,
   );
 });
