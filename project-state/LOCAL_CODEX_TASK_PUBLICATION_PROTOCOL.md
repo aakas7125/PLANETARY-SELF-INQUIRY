@@ -71,6 +71,16 @@ Local Codex must not treat GitHub Issues as permission to change scientific sema
 
 When an issue is `BLOCKED`, `VERIFIED_FOR_HQ_REVIEW`, `ACCEPTED`, `REJECTED`, `SUPERSEDED`, or `CANCELLED`, it must not be executed again unless HQ publishes a new task or explicitly changes its status with the required authority.
 
+## HQ acceptance and routine merge
+
+Executor completion is not acceptance. HQ must independently inspect the actual pull-request diff, reviewed head, acceptance evidence, validation, and scope boundaries.
+
+When every routine-merge condition in `OWNER_CONTROL.md` is satisfied, HQ may accept and merge the reviewed pull request into `main` without separate per-PR owner approval. HQ then marks and closes the task and continues the standing progression rule in the same work chunk where practical.
+
+`Owner approval still required: NO` remains `NO` through execution, HQ review, acceptance, and routine merge unless a substantive owner-controlled decision actually appears. Writing an otherwise qualifying reviewed change to `main` is not by itself an owner-level decision.
+
+Cursor, Local Codex, and every other executor remain prohibited from self-merging. If a routine-merge gate fails, HQ records the exact blocker and clearing event; it requests owner intervention only for matters reserved to the owner in `OWNER_CONTROL.md`.
+
 ## HQ operating rule
 
 After each meaningful HQ response or work chunk, HQ must end in exactly one of these states:
@@ -79,7 +89,7 @@ After each meaningful HQ response or work chunk, HQ must end in exactly one of t
 2. Issue or publish a bounded instruction or handoff through GitHub to Research & Evidence or AP Framework & Corpus when specialist work is the correct next step.
 3. Declare that neither route is currently possible, state the exact blocker, identify whether owner intervention is genuinely required, and ask the owner only for that intervention.
 
-Routine HQ-owned closure actions—receiving-state updates, governance documentation, task publication, acceptance or rejection records, and push authorization within standing rules—should be completed in the same work chunk where possible before selecting the ending state.
+Routine HQ-owned closure actions—receiving-state updates, governance documentation, task publication, acceptance or rejection records, push authorization, and qualifying HQ-reviewed merges within standing rules—should be completed in the same work chunk where possible before selecting the ending state.
 
 HQ must not stop at a prose recommendation when it already has enough authority and information to publish the next bounded GitHub action. HQ must not create artificial work merely to satisfy this rule.
 
@@ -95,7 +105,7 @@ This does not convert a Cursor task into Local Codex authority. Local Codex cont
 
 When HQ closes or accepts a task and no executable coding-executor Issue remains, an empty executor queue is not itself a stopping condition. HQ must inspect the active product path and determine which condition applies:
 
-1. The next dependency is an HQ review, acceptance, or merge decision: complete that bounded HQ action.
+1. The next dependency is an HQ review, acceptance, or merge decision: complete that bounded HQ action, including a qualifying routine merge without another owner prompt.
 2. A blocked Issue can now be unblocked: update it or publish the next executable task.
 3. A genuine blocker remains: record its exact cause and evidence, identify the actor required, and publish the smallest legitimate resolving task when possible.
 4. A genuine owner-level decision is required: ask the owner explicitly for only that decision.
