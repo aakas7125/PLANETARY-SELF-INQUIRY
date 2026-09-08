@@ -157,17 +157,17 @@ const coveredProhibitionIds = [
   "PI-004",
   "PI-005",
   "PI-006",
-];
-const remainingProhibitionIds = [
   "PI-007",
   "PI-008",
   "PI-009",
+  "PI-014",
+  "PI-015",
+];
+const remainingProhibitionIds = [
   "PI-010",
   "PI-011",
   "PI-012",
   "PI-013",
-  "PI-014",
-  "PI-015",
   "PI-016",
   "PI-017",
   "PI-018",
@@ -1355,7 +1355,198 @@ test("PI-006 does not treat new as environmentally worst once the current phone 
   assert.equal("winner" in genericNew, false);
 });
 
-test("covered prohibition IDs remain the six executed PI identifiers", () => {
+test("PI-007 does not treat formal recycling as environmentally equivalent to continued use", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const continuedUse = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const exactRecycling = evaluateAdequacyAndUnknownState(byId.T21.inputs);
+  const unknownMassRecycling = evaluateAdequacyAndUnknownState(byId.T22.inputs);
+  const stored = evaluateAdequacyAndUnknownState(byId.T20.inputs);
+
+  assert.equal(continuedUse.keep_as_is.provides_equivalent_service, true);
+  assert.equal(continuedUse.derived.adequacy_gate.adequacy_status, "adequate");
+  assert.equal(continuedUse.keep_as_is.feasible, true);
+  assert.equal(continuedUse.old_device_fate, undefined);
+  assert.equal(continuedUse.generic_recycling_credit, null);
+  assert.equal(continuedUse.generic_EOL_CO2e_kg, null);
+  assert.notEqual(continuedUse.generic_recycling_credit, 0);
+  assert.notEqual(continuedUse.generic_EOL_CO2e_kg, 0);
+  assert.equal("environmentally_equivalent" in continuedUse, false);
+  assert.equal("environmentally_preferable" in continuedUse, false);
+  assert.equal("environmentally_worst" in continuedUse, false);
+  assert.equal("winner" in continuedUse, false);
+  assert.equal("recommendation" in continuedUse, false);
+
+  assert.equal(byId.T21.inputs["old_device_fate.fate"], "formal_recycling");
+  assert.equal(exactRecycling.old_device_fate.immediate_e_waste, true);
+  assert.equal(exactRecycling.individual_formal_recycling_probability_applied, false);
+  assert.notEqual(exactRecycling.keep_as_is.provides_equivalent_service, true);
+  assert.notEqual(
+    exactRecycling.keep_as_is.provides_equivalent_service,
+    continuedUse.keep_as_is.provides_equivalent_service,
+  );
+  assert.equal(exactRecycling.generic_recycling_credit, null);
+  assert.equal(exactRecycling.generic_EOL_CO2e_kg, null);
+  assert.equal(exactRecycling.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(exactRecycling.generic_recycling_credit, 0);
+  assert.notEqual(exactRecycling.generic_EOL_CO2e_kg, 0);
+  assert.equal(exactRecycling.old_device_fate.environmental_equivalence_to_continued_use, undefined);
+  assert.equal("environmentally_equivalent" in exactRecycling, false);
+  assert.equal("environmentally_preferable" in exactRecycling, false);
+  assert.equal("environmentally_worst" in exactRecycling, false);
+  assert.equal("winner" in exactRecycling, false);
+  assert.equal("recommendation" in exactRecycling, false);
+
+  assert.equal(unknownMassRecycling.old_device_fate.immediate_e_waste, true);
+  assert.equal(unknownMassRecycling.keep_as_is.provides_equivalent_service, UNKNOWN);
+  assert.equal(unknownMassRecycling.generic_recycling_credit, null);
+  assert.equal("environmentally_equivalent" in unknownMassRecycling, false);
+
+  assert.equal(stored.old_device_fate.status, "dormant_or_retired");
+  assert.notEqual(stored.old_device_fate.status, "formally_recycled");
+  assert.notEqual(stored.old_device_fate.status, "environmentally_recovered");
+});
+
+test("PI-008 does not treat giving or selling an old phone as one avoided new phone", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const reuse = evaluateAdequacyAndUnknownState(byId.T19.inputs);
+  const tradeIn = evaluateAdequacyAndUnknownState(byId.T23.inputs);
+  const substitution = evaluateAdequacyAndUnknownState(byId.T26.inputs);
+
+  assert.equal(byId.T19.inputs["old_device_fate.fate"], "reuse_by_other");
+  assert.equal(reuse.old_device_fate.immediate_e_waste, false);
+  assert.equal(reuse.old_device_fate.market_displacement_credit, null);
+  assert.notEqual(reuse.old_device_fate.market_displacement_credit, 1);
+  assert.notEqual(reuse.old_device_fate.market_displacement_credit, 0);
+  assert.equal(reuse.avoided_new_phone_credit, undefined);
+  assert.equal(reuse.avoided_manufacture_credit_from_owned_history, null);
+  assert.notEqual(reuse.avoided_manufacture_credit_from_owned_history, 1);
+  assert.equal("winner" in reuse, false);
+  assert.equal("recommendation" in reuse, false);
+
+  assert.equal(tradeIn.old_device_fate.market_displacement_credit, null);
+  assert.notEqual(tradeIn.old_device_fate.market_displacement_credit, 1);
+  assert.equal(tradeIn.avoided_new_phone_credit, undefined);
+
+  assert.equal(substitution.market_displacement_credit, null);
+  assert.equal(substitution.purchase_counterfactual, "buy_new");
+  assert.notEqual(substitution.market_displacement_credit, 1);
+  assert.equal(substitution.avoided_new_phone_credit, undefined);
+});
+
+test("PI-009 does not treat a second-hand transaction as 1:1 production displacement", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const reuse = evaluateAdequacyAndUnknownState(byId.T19.inputs);
+  const substitution = evaluateAdequacyAndUnknownState(byId.T26.inputs);
+  const usScenario = evaluateAdequacyAndUnknownState(byId.T27.inputs);
+  const germanyScenario = evaluateAdequacyAndUnknownState({
+    ...byId.T27.inputs,
+    market: "DE",
+  });
+  const globalDefault = evaluateAdequacyAndUnknownState({
+    consequential_mode: true,
+    market: "global",
+  });
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+
+  assert.equal(reuse.old_device_fate.market_displacement_credit, null);
+  assert.notEqual(reuse.old_device_fate.market_displacement_credit, 1);
+  assert.notEqual(reuse.old_device_fate.market_displacement_credit, 0.4);
+
+  assert.equal(substitution.purchase_counterfactual, "buy_new");
+  assert.equal(substitution.market_displacement_credit, null);
+  assert.notEqual(substitution.market_displacement_credit, 1);
+  assert.notEqual(substitution.market_displacement_rate, 1);
+  assert.equal(substitution.market_displacement_rate, undefined);
+  assert.notEqual(substitution.purchase_counterfactual, substitution.market_displacement_credit);
+
+  assert.equal(usScenario.market_displacement_rate, 0.4);
+  assert.notEqual(usScenario.market_displacement_rate, 1);
+  assert.notEqual(usScenario.market_displacement_rate, 1.0);
+  assert.equal(
+    usScenario.market_displacement_unit,
+    "new_devices_displaced_per_secondhand_transaction",
+  );
+  assert.equal(usScenario.scenario_scope, "US_market_specific");
+  assert.notEqual(usScenario.scenario_scope, "global");
+  assert.equal(usScenario.primary_attributional_score_modified, false);
+  assert.equal(germanyScenario.market_displacement_rate, undefined);
+  assert.equal(globalDefault.market_displacement_rate, undefined);
+  assert.notEqual(germanyScenario.market_displacement_rate, 0.4);
+  assert.notEqual(globalDefault.market_displacement_rate, 0.4);
+
+  assert.equal(keepDecision.market_displacement_rate, undefined);
+  assert.equal(keepDecision.primary_attributional_score_modified, undefined);
+  assert.deepEqual(keepDecision.new.production_CO2e_kg, [25, 70]);
+  assert.equal("winner" in usScenario, false);
+  assert.equal("recommendation" in usScenario, false);
+});
+
+test("PI-014 does not treat historic manufacturing of the owned phone as a keep burden", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const reuse = evaluateAdequacyAndUnknownState(byId.T19.inputs);
+  const sunk = resolveSunkManufacturingBoundary();
+
+  assert.equal(sunk.historicOwnedProductionIncludedInProspectiveKeepTotal, false);
+  assert.equal(sunk.avoidedManufactureCreditFromOwnedHistory, null);
+  assert.equal("prospectiveKeepTotal_CO2e_kg" in sunk, false);
+  assert.equal("historicProduction_CO2e_kg" in sunk, false);
+
+  assert.equal(
+    keepDecision.historic_owned_production_included_in_prospective_keep_total,
+    false,
+  );
+  assert.equal(keepDecision.avoided_manufacture_credit_from_owned_history, null);
+  assert.notEqual(keepDecision.avoided_manufacture_credit_from_owned_history, 1);
+  assert.notDeepEqual(
+    keepDecision.avoided_manufacture_credit_from_owned_history,
+    keepDecision.new?.production_CO2e_kg,
+  );
+  assert.equal(keepDecision.keep_as_is.historic_production_CO2e_kg, undefined);
+  assert.equal(keepDecision.keep_as_is.avoided_manufacture_credit, undefined);
+  assert.equal(keepDecision.keep_as_is.caused_by_keeping_CO2e_kg, undefined);
+  assert.equal("winner" in keepDecision, false);
+  assert.equal("recommendation" in keepDecision, false);
+
+  assert.equal(reuse.historic_owned_production_included_in_prospective_keep_total, false);
+  assert.equal(reuse.avoided_manufacture_credit_from_owned_history, null);
+  assert.equal(reuse.old_device_fate.market_displacement_credit, null);
+});
+
+test("PI-015 does not use annualized historic embodied emissions as the primary ranking", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const earlyReplacement = evaluateAdequacyAndUnknownState(byId.T34.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+
+  assert.equal(byId.T34.inputs["remaining_service.without_repair.expected_years"], 2);
+  assert.equal(byId.T34.inputs["replacement.new.expected_adequate_service_years"], 8);
+  assert.equal(earlyReplacement.H_primary_years, 2);
+  assert.notEqual(earlyReplacement.H_primary_years, 8);
+  assert.equal(earlyReplacement.new_phone_8y_lifetime_used_to_amortize_primary_decision, false);
+  assert.equal(earlyReplacement.new?.production_CO2e_kg_per_year, undefined);
+  assert.equal(earlyReplacement.keep_as_is.historic_production_CO2e_kg, undefined);
+  assert.equal(earlyReplacement.keep_as_is.annualized_historic_embodied_CO2e_kg, undefined);
+  assert.equal(earlyReplacement.annualized_historic_embodied_CO2e_kg_per_year, undefined);
+  assert.equal(
+    earlyReplacement.historic_owned_production_included_in_prospective_keep_total,
+    false,
+  );
+  assert.equal(earlyReplacement.keep_as_is.provides_equivalent_service, true);
+  assert.equal(earlyReplacement.equivalent_adequate_service_represented, true);
+  assert.equal("winner" in earlyReplacement, false);
+  assert.equal("comparative_ranking" in earlyReplacement, false);
+  assert.equal("environmentally_preferable" in earlyReplacement, false);
+  assert.equal("recommendation" in earlyReplacement, false);
+  assert.equal(earlyReplacement.comparative_score, undefined);
+
+  assert.equal(keepDecision.H_primary_years, 2);
+  assert.equal(keepDecision.keep_as_is.annualized_historic_embodied_CO2e_kg, undefined);
+  assert.equal(keepDecision.new?.production_CO2e_kg_per_year, undefined);
+  assert.equal("winner" in keepDecision, false);
+  assert.equal("comparative_ranking" in keepDecision, false);
+});
+
+test("covered prohibition IDs remain the eleven executed PI identifiers", () => {
   const sourceProhibitionIds = sourcePackage.prohibitedInterpretations.map(({ id }) => id);
   assert.deepEqual(
     sourceProhibitionIds.filter((id) => coveredProhibitionIds.includes(id)),
