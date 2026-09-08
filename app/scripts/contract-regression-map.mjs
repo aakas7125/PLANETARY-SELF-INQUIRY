@@ -155,6 +155,28 @@ const EXECUTED_INPUT_IDS = new Set([
   "PI-020",
 ]);
 
+/** SEC-01–SEC-04 and their fourteen case assertions only; globals remain gaps. */
+const EXECUTED_SECONDARY_IDS = new Set([
+  "SEC-01",
+  "SEC-02",
+  "SEC-03",
+  "SEC-04",
+  "A-SEC-01-01",
+  "A-SEC-01-02",
+  "A-SEC-01-03",
+  "A-SEC-01-04",
+  "A-SEC-02-01",
+  "A-SEC-02-02",
+  "A-SEC-02-03",
+  "A-SEC-02-04",
+  "A-SEC-03-01",
+  "A-SEC-03-02",
+  "A-SEC-03-03",
+  "A-SEC-04-01",
+  "A-SEC-04-02",
+  "A-SEC-04-03",
+]);
+
 const SOURCES = {
   inputPackage:
     "provenance/source-packages/R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0.json",
@@ -217,9 +239,16 @@ export function buildContractRegressionMap() {
   const secondaryCaseIds = unique(
     [...secondaryPackage.matchAll(/^case_id = "(SEC-\d{2})"$/gm)].map(([, id]) => id),
   );
-  const secondaryAssertionIds = unique(
+  const secondaryCaseAssertionIds = unique(
     [...secondaryPackage.matchAll(/^(A-SEC-\d{2}-\d{2}):$/gm)].map(([, id]) => id),
   );
+  const secondaryGlobalIds = unique(
+    [...secondaryPackage.matchAll(/^(A-SEC-GLOBAL-\d{2}):$/gm)].map(([, id]) => id),
+  );
+  const secondaryAssertionIds = unique([
+    ...secondaryCaseAssertionIds,
+    ...secondaryGlobalIds,
+  ]);
   const apQuestionIds = unique(
     [...apContract.matchAll(/^### `(APQ\d_[A-Z]+)`$/gm)].map(([, id]) => id),
   );
@@ -232,6 +261,8 @@ export function buildContractRegressionMap() {
 
   const inputStatus = (id) =>
     EXECUTED_INPUT_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
+  const secondaryStatus = (id) =>
+    EXECUTED_SECONDARY_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
 
   return [
     ...rowsFor(inputCaseIds, "input", "positive", TARGETS.input, SOURCES.inputPackage, inputStatus),
@@ -246,6 +277,7 @@ export function buildContractRegressionMap() {
       "positive_and_prohibition",
       TARGETS.secondary,
       SOURCES.secondaryPackage,
+      secondaryStatus,
     ),
     ...rowsFor(
       secondaryAssertionIds,
@@ -253,6 +285,7 @@ export function buildContractRegressionMap() {
       "positive_and_prohibition",
       TARGETS.secondary,
       SOURCES.secondaryPackage,
+      secondaryStatus,
     ),
     ...rowsFor(apQuestionIds, "ap", "positive", TARGETS.ap, SOURCES.apContract),
     ...rowsFor(
