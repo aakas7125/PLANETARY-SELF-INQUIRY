@@ -85,7 +85,24 @@ When HQ finds a meaningful `VERIFIED_FOR_HQ_REVIEW` or `BLOCKED` result, prerequ
 2. publish an executable Research/AP task or appropriate handoff; or
 3. record the exact genuine blocker and request only the necessary owner intervention.
 
-Routine receiving-state updates, governance records, task publication, acceptance/rejection, and push authorization should be completed in the same work chunk when their conditions are already satisfied. No artificial work should be created.
+Routine receiving-state updates, governance records, task publication, acceptance/rejection, push authorization, and qualifying HQ-reviewed merges should be completed in the same work chunk when their conditions are already satisfied. A routine qualifying merge does not require another owner prompt. No artificial work should be created.
+
+## Routine promotion to `main`
+
+Under the standing authorization in `OWNER_CONTROL.md`, HQ may accept and merge a pull request without separate per-PR owner approval only when all of these gates hold:
+
+- the work came from a valid HQ-authorized task or other repository-authorized workflow;
+- `Owner approval still required: NO` applied at execution time and every required specialist or cross-domain approval was satisfied;
+- the diff stays inside the authorized scope and meets its acceptance criteria;
+- HQ independently reviews the actual pull-request diff and reviewed head;
+- required validation passes, or absent hosted CI is explicitly recorded with adequate repository-backed validation evidence;
+- the pull request adds no unapproved scientific, AP, project, or product semantics; scope expansion; test weakening/deletion/skipping; fabricated numerical authority; unknown-to-zero/default coercion; or unauthorized immutable provenance/source-package change;
+- the action is not substantively reserved to the owner; and
+- the executor has not self-merged.
+
+When every gate holds, HQ accepts the result, merges the reviewed head into `main`, closes the task, and continues the standing progression rule without requesting another owner “go ahead.” The task’s owner-approval field describes a substantive owner decision, not the mechanical promotion step.
+
+If any gate fails, HQ must not merge. It must record the exact failed gate, evidence, responsible actor, and clearing action. Owner intervention is requested only when the unresolved decision is genuinely owner-controlled under `OWNER_CONTROL.md`.
 
 ## Automation
 
