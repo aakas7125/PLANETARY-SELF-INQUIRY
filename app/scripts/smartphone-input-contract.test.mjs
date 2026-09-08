@@ -139,12 +139,12 @@ const coveredLogicAssertionIds = [
   "A-LOGIC-LIFE-002",
   "A-LOGIC-REPAIR-001",
   "A-LOGIC-REPAIR-002",
-];
-const remainingLogicAssertionIds = [
   "A-LOGIC-REFURB-001",
   "A-LOGIC-REFURB-002",
   "A-LOGIC-FATE-001",
   "A-LOGIC-FATE-002",
+];
+const remainingLogicAssertionIds = [
   "A-LOGIC-MISSING-001",
   "A-LOGIC-MISSING-002",
   "A-LOGIC-MISSING-003",
@@ -921,7 +921,95 @@ test("A-LOGIC-REPAIR-002 requires a service sequence for short repair service", 
   assert.notEqual(unknownNext.result_status, "calculable_or_conditional_after_sequence");
 });
 
-test("covered logic assertion IDs remain the seven executed core A-LOGIC identifiers", () => {
+test("A-LOGIC-REFURB-001 keeps arbitrary refurbished climate null without an approved direct footprint", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const arbitrary = evaluateAdequacyAndUnknownState(byId.T15.inputs);
+
+  assert.equal(byId.T15.inputs["replacement.type"], "refurbished");
+  assert.equal(byId.T15.inputs["replacement.refurbished.direct_climate_CO2e_kg"], null);
+  assert.equal(arbitrary.replacement.refurbished.direct_climate_CO2e_kg, null);
+  assert.equal(isUnknown(arbitrary.replacement.refurbished.direct_climate_CO2e_kg), true);
+  assert.notEqual(arbitrary.replacement.refurbished.direct_climate_CO2e_kg, 7.61);
+  assert.notEqual(arbitrary.replacement.refurbished.direct_climate_CO2e_kg, 0);
+  assert.equal(arbitrary.reference_scenario, undefined);
+  assert.equal(arbitrary.reference_scenario?.climate_CO2e_kg, undefined);
+  assert.equal(arbitrary.result_capability, "qualitative_only");
+  assert.equal(arbitrary.replacement.refurbished.percent_reduction_from_new, undefined);
+  assert.equal(arbitrary.climate_value, undefined);
+});
+
+test("A-LOGIC-REFURB-002 preserves ADEME 7.61 as a two-year opaque source-specific reference", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const ademe = evaluateAdequacyAndUnknownState(byId.T16.inputs);
+  const arbitrary = evaluateAdequacyAndUnknownState(byId.T15.inputs);
+
+  assert.equal(byId.T16.inputs["reference_scenario"], "ADEME_REFURB_REFERENCE");
+  assert.equal(ademe.reference_scenario.climate_CO2e_kg, 7.61);
+  assert.equal(ademe.reference_scenario.decomposable, false);
+  assert.equal(ademe.reference_scenario.assumed_second_life_years, 2);
+  assert.equal(ademe.reference_scenario.status, "OPAQUE_SOURCE_SPECIFIC_REFERENCE");
+  assert.equal(ademe.reference_scenario.charging_CO2e_kg, undefined);
+  assert.equal(ademe.reference_scenario.transport_CO2e_kg, undefined);
+  assert.equal(ademe.reference_scenario.production_CO2e_kg, undefined);
+  assert.notEqual(arbitrary.replacement.refurbished.direct_climate_CO2e_kg, 7.61);
+  assert.equal(arbitrary.reference_scenario, undefined);
+  assert.notEqual(ademe.reference_scenario.status, "generic_refurbished_footprint");
+  assert.equal(ademe.decomposable, undefined);
+});
+
+test("A-LOGIC-FATE-001 treats reuse as not immediate e-waste and grants no displacement credit", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const reuse = evaluateAdequacyAndUnknownState(byId.T19.inputs);
+  const stored = evaluateAdequacyAndUnknownState(byId.T20.inputs);
+  const recycled = evaluateAdequacyAndUnknownState(byId.T21.inputs);
+
+  assert.equal(byId.T19.inputs["old_device_fate.fate"], "reuse_by_other");
+  assert.equal(reuse.old_device_fate.immediate_e_waste, false);
+  assert.equal(reuse.old_device_fate.market_displacement_credit, null);
+  assert.notEqual(reuse.old_device_fate.immediate_e_waste, true);
+  assert.notEqual(reuse.old_device_fate.immediate_e_waste, UNKNOWN);
+  assert.notEqual(reuse.old_device_fate.market_displacement_credit, 1);
+  assert.notEqual(reuse.old_device_fate.market_displacement_credit, 0);
+  assert.equal(reuse.old_device_fate.status, undefined);
+  assert.equal(stored.old_device_fate.status, "dormant_or_retired");
+  assert.equal(recycled.old_device_fate.immediate_e_waste, true);
+  assert.notEqual(reuse.old_device_fate.immediate_e_waste, recycled.old_device_fate.immediate_e_waste);
+});
+
+test("A-LOGIC-FATE-002 keeps accepted unknown fate derivatives unknown", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const tradeIn = evaluateAdequacyAndUnknownState(byId.T23.inputs);
+  const stored = evaluateAdequacyAndUnknownState(byId.T20.inputs);
+  const exactMass = evaluateAdequacyAndUnknownState(byId.T21.inputs);
+  const unknownMass = evaluateAdequacyAndUnknownState(byId.T22.inputs);
+
+  assert.equal(byId.T23.inputs["old_device_fate.fate"], "trade_in_unknown");
+  assert.equal(tradeIn.old_device_fate.immediate_e_waste, UNKNOWN);
+  assert.equal(tradeIn.old_device_fate.next_use, UNKNOWN);
+  assert.equal(tradeIn.old_device_fate.market_displacement_credit, null);
+  assert.equal(isUnknown(tradeIn.old_device_fate.immediate_e_waste), true);
+  assert.equal(isUnknown(tradeIn.old_device_fate.next_use), true);
+  assert.notEqual(tradeIn.old_device_fate.immediate_e_waste, false);
+  assert.notEqual(tradeIn.old_device_fate.immediate_e_waste, true);
+  assert.notEqual(tradeIn.old_device_fate.immediate_e_waste, 0);
+  assert.notEqual(tradeIn.old_device_fate.next_use, "reuse");
+  assert.notEqual(tradeIn.old_device_fate.next_use, "formal_recycling");
+  assert.notEqual(tradeIn.old_device_fate.next_use, "storage");
+  assert.notEqual(tradeIn.old_device_fate.next_use, "disposal");
+  assert.notEqual(tradeIn.old_device_fate.market_displacement_credit, 0);
+  assert.notEqual(tradeIn.old_device_fate.market_displacement_credit, 1);
+  assert.equal(tradeIn.old_device_fate.status, undefined);
+  assert.equal(tradeIn.old_device_fate.discarded_mass_g, undefined);
+
+  assert.equal(stored.old_device_fate.status, "dormant_or_retired");
+  assert.equal(stored.old_device_fate.immediate_e_waste, false);
+  assert.equal(exactMass.old_device_fate.immediate_e_waste, true);
+  assert.equal(exactMass.old_device_fate.discarded_mass_g, 195);
+  assert.equal(unknownMass.old_device_fate.discarded_mass_g, null);
+  assert.notEqual(unknownMass.old_device_fate.discarded_mass_g, 0);
+});
+
+test("covered logic assertion IDs remain the eleven executed A-LOGIC identifiers", () => {
   const sourceLogicIds = sourcePackage.logicAssertions.map(({ id }) => id);
   assert.deepEqual(
     sourceLogicIds.filter((id) => coveredLogicAssertionIds.includes(id)),
