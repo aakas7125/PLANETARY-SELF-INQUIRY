@@ -637,14 +637,15 @@ function applyDistinctMissingClasses(result, input) {
 /**
  * Evaluates the T01–T35 adequacy, unknown-state, repair-impact,
  * service-sequence, replacement-evidence, old-device-fate, remaining
- * input-contract case slice, the ten global A-GLOBAL-* assertions, and
- * the seven core A-LOGIC adequacy/life/repair expressions. Those logic
- * assertions reuse the accepted case fields already produced here; no
- * extra result channel is added merely to mirror assertion names. Input
- * keys intentionally match the immutable source package's field names;
- * no UI model, used/refurbished secondary suite, remaining-logic or
- * prohibition certification, ranking winner, unified harm score, or new
- * scientific defaults are introduced here.
+ * input-contract case slice, the ten global A-GLOBAL-* assertions, the
+ * seven core A-LOGIC adequacy/life/repair expressions, and the four
+ * A-LOGIC refurbished-evidence and old-device-fate expressions. Those
+ * logic assertions reuse the accepted case fields already produced here;
+ * no extra result channel is added merely to mirror assertion names.
+ * Input keys intentionally match the immutable source package's field
+ * names; no UI model, used/refurbished secondary suite, remaining-logic
+ * or prohibition certification, ranking winner, unified harm score, or
+ * new scientific defaults are introduced here.
  *
  * @param {SmartphoneInput} input
  * @returns {DecisionResult}
