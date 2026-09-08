@@ -148,6 +148,11 @@ const EXECUTED_INPUT_IDS = new Set([
   "PI-013",
   "PI-014",
   "PI-015",
+  "PI-016",
+  "PI-017",
+  "PI-018",
+  "PI-019",
+  "PI-020",
 ]);
 
 const SOURCES = {
