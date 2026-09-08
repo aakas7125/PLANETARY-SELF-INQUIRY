@@ -104,6 +104,31 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
         row.status === IMPLEMENTATION_GAP,
     )
     .map((row) => row.id);
+  const coveredSecondaryIds = mapping
+    .filter(
+      (row) =>
+        row.domain === "secondary" && row.status === EXECUTING_ASSERTION_COVERAGE,
+    )
+    .map((row) => row.id);
+  const remainingSecondaryCases = mapping
+    .filter(
+      (row) =>
+        row.domain === "secondary" &&
+        /^SEC-\d{2}$/.test(row.id) &&
+        row.status === IMPLEMENTATION_GAP,
+    )
+    .map((row) => row.id);
+  const secondaryGlobalIds = mapping
+    .filter((row) => row.domain === "secondary" && row.id.startsWith("A-SEC-GLOBAL-"))
+    .map((row) => row.id);
+  const remainingSecondaryGlobals = mapping
+    .filter(
+      (row) =>
+        row.domain === "secondary" &&
+        row.id.startsWith("A-SEC-GLOBAL-") &&
+        row.status === IMPLEMENTATION_GAP,
+    )
+    .map((row) => row.id);
 
   const expectedCoveredInputIds = [
     "T01", "T02", "T03", "T04", "T05", "T06", "T07",
@@ -161,6 +186,23 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     "RC07_MAJOR_BOARD_UNKNOWN_IMPACT", "RC08_REPAIR_REPLACEMENT_SEQUENCE",
     "RC09_UNSUPPORTED_REFURB_FOOTPRINT", "RC10_OLD_DEVICE_FATE",
   ];
+  const expectedCoveredSecondaryIds = [
+    "SEC-01", "SEC-02", "SEC-03", "SEC-04",
+    "A-SEC-01-01", "A-SEC-01-02", "A-SEC-01-03", "A-SEC-01-04",
+    "A-SEC-02-01", "A-SEC-02-02", "A-SEC-02-03", "A-SEC-02-04",
+    "A-SEC-03-01", "A-SEC-03-02", "A-SEC-03-03",
+    "A-SEC-04-01", "A-SEC-04-02", "A-SEC-04-03",
+  ];
+  const expectedSecondaryGlobals = [
+    "A-SEC-GLOBAL-01",
+    "A-SEC-GLOBAL-02",
+    "A-SEC-GLOBAL-03",
+    "A-SEC-GLOBAL-04",
+    "A-SEC-GLOBAL-05",
+    "A-SEC-GLOBAL-06",
+    "A-SEC-GLOBAL-07",
+    "A-SEC-GLOBAL-08",
+  ];
 
   assert.deepEqual(
     [...coverageKinds].sort(),
@@ -168,21 +210,31 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   );
   assert.deepEqual(coveredInputIds, expectedCoveredInputIds);
   assert.deepEqual(remainingInputCases, []);
+  assert.deepEqual(coveredSecondaryIds, expectedCoveredSecondaryIds);
+  assert.deepEqual(remainingSecondaryCases, [
+    "SEC-05", "SEC-06", "SEC-07", "SEC-08", "SEC-09", "SEC-10", "SEC-11", "SEC-12",
+  ]);
+  assert.deepEqual(secondaryGlobalIds, expectedSecondaryGlobals);
+  assert.deepEqual(remainingSecondaryGlobals, expectedSecondaryGlobals);
   assert.ok(
     mapping
-      .filter((row) => row.domain !== "input" || !expectedCoveredInputIds.includes(row.id))
+      .filter(
+        (row) =>
+          !(row.domain === "input" && expectedCoveredInputIds.includes(row.id)) &&
+          !(row.domain === "secondary" && expectedCoveredSecondaryIds.includes(row.id)),
+      )
       .every((row) => row.status === IMPLEMENTATION_GAP),
   );
   assert.deepEqual(plannedTestTargets(), [
     { target: "scripts/smartphone-input-contract.test.mjs", exists: true },
-    { target: "scripts/smartphone-secondary-contract.test.mjs", exists: false },
+    { target: "scripts/smartphone-secondary-contract.test.mjs", exists: true },
     { target: "scripts/smartphone-ap-contract.test.mjs", exists: false },
     { target: "scripts/smartphone-empirical-boundary.test.mjs", exists: false },
   ]);
 });
 
 test.todo(
-  "implement the mapped secondary-pathway behavior suite (SEC-01–SEC-12 and A-SEC-*)",
+  "implement remaining secondary-pathway cases (SEC-05–SEC-12, remaining A-SEC-* case assertions, and A-SEC-GLOBAL-01–A-SEC-GLOBAL-08)",
 );
 test.todo(
   "implement the mapped AP interaction behavior suite (APQ1–APQ6 and INV-AP-01–INV-AP-20)",
