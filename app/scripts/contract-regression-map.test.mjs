@@ -153,6 +153,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     "A-LOGIC-MISSING-001", "A-LOGIC-MISSING-002", "A-LOGIC-MISSING-003",
     "A-LOGIC-EOL-001", "A-LOGIC-MATERIALS-001",
     "PI-001", "PI-002", "PI-003", "PI-004", "PI-005", "PI-006",
+    "PI-007", "PI-008", "PI-009", "PI-014", "PI-015",
     "RC01_ADEQUATE_KEEP_GENERIC_NEW", "RC02_UNKNOWN_REMAINING_LIFE",
     "RC03_UNSAFE_KEEP_REMOVAL", "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
     "RC05_BATTERY_REPAIR_KNOWN_EXTENSION", "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
@@ -180,7 +181,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
 });
 
 test.todo(
-  "implement the remaining mapped input-model behavior suite (uncovered PI-007–PI-020)",
+  "implement the remaining mapped input-model behavior suite (uncovered PI-010–PI-013 and PI-016–PI-020)",
 );
 test.todo(
   "implement the mapped secondary-pathway behavior suite (SEC-01–SEC-12 and A-SEC-*)",
