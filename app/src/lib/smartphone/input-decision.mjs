@@ -312,18 +312,159 @@ function applyOldDeviceFate(result, input) {
 }
 
 /**
- * @param {DecisionResult} result
- * @param {SmartphoneInput} input
+ * Comparative-ranking permission for A-GLOBAL-EQUAL-SERVICE.
+ * This is a boolean gate only: it never invents a winner, rank order,
+ * score, or other comparative output channel.
+ *
+ * Equivalent adequate service is represented only when keep-as-is already
+ * provides equivalent service and a numeric primary horizon exists.
+ * A complete service sequence is represented only when the accepted T13
+ * sequence object covers the common horizon.
+ *
+ * @param {{
+ *   equivalentAdequateServiceRepresented?: TriState,
+ *   completeServiceSequenceRepresented?: boolean,
+ * }} [request]
  */
-function applyGenericEolBoundary(result, input) {
-  if (
-    !hasInputKey(input, "generic_EOL_model_specific_value") ||
-    !isUnknown(input["generic_EOL_model_specific_value"])
-  ) {
-    return;
-  }
-  result.generic_EOL_CO2e_kg = null;
-  result.generic_EOL_status = "EXCLUDED_UNQUANTIFIED";
+export function resolveComparativeRankingPermission(request = {}) {
+  const equivalentAdequateServiceRepresented =
+    request.equivalentAdequateServiceRepresented === true ||
+    request.equivalentAdequateServiceRepresented === false ||
+    request.equivalentAdequateServiceRepresented === UNKNOWN
+      ? request.equivalentAdequateServiceRepresented
+      : UNKNOWN;
+  const completeServiceSequenceRepresented =
+    request.completeServiceSequenceRepresented === true;
+
+  return Object.freeze({
+    definitiveComparativeRankingPermitted:
+      equivalentAdequateServiceRepresented === true ||
+      completeServiceSequenceRepresented,
+    equivalentAdequateServiceRepresented,
+    completeServiceSequenceRepresented,
+  });
+}
+
+/**
+ * Historic-production exclusion for A-GLOBAL-SUNK-MANUFACTURING.
+ * Permission/exclusion only: this helper never invents a prospective keep
+ * total, historic production value, or avoided-manufacture credit.
+ */
+export function resolveSunkManufacturingBoundary() {
+  return Object.freeze({
+    historicOwnedProductionIncludedInProspectiveKeepTotal: false,
+    avoidedManufactureCreditFromOwnedHistory: null,
+  });
+}
+
+/**
+ * Generic EOL climate boundary for A-GLOBAL-NO-GENERIC-EOL-ZERO.
+ * Absent generic EOL evidence remains null with EXCLUDED_UNQUANTIFIED,
+ * never numeric zero.
+ */
+export function resolveGenericEolBoundary() {
+  return Object.freeze({
+    generic_EOL_CO2e_kg: null,
+    generic_EOL_status: "EXCLUDED_UNQUANTIFIED",
+  });
+}
+
+/**
+ * Generic recycling-credit boundary for
+ * A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT.
+ */
+export function resolveGenericRecyclingCreditBoundary() {
+  return Object.freeze({
+    generic_recycling_credit: null,
+  });
+}
+
+/**
+ * Qualitative-domain / unified-score boundary for
+ * A-GLOBAL-NO-UNIFIED-HARM-SCORE.
+ * Materials, water, people, and ecosystem pathways stay explanatory and
+ * must not numerically modify a climate ranking or collapse into one score.
+ * This helper never invents a harm score or domain-specific numeric value.
+ */
+export function resolveQualitativePathwayClimateBoundary() {
+  return Object.freeze({
+    qualitativePathwayDomains: Object.freeze([
+      "materials",
+      "water",
+      "people",
+      "ecosystem",
+    ]),
+    qualitativePathwaysNumericallyModifyClimateRanking: false,
+    qualitativePathwayRole: "explanatory_only",
+    unified_harm_score: null,
+  });
+}
+
+/**
+ * @param {DecisionResult} result
+ */
+function applyGenericEolBoundary(result) {
+  const eol = resolveGenericEolBoundary();
+  result.generic_EOL_CO2e_kg = eol.generic_EOL_CO2e_kg;
+  result.generic_EOL_status = eol.generic_EOL_status;
+}
+
+/**
+ * @param {DecisionResult} result
+ */
+function applyGenericRecyclingCreditBoundary(result) {
+  result.generic_recycling_credit =
+    resolveGenericRecyclingCreditBoundary().generic_recycling_credit;
+}
+
+/**
+ * @param {DecisionResult} result
+ */
+function applySunkManufacturingBoundary(result) {
+  const sunk = resolveSunkManufacturingBoundary();
+  result.historic_owned_production_included_in_prospective_keep_total =
+    sunk.historicOwnedProductionIncludedInProspectiveKeepTotal;
+  result.avoided_manufacture_credit_from_owned_history =
+    sunk.avoidedManufactureCreditFromOwnedHistory;
+}
+
+/**
+ * @param {DecisionResult} result
+ */
+function applyQualitativePathwayClimateBoundary(result) {
+  const qualitative = resolveQualitativePathwayClimateBoundary();
+  result.qualitative_pathway_domains = qualitative.qualitativePathwayDomains;
+  result.qualitative_pathways_numerically_modify_climate_ranking =
+    qualitative.qualitativePathwaysNumericallyModifyClimateRanking;
+  result.qualitative_pathway_role = qualitative.qualitativePathwayRole;
+  result.unified_harm_score = qualitative.unified_harm_score;
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {TriState} providesEquivalentService
+ */
+function applyComparativeRankingPermission(result, providesEquivalentService) {
+  const equivalentAdequateServiceRepresented =
+    providesEquivalentService === true && typeof result.H_primary_years === "number"
+      ? true
+      : providesEquivalentService === false
+        ? false
+        : UNKNOWN;
+  const completeServiceSequenceRepresented =
+    Boolean(result.service_sequence) &&
+    typeof result.service_sequence_covers_years === "number" &&
+    result.result_status === "calculable_or_conditional_after_sequence";
+  const permission = resolveComparativeRankingPermission({
+    equivalentAdequateServiceRepresented,
+    completeServiceSequenceRepresented,
+  });
+  result.definitive_comparative_ranking_permitted =
+    permission.definitiveComparativeRankingPermitted;
+  result.equivalent_adequate_service_represented =
+    permission.equivalentAdequateServiceRepresented;
+  result.complete_service_sequence_represented =
+    permission.completeServiceSequenceRepresented;
 }
 
 /**
@@ -496,11 +637,12 @@ function applyDistinctMissingClasses(result, input) {
 /**
  * Evaluates the T01–T35 adequacy, unknown-state, repair-impact,
  * service-sequence, replacement-evidence, old-device-fate, remaining
- * input-contract case slice, and the five global unknown/default
- * assertions. Input keys intentionally match the immutable source
- * package's field names; no UI model, used/refurbished secondary suite,
- * remaining global scoring/boundary, logic/prohibition certification, or
- * new scientific defaults are introduced here.
+ * input-contract case slice, the five global unknown/default assertions,
+ * and the five global comparison/scoring-boundary assertions. Input keys
+ * intentionally match the immutable source package's field names; no UI
+ * model, used/refurbished secondary suite, logic/prohibition
+ * certification, ranking winner, unified harm score, or new scientific
+ * defaults are introduced here.
  *
  * @param {SmartphoneInput} input
  * @returns {DecisionResult}
@@ -518,6 +660,12 @@ export function evaluateAdequacyAndUnknownState(input) {
   const remainingServiceOutOfBounds = horizonInput === OUT_OF_BOUNDS_REMAINING_SERVICE_YEARS;
   const horizon = remainingServiceOutOfBounds ? null : primaryHorizon(horizonInput);
   const replacementType = input["replacement.type"];
+  const providesEquivalentService =
+    adequacyStatus === "adequate"
+      ? true
+      : adequacyStatus === "inadequate"
+        ? false
+        : UNKNOWN;
 
   /** @type {DecisionResult} */
   const result = {
@@ -540,12 +688,7 @@ export function evaluateAdequacyAndUnknownState(input) {
           : adequacyStatus === "inadequate"
             ? false
             : UNKNOWN,
-      provides_equivalent_service:
-        adequacyStatus === "adequate"
-          ? true
-          : adequacyStatus === "inadequate"
-            ? false
-            : UNKNOWN,
+      provides_equivalent_service: providesEquivalentService,
     },
     replacement_forced_by_support_status: false,
   };
@@ -578,7 +721,10 @@ export function evaluateAdequacyAndUnknownState(input) {
   applyServiceSequence(result, input);
   applyReplacementEvidence(result, input);
   applyOldDeviceFate(result, input);
-  applyGenericEolBoundary(result, input);
+  applyGenericEolBoundary(result);
+  applyGenericRecyclingCreditBoundary(result);
+  applySunkManufacturingBoundary(result);
+  applyQualitativePathwayClimateBoundary(result);
   applyMaterialCardBoundary(result, input);
   applyPersonalSubstitutionBoundary(result, input);
   applyUsConsequentialScenario(result, input);
@@ -589,6 +735,7 @@ export function evaluateAdequacyAndUnknownState(input) {
   applyOperationalAdequacyBoundary(result, input);
   applyPrimaryHorizonAmortizationBoundary(result, input);
   applyDistinctMissingClasses(result, input);
+  applyComparativeRankingPermission(result, providesEquivalentService);
 
   return result;
 }

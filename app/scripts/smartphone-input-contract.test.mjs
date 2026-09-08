@@ -9,7 +9,12 @@ import {
   RESEARCH_EVIDENCE_PARAMETER,
   evaluateAdequacyAndUnknownState,
   isUnknown,
+  resolveComparativeRankingPermission,
+  resolveGenericEolBoundary,
+  resolveGenericRecyclingCreditBoundary,
   resolveMissingInput,
+  resolveQualitativePathwayClimateBoundary,
+  resolveSunkManufacturingBoundary,
 } from "../src/lib/smartphone/input-decision.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -120,6 +125,11 @@ const coveredGlobalAssertionIds = [
   "A-GLOBAL-NO-SITUATIONAL-DEFAULT",
   "A-GLOBAL-RESEARCH-FALLBACK",
   "A-GLOBAL-NO-UNAPPROVED-FALLBACK",
+  "A-GLOBAL-EQUAL-SERVICE",
+  "A-GLOBAL-SUNK-MANUFACTURING",
+  "A-GLOBAL-NO-GENERIC-EOL-ZERO",
+  "A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT",
+  "A-GLOBAL-NO-UNIFIED-HARM-SCORE",
 ];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
@@ -369,7 +379,7 @@ test("T24–T27 keep EOL null, materials explanatory, and displacement non-globa
   assert.equal(eol.generic_EOL_CO2e_kg, null);
   assert.equal(eol.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
   assert.notEqual(eol.generic_EOL_CO2e_kg, 0);
-  assert.equal(eol.generic_recycling_credit, undefined);
+  assert.equal(eol.generic_recycling_credit, null);
 
   assert.equal(materials.material_cards_numerical_climate_addition, 0);
   assert.equal(materials.material_cards_role, "explanatory_only");
@@ -582,29 +592,185 @@ test("A-GLOBAL-NO-UNAPPROVED-FALLBACK leaves an unapproved Research parameter nu
   assert.equal(missingClasses.result_capability, "insufficient_information");
 });
 
-test("covered global unknown/default assertion IDs remain the five executed identifiers", () => {
-  const sourceGlobalIds = sourcePackage.globalAssertions.map(({ id }) => id);
-  assert.deepEqual(coveredGlobalAssertionIds, [
-    "A-GLOBAL-UNKNOWN-NOT-ZERO",
-    "A-GLOBAL-UNKNOWN-NOT-FALSE",
-    "A-GLOBAL-NO-SITUATIONAL-DEFAULT",
-    "A-GLOBAL-RESEARCH-FALLBACK",
-    "A-GLOBAL-NO-UNAPPROVED-FALLBACK",
-  ]);
-  assert.ok(
-    coveredGlobalAssertionIds.every((id) => sourceGlobalIds.includes(id)),
+test("A-GLOBAL-EQUAL-SERVICE permits comparison only for equivalent service or a complete sequence", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const equivalentService = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const completeSequence = evaluateAdequacyAndUnknownState(byId.T13.inputs);
+  const functionalGap = evaluateAdequacyAndUnknownState(byId.T05.inputs);
+  const incompleteSequence = evaluateAdequacyAndUnknownState(byId.T14.inputs);
+  const operationalOnly = evaluateAdequacyAndUnknownState(byId.T33.inputs);
+  const permittedByService = resolveComparativeRankingPermission({
+    equivalentAdequateServiceRepresented: true,
+    completeServiceSequenceRepresented: false,
+  });
+  const permittedBySequence = resolveComparativeRankingPermission({
+    equivalentAdequateServiceRepresented: UNKNOWN,
+    completeServiceSequenceRepresented: true,
+  });
+  const blocked = resolveComparativeRankingPermission({
+    equivalentAdequateServiceRepresented: false,
+    completeServiceSequenceRepresented: false,
+  });
+
+  assert.equal(equivalentService.keep_as_is.provides_equivalent_service, true);
+  assert.equal(equivalentService.equivalent_adequate_service_represented, true);
+  assert.equal(equivalentService.complete_service_sequence_represented, false);
+  assert.equal(equivalentService.definitive_comparative_ranking_permitted, true);
+  assert.equal("winner" in equivalentService, false);
+  assert.equal("comparative_ranking" in equivalentService, false);
+  assert.equal(equivalentService.comparative_score, undefined);
+
+  assert.equal(completeSequence.service_sequence_required, true);
+  assert.equal(completeSequence.complete_service_sequence_represented, true);
+  assert.equal(completeSequence.definitive_comparative_ranking_permitted, true);
+  assert.equal("winner" in completeSequence, false);
+  assert.equal(completeSequence.result_status, "calculable_or_conditional_after_sequence");
+
+  assert.equal(functionalGap.keep_as_is.provides_equivalent_service, false);
+  assert.equal(functionalGap.equivalent_adequate_service_represented, false);
+  assert.equal(functionalGap.definitive_comparative_ranking_permitted, false);
+
+  assert.equal(incompleteSequence.service_sequence_required, true);
+  assert.equal(incompleteSequence.complete_service_sequence_represented, false);
+  assert.equal(incompleteSequence.definitive_comparative_ranking_permitted, false);
+  assert.equal(incompleteSequence.result_capability, "insufficient_information");
+
+  assert.equal(operationalOnly.phone_operational_equals_adequate, false);
+  assert.equal(operationalOnly.keep_as_is.provides_equivalent_service, false);
+  assert.equal(operationalOnly.definitive_comparative_ranking_permitted, false);
+
+  assert.equal(permittedByService.definitiveComparativeRankingPermitted, true);
+  assert.equal(permittedBySequence.definitiveComparativeRankingPermitted, true);
+  assert.equal(blocked.definitiveComparativeRankingPermitted, false);
+  assert.equal("winner" in permittedByService, false);
+  assert.equal("ranking" in permittedByService, false);
+  assert.equal("score" in permittedByService, false);
+});
+
+test("A-GLOBAL-SUNK-MANUFACTURING excludes historic owned production from the keep total", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const reuse = evaluateAdequacyAndUnknownState(byId.T19.inputs);
+  const sunk = resolveSunkManufacturingBoundary();
+
+  assert.equal(sunk.historicOwnedProductionIncludedInProspectiveKeepTotal, false);
+  assert.equal(sunk.avoidedManufactureCreditFromOwnedHistory, null);
+  assert.equal("prospectiveKeepTotal_CO2e_kg" in sunk, false);
+  assert.equal("historicProduction_CO2e_kg" in sunk, false);
+
+  assert.equal(
+    keepDecision.historic_owned_production_included_in_prospective_keep_total,
+    false,
   );
-  assert.ok(
-    sourceGlobalIds
-      .filter((id) => !coveredGlobalAssertionIds.includes(id))
-      .every((id) =>
-        [
-          "A-GLOBAL-EQUAL-SERVICE",
-          "A-GLOBAL-SUNK-MANUFACTURING",
-          "A-GLOBAL-NO-GENERIC-EOL-ZERO",
-          "A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT",
-          "A-GLOBAL-NO-UNIFIED-HARM-SCORE",
-        ].includes(id),
-      ),
+  assert.equal(keepDecision.avoided_manufacture_credit_from_owned_history, null);
+  assert.notEqual(keepDecision.avoided_manufacture_credit_from_owned_history, 1);
+  assert.notDeepEqual(
+    keepDecision.avoided_manufacture_credit_from_owned_history,
+    keepDecision.new?.production_CO2e_kg,
+  );
+  assert.equal(keepDecision.keep_as_is.historic_production_CO2e_kg, undefined);
+  assert.equal(keepDecision.keep_as_is.avoided_manufacture_credit, undefined);
+  assert.equal("winner" in keepDecision, false);
+
+  assert.equal(reuse.old_device_fate.market_displacement_credit, null);
+  assert.equal(reuse.avoided_manufacture_credit_from_owned_history, null);
+});
+
+test("A-GLOBAL-NO-GENERIC-EOL-ZERO keeps absent generic EOL null, never zero", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const eol = evaluateAdequacyAndUnknownState(byId.T24.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const resolved = resolveGenericEolBoundary();
+
+  assert.equal(resolved.generic_EOL_CO2e_kg, null);
+  assert.equal(resolved.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(resolved.generic_EOL_CO2e_kg, 0);
+  assert.equal(isUnknown(resolved.generic_EOL_CO2e_kg), true);
+
+  assert.equal(eol.generic_EOL_CO2e_kg, null);
+  assert.equal(eol.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(eol.generic_EOL_CO2e_kg, 0);
+  assert.equal(isUnknown(eol.generic_EOL_CO2e_kg), true);
+
+  assert.equal(keepDecision.generic_EOL_CO2e_kg, null);
+  assert.equal(keepDecision.generic_EOL_status, "EXCLUDED_UNQUANTIFIED");
+  assert.notEqual(keepDecision.generic_EOL_CO2e_kg, 0);
+});
+
+test("A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT keeps generic recycling credit null", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const eol = evaluateAdequacyAndUnknownState(byId.T24.inputs);
+  const exactMass = evaluateAdequacyAndUnknownState(byId.T21.inputs);
+  const reuse = evaluateAdequacyAndUnknownState(byId.T19.inputs);
+  const resolved = resolveGenericRecyclingCreditBoundary();
+
+  assert.equal(resolved.generic_recycling_credit, null);
+  assert.notEqual(resolved.generic_recycling_credit, 0);
+
+  assert.equal(eol.generic_recycling_credit, null);
+  assert.notEqual(eol.generic_recycling_credit, 0);
+  assert.equal(exactMass.generic_recycling_credit, null);
+  assert.equal(exactMass.individual_formal_recycling_probability_applied, false);
+  assert.equal(reuse.generic_recycling_credit, null);
+  assert.equal(reuse.old_device_fate.market_displacement_credit, null);
+});
+
+test("A-GLOBAL-NO-UNIFIED-HARM-SCORE keeps qualitative domains non-numeric to climate ranking", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const materials = evaluateAdequacyAndUnknownState(byId.T25.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const qualitative = resolveQualitativePathwayClimateBoundary();
+  const climateAfterQualitativeCards = evaluateAdequacyAndUnknownState({
+    ...byId.T01.inputs,
+    material_pathway_cards_enabled: true,
+    "product_LCA.production.includes_raw_material_extraction": true,
+    water_pathway_cards_enabled: true,
+    people_pathway_cards_enabled: true,
+    ecosystem_pathway_cards_enabled: true,
+  });
+
+  assert.deepEqual(qualitative.qualitativePathwayDomains, [
+    "materials",
+    "water",
+    "people",
+    "ecosystem",
+  ]);
+  assert.equal(qualitative.qualitativePathwaysNumericallyModifyClimateRanking, false);
+  assert.equal(qualitative.qualitativePathwayRole, "explanatory_only");
+  assert.equal(qualitative.unified_harm_score, null);
+  assert.notEqual(qualitative.unified_harm_score, 0);
+  assert.equal("materialsScore" in qualitative, false);
+  assert.equal("waterScore" in qualitative, false);
+  assert.equal("peopleScore" in qualitative, false);
+  assert.equal("ecosystemScore" in qualitative, false);
+
+  assert.equal(materials.material_cards_numerical_climate_addition, 0);
+  assert.equal(materials.material_cards_role, "explanatory_only");
+  assert.equal(materials.qualitative_pathways_numerically_modify_climate_ranking, false);
+  assert.equal(materials.qualitative_pathway_role, "explanatory_only");
+  assert.equal(materials.unified_harm_score, null);
+  assert.equal(materials.material_cards_cobalt_mining_CO2e_kg, undefined);
+
+  assert.deepEqual(keepDecision.new.production_CO2e_kg, [25, 70]);
+  assert.deepEqual(climateAfterQualitativeCards.new.production_CO2e_kg, [25, 70]);
+  assert.deepEqual(
+    climateAfterQualitativeCards.new.distribution_CO2e_kg,
+    keepDecision.new.distribution_CO2e_kg,
+  );
+  assert.equal(
+    climateAfterQualitativeCards.qualitative_pathways_numerically_modify_climate_ranking,
+    false,
+  );
+  assert.equal(climateAfterQualitativeCards.unified_harm_score, null);
+  assert.equal(climateAfterQualitativeCards.material_cards_numerical_climate_addition, 0);
+  assert.equal("winner" in climateAfterQualitativeCards, false);
+});
+
+test("covered global assertion IDs remain the ten executed A-GLOBAL identifiers", () => {
+  const sourceGlobalIds = sourcePackage.globalAssertions.map(({ id }) => id);
+  assert.deepEqual(coveredGlobalAssertionIds, sourceGlobalIds);
+  assert.deepEqual(
+    sourceGlobalIds.filter((id) => !coveredGlobalAssertionIds.includes(id)),
+    [],
   );
 });
