@@ -1,4 +1,6 @@
 export const UNKNOWN = "unknown";
+export const USER_SITUATION_FACT = "user_situation_fact";
+export const RESEARCH_EVIDENCE_PARAMETER = "research_evidence_parameter";
 
 const GENERIC_NEW_PRODUCTION_CO2E_KG = Object.freeze([25, 70]);
 const GENERIC_NEW_DISTRIBUTION_CO2E_KG = Object.freeze([2, 4]);
@@ -24,8 +26,46 @@ function triState(value) {
 }
 
 /** @param {unknown} value @returns {boolean} */
-function isUnknown(value) {
+export function isUnknown(value) {
   return value === null || value === undefined || value === UNKNOWN;
+}
+
+/**
+ * Missing-value policy for the five global unknown/default assertions.
+ * Permission to use an approved Research fallback is a boolean gate only;
+ * this helper never invents a fallback registry, numeric default, or
+ * scientific value.
+ *
+ * @param {{
+ *   field: string,
+ *   missingClass: typeof USER_SITUATION_FACT | typeof RESEARCH_EVIDENCE_PARAMETER,
+ *   researchApprovedFallback?: boolean,
+ *   attemptApprovedDefault?: boolean,
+ * }} request
+ */
+export function resolveMissingInput(request) {
+  const field = request?.field;
+  const missingClass = request?.missingClass;
+  if (typeof field !== "string" || field.length === 0) {
+    throw new Error("field must be an explicit missing-input identifier");
+  }
+  if (missingClass !== USER_SITUATION_FACT && missingClass !== RESEARCH_EVIDENCE_PARAMETER) {
+    throw new Error("missingClass must be an accepted T35 missingness class");
+  }
+
+  const researchApprovedFallback = request.researchApprovedFallback === true;
+  const attemptApprovedDefault = request.attemptApprovedDefault === true;
+  const approvedDefaultPermitted =
+    missingClass === RESEARCH_EVIDENCE_PARAMETER && researchApprovedFallback;
+
+  return Object.freeze({
+    field,
+    missingClass,
+    value: UNKNOWN,
+    usedApprovedDefault: false,
+    approvedDefaultPermitted,
+    attemptApprovedDefault,
+  });
 }
 
 /** @param {unknown} value @returns {number | "unknown" | null} */
@@ -434,22 +474,33 @@ function applyDistinctMissingClasses(result, input) {
   if (!remainingMissing || !researchMissing) {
     return;
   }
-  appendMissingField(result, "remaining_service.without_repair", "user_situation_fact");
-  appendMissingField(
-    result,
-    "repair.model_specific_climate_CO2e_kg",
-    "research_evidence_parameter",
-  );
+  const remainingResolution = resolveMissingInput({
+    field: "remaining_service.without_repair",
+    missingClass: USER_SITUATION_FACT,
+    attemptApprovedDefault: true,
+  });
+  const researchResolution = resolveMissingInput({
+    field: "repair.model_specific_climate_CO2e_kg",
+    missingClass: RESEARCH_EVIDENCE_PARAMETER,
+    researchApprovedFallback: false,
+    attemptApprovedDefault: true,
+  });
+  if (remainingResolution.usedApprovedDefault || researchResolution.usedApprovedDefault) {
+    return;
+  }
+  appendMissingField(result, remainingResolution.field, remainingResolution.missingClass);
+  appendMissingField(result, researchResolution.field, researchResolution.missingClass);
   result.result_capability = "insufficient_information";
 }
 
 /**
  * Evaluates the T01–T35 adequacy, unknown-state, repair-impact,
- * service-sequence, replacement-evidence, old-device-fate, and remaining
- * input-contract case slice. Input keys intentionally match the immutable
- * source package's field names; no UI model, used/refurbished secondary
- * suite, global/logic/prohibition certification, or new scientific defaults
- * are introduced here.
+ * service-sequence, replacement-evidence, old-device-fate, remaining
+ * input-contract case slice, and the five global unknown/default
+ * assertions. Input keys intentionally match the immutable source
+ * package's field names; no UI model, used/refurbished secondary suite,
+ * remaining global scoring/boundary, logic/prohibition certification, or
+ * new scientific defaults are introduced here.
  *
  * @param {SmartphoneInput} input
  * @returns {DecisionResult}
