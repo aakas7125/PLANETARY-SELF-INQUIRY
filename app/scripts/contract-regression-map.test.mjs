@@ -87,7 +87,7 @@ test("contract mapping covers every accepted source identifier exactly once", ()
   );
 });
 
-test("mapping records only T01–T07 input coverage backed by executing assertions", () => {
+test("mapping records only T01–T14 input coverage backed by executing assertions", () => {
   const mapping = buildContractRegressionMap();
   const coverageKinds = new Set(mapping.map((row) => row.coverageKind));
   const coveredInputIds = mapping
@@ -107,14 +107,22 @@ test("mapping records only T01–T07 input coverage backed by executing assertio
 
   const expectedCoveredInputIds = [
     "T01", "T02", "T03", "T04", "T05", "T06", "T07",
+    "T08", "T09", "T10", "T11", "T12", "T13", "T14",
     "A-T01-HORIZON-2Y", "A-T01-GENERIC-NEW-RANGES", "A-T01-NO-3Y-DEFAULT",
     "A-T02-HORIZON-REMAINS-UNKNOWN", "A-T02-NO-3Y-FALLBACK",
     "A-T03-AGE-NOT-ADEQUACY", "A-T03-NO-OBSOLESCENCE-INFERENCE",
     "A-T04-UNSAFE-REMOVES-KEEP", "A-T05-FUNCTIONAL-INadequacy",
     "A-T06-SUPPORT-END-NOT-AUTO-REPLACE", "A-T06-SUPPORT-IS-ADEQUACY-INPUT",
     "A-T07-SUPPORT-UNKNOWN-STAYS-UNKNOWN",
+    "A-T08-BATTERY-RANGE", "A-T08-POST-REPAIR-SERVICE-KNOWN",
+    "A-T09-NO-SERVICE-EXTENSION-DEFAULT", "A-T10-DISPLAY-RANGE",
+    "A-T11-MAJOR-BOARD-NO-GENERIC", "A-T11-MAJOR-BOARD-UNKNOWN-NOT-ZERO",
+    "A-T12-FP5-MODEL-OVERRIDE", "A-T13-SEQUENCE-NOT-TRUNCATED",
+    "A-T13-NEXT-ACQUISITION-INCLUDED", "A-T14-NO-INVENTED-NEXT-EVENT",
     "RC01_ADEQUATE_KEEP_GENERIC_NEW", "RC02_UNKNOWN_REMAINING_LIFE",
     "RC03_UNSAFE_KEEP_REMOVAL", "RC04_SECURITY_SUPPORT_NO_AUTO_REPLACE",
+    "RC05_BATTERY_REPAIR_KNOWN_EXTENSION", "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
+    "RC07_MAJOR_BOARD_UNKNOWN_IMPACT", "RC08_REPAIR_REPLACEMENT_SEQUENCE",
   ];
 
   assert.deepEqual(
@@ -122,7 +130,7 @@ test("mapping records only T01–T07 input coverage backed by executing assertio
     ["positive", "positive_and_prohibition", "prohibition", "release_gate"],
   );
   assert.deepEqual(coveredInputIds, expectedCoveredInputIds);
-  assert.deepEqual(remainingInputCases, expectedInputCases.slice(7));
+  assert.deepEqual(remainingInputCases, expectedInputCases.slice(14));
   assert.ok(
     mapping
       .filter((row) => row.domain !== "input" || !expectedCoveredInputIds.includes(row.id))
@@ -137,7 +145,7 @@ test("mapping records only T01–T07 input coverage backed by executing assertio
 });
 
 test.todo(
-  "implement the remaining mapped input-model behavior suite (T08–T35, uncovered A-T-*, A-GLOBAL-*, A-LOGIC-*, PI-*, RC05–RC10)",
+  "implement the remaining mapped input-model behavior suite (T15–T35, uncovered A-T-*, A-GLOBAL-*, A-LOGIC-*, PI-*, RC09–RC10)",
 );
 test.todo(
   "implement the mapped secondary-pathway behavior suite (SEC-01–SEC-12 and A-SEC-*)",
