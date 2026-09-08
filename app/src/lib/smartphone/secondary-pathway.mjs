@@ -6,8 +6,9 @@
  *
  * Separate from the input-package evaluator so secondary package boundaries stay explicit.
  *
- * This slice implements SEC-01–SEC-04 only. Positive ADEME source-specific selection
- * (SEC-07) and model-specific battery impact paths are intentionally absent.
+ * This slice implements SEC-01–SEC-06 and SEC-09 only. Positive ADEME
+ * source-specific selection (SEC-07) and model-specific battery impact paths
+ * are intentionally absent.
  */
 
 export const UNKNOWN = "unknown";
@@ -19,10 +20,12 @@ export const PROVISIONAL_GENERIC_RANGE = "PROVISIONAL_GENERIC_RANGE";
 
 /** Accepted battery intervention fallback from used/refurb pathways (kg CO2e). */
 const BATTERY_REPLACEMENT_CO2E_KG = Object.freeze([0.3, 0.7]);
+const IMPLEMENTED_COMPOSED_CASE_IDS = new Set(["SEC-05", "SEC-06", "SEC-09"]);
 
 /** @typedef {"used_secondhand" | "refurbished" | "unknown"} SecondaryPathway */
 /** @typedef {Record<string, unknown>} SecondaryReplacement */
 /** @typedef {Record<string, unknown>} SecondaryPathwayResult */
+/** @typedef {Record<string, unknown>} SecondaryPathwayCase */
 
 /** @param {unknown} value @returns {boolean} */
 export function isUnknown(value) {
@@ -102,10 +105,7 @@ function resolveRefurbishmentProcess(replacement, pathway) {
   const evidence = replacement.process_evidence;
   if (evidence && typeof evidence === "object" && !Array.isArray(evidence)) {
     const record = /** @type {Record<string, unknown>} */ (evidence);
-    if (
-      record.refurbishment_program === false &&
-      record.inspection_testing === false
-    ) {
+    if (record.refurbishment_program === false && record.inspection_testing === false) {
       return { status: NOT_EVIDENCED };
     }
   }
@@ -278,6 +278,115 @@ export function evaluateSecondaryPathway(replacement = {}) {
   } else {
     result.direct_secondary_CO2e = null;
     result.result_capability = "insufficient_information";
+  }
+
+  return Object.freeze(result);
+}
+
+/**
+ * Compose the exact top-level structures used by the implemented service and
+ * transfer cases around the existing replacement evaluator. Cases outside this
+ * bounded slice do not acquire pathway, numerical, or categorical behavior.
+ *
+ * @param {SecondaryPathwayCase} input
+ * @returns {SecondaryPathwayResult}
+ */
+export function evaluateSecondaryPathwayCase(input = {}) {
+  const replacement =
+    input.replacement && typeof input.replacement === "object" && !Array.isArray(input.replacement)
+      ? /** @type {SecondaryReplacement} */ (input.replacement)
+      : {};
+  const caseId = typeof input.case_id === "string" ? input.case_id : undefined;
+
+  if (!caseId || !IMPLEMENTED_COMPOSED_CASE_IDS.has(caseId)) {
+    return evaluateSecondaryPathway(replacement);
+  }
+
+  const normalizedReplacement =
+    replacement.pathway === "used_secondhand"
+      ? { ...replacement, pathway_user_selection: "used_secondhand" }
+      : replacement;
+  const result = {
+    ...evaluateSecondaryPathway(normalizedReplacement),
+  };
+
+  if (caseId === "SEC-05") {
+    const service =
+      replacement.expected_adequate_service &&
+      typeof replacement.expected_adequate_service === "object" &&
+      !Array.isArray(replacement.expected_adequate_service)
+        ? /** @type {Record<string, unknown>} */ (replacement.expected_adequate_service)
+        : {};
+    const allServiceValuesUnknown = ["low_years", "expected_years", "high_years"].every((field) =>
+      isUnknown(service[field]),
+    );
+
+    if (replacement.pathway === "used_secondhand" && allServiceValuesUnknown) {
+      result.used_service_life = null;
+      result.equivalent_service_established = false;
+      result.missing_required_fields = ["replacement.expected_adequate_service"];
+      result.result_capability = "insufficient_information";
+    }
+  }
+
+  if (caseId === "SEC-06") {
+    const transfer =
+      replacement.transfer &&
+      typeof replacement.transfer === "object" &&
+      !Array.isArray(replacement.transfer)
+        ? /** @type {Record<string, unknown>} */ (replacement.transfer)
+        : {};
+
+    if (
+      replacement.pathway === "used_secondhand" &&
+      transfer.required_for_transaction === true &&
+      transfer.mode === "parcel_delivery" &&
+      transfer.quantified_CO2e === null &&
+      transfer.evidence_id === null
+    ) {
+      result.transfer_CO2e = {
+        value: null,
+        status: UNKNOWN_NO_FALLBACK,
+      };
+      result.used_direct_CO2e = { value: null };
+      result.result_capability = "qualitative_only";
+    }
+  }
+
+  if (caseId === "SEC-09") {
+    const comparison =
+      input.comparison && typeof input.comparison === "object" && !Array.isArray(input.comparison)
+        ? /** @type {Record<string, unknown>} */ (input.comparison)
+        : {};
+    const service =
+      replacement.expected_adequate_service &&
+      typeof replacement.expected_adequate_service === "object" &&
+      !Array.isArray(replacement.expected_adequate_service)
+        ? /** @type {Record<string, unknown>} */ (replacement.expected_adequate_service)
+        : {};
+    const horizon = comparison.common_service_horizon_years;
+    const covered = service.expected_years;
+
+    if (
+      replacement.pathway === "used_secondhand" &&
+      typeof horizon === "number" &&
+      Number.isFinite(horizon) &&
+      typeof covered === "number" &&
+      Number.isFinite(covered) &&
+      covered >= 0 &&
+      covered < horizon
+    ) {
+      result.service_sequence_required = true;
+      result.covered_service_years = covered;
+      result.uncovered_service_years = horizon - covered;
+      if (
+        Object.hasOwn(input, "next_event_after_secondary_failure") &&
+        isUnknown(input.next_event_after_secondary_failure)
+      ) {
+        result.next_event = UNKNOWN;
+      }
+      result.result_capability = "insufficient_information";
+    }
   }
 
   return Object.freeze(result);
