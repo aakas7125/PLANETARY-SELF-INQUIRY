@@ -37,14 +37,18 @@ export function isUnknown(value) {
  * scientific value.
  *
  * @param {{
- *   field?: string,
+ *   field: string,
  *   missingClass: typeof USER_SITUATION_FACT | typeof RESEARCH_EVIDENCE_PARAMETER,
  *   researchApprovedFallback?: boolean,
  *   attemptApprovedDefault?: boolean,
  * }} request
  */
 export function resolveMissingInput(request) {
+  const field = request?.field;
   const missingClass = request?.missingClass;
+  if (typeof field !== "string" || field.length === 0) {
+    throw new Error("field must be an explicit missing-input identifier");
+  }
   if (missingClass !== USER_SITUATION_FACT && missingClass !== RESEARCH_EVIDENCE_PARAMETER) {
     throw new Error("missingClass must be an accepted T35 missingness class");
   }
@@ -55,7 +59,7 @@ export function resolveMissingInput(request) {
     missingClass === RESEARCH_EVIDENCE_PARAMETER && researchApprovedFallback;
 
   return Object.freeze({
-    field: request.field ?? null,
+    field,
     missingClass,
     value: UNKNOWN,
     usedApprovedDefault: false,
