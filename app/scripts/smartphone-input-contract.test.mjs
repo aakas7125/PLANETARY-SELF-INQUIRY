@@ -31,6 +31,15 @@ const coveredCaseIds = [
   "T12",
   "T13",
   "T14",
+  "T15",
+  "T16",
+  "T17",
+  "T18",
+  "T19",
+  "T20",
+  "T21",
+  "T22",
+  "T23",
 ];
 const coveredAssertionIds = [
   "A-T01-HORIZON-2Y",
@@ -55,6 +64,19 @@ const coveredAssertionIds = [
   "A-T13-SEQUENCE-NOT-TRUNCATED",
   "A-T13-NEXT-ACQUISITION-INCLUDED",
   "A-T14-NO-INVENTED-NEXT-EVENT",
+  "A-T15-NO-GENERIC-REFURB-FOOTPRINT",
+  "A-T15-ADEME-NOT-DEFAULT",
+  "A-T16-ADEME-OPAQUE",
+  "A-T16-ADEME-2Y-LABEL",
+  "A-T17-GENERIC-NEW-ALLOWED",
+  "A-T18-MODEL-OVERRIDE-PRIORITY",
+  "A-T19-REUSE-NOT-EWASTE",
+  "A-T19-NO-1TO1-CREDIT",
+  "A-T20-STORAGE-NOT-RECYCLING",
+  "A-T21-EXACT-MASS",
+  "A-T21-NO-GLOBAL-RATE",
+  "A-T22-NO-GENERIC-MASS",
+  "A-T23-TRADEIN-STAYS-UNKNOWN",
 ];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
@@ -65,6 +87,8 @@ const coveredReleaseGroups = [
   "RC06_BATTERY_REPAIR_UNKNOWN_EXTENSION",
   "RC07_MAJOR_BOARD_UNKNOWN_IMPACT",
   "RC08_REPAIR_REPLACEMENT_SEQUENCE",
+  "RC09_UNSUPPORTED_REFURB_FOOTPRINT",
+  "RC10_OLD_DEVICE_FATE",
 ];
 const cases = sourcePackage.cases.filter((candidate) => coveredCaseIds.includes(candidate.id));
 
@@ -72,7 +96,7 @@ function valueAt(object, dottedPath) {
   return dottedPath.split(".").reduce((value, key) => value?.[key], object);
 }
 
-test("T01–T14 coverage remains pinned to the immutable source cases", () => {
+test("T01–T23 coverage remains pinned to the immutable source cases", () => {
   assert.deepEqual(cases.map(({ id }) => id), coveredCaseIds);
   assert.deepEqual(
     cases.flatMap(({ assertionIds }) => assertionIds),
@@ -212,4 +236,74 @@ test("T13–T14 require a complete horizon sequence and never invent the next ev
   assert.deepEqual(unknownNext.missing_required_fields, ["foreseeable_next_event"]);
   assert.equal(unknownNext.service_sequence, undefined);
   assert.notEqual(unknownNext.foreseeable_next_event, "buy_new");
+});
+
+test("T15–T16 keep arbitrary refurbished qualitative and ADEME opaque/source-specific", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const arbitrary = evaluateAdequacyAndUnknownState(byId.T15.inputs);
+  const ademe = evaluateAdequacyAndUnknownState(byId.T16.inputs);
+
+  assert.equal(arbitrary.replacement.refurbished.direct_climate_CO2e_kg, null);
+  assert.equal(arbitrary.result_capability, "qualitative_only");
+  assert.notEqual(arbitrary.replacement.refurbished.direct_climate_CO2e_kg, 7.61);
+  assert.equal(arbitrary.reference_scenario, undefined);
+  assert.equal(arbitrary.replacement.refurbished.percent_reduction_from_new, undefined);
+
+  assert.equal(ademe.reference_scenario.climate_CO2e_kg, 7.61);
+  assert.equal(ademe.reference_scenario.assumed_second_life_years, 2);
+  assert.equal(ademe.reference_scenario.decomposable, false);
+  assert.equal(ademe.reference_scenario.status, "OPAQUE_SOURCE_SPECIFIC_REFERENCE");
+  assert.equal(ademe.reference_scenario.charging_CO2e_kg, undefined);
+  assert.equal(ademe.reference_scenario.transport_CO2e_kg, undefined);
+  assert.equal(ademe.reference_scenario.production_CO2e_kg, undefined);
+});
+
+test("T17–T18 label generic new fallback and do not fabricate model-specific values", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const genericNew = evaluateAdequacyAndUnknownState(byId.T17.inputs);
+  const registryMatch = evaluateAdequacyAndUnknownState(byId.T18.inputs);
+
+  assert.deepEqual(genericNew.replacement.new.production_CO2e_kg, [25, 70]);
+  assert.deepEqual(genericNew.replacement.new.distribution_CO2e_kg, [2, 4]);
+  assert.equal(genericNew.replacement.new.provenance_scope, "generic_fallback");
+  assert.equal(genericNew.replacement.new.model, undefined);
+  assert.notEqual(genericNew.replacement.new.production_CO2e_kg, 40);
+
+  assert.equal(registryMatch.generic_range_used_as_primary, false);
+  assert.equal(registryMatch.replacement.new.primary_climate_source, "model_specific");
+  assert.equal(registryMatch.replacement.new.production_CO2e_kg, undefined);
+  assert.equal(registryMatch.replacement.new.climate_CO2e_kg, undefined);
+  assert.notDeepEqual(registryMatch.replacement.new.production_CO2e_kg, [25, 70]);
+});
+
+test("T19–T23 preserve fate, mass, unknown, and no 1:1 displacement credit", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const reuse = evaluateAdequacyAndUnknownState(byId.T19.inputs);
+  const stored = evaluateAdequacyAndUnknownState(byId.T20.inputs);
+  const exactMass = evaluateAdequacyAndUnknownState(byId.T21.inputs);
+  const unknownMass = evaluateAdequacyAndUnknownState(byId.T22.inputs);
+  const tradeIn = evaluateAdequacyAndUnknownState(byId.T23.inputs);
+
+  assert.equal(reuse.old_device_fate.immediate_e_waste, false);
+  assert.equal(reuse.old_device_fate.market_displacement_credit, null);
+
+  assert.equal(stored.old_device_fate.status, "dormant_or_retired");
+  assert.equal(stored.old_device_fate.immediate_e_waste, false);
+  assert.notEqual(stored.old_device_fate.status, "formally_recycled");
+  assert.notEqual(stored.old_device_fate.status, "environmentally_recovered");
+
+  assert.equal(exactMass.old_device_fate.discarded_mass_g, 195);
+  assert.equal(exactMass.old_device_fate.immediate_e_waste, true);
+  assert.equal(exactMass.individual_formal_recycling_probability_applied, false);
+  assert.notEqual(exactMass.individual_formal_recycling_probability_applied, 0.223);
+
+  assert.equal(unknownMass.old_device_fate.discarded_mass_g, null);
+  assert.notEqual(unknownMass.old_device_fate.discarded_mass_g, 180);
+  assert.notEqual(unknownMass.old_device_fate.discarded_mass_g, 200);
+
+  assert.equal(tradeIn.old_device_fate.immediate_e_waste, "unknown");
+  assert.equal(tradeIn.old_device_fate.next_use, "unknown");
+  assert.equal(tradeIn.old_device_fate.market_displacement_credit, null);
+  assert.notEqual(tradeIn.old_device_fate.next_use, "reuse");
+  assert.notEqual(tradeIn.old_device_fate.next_use, "formal_recycling");
 });
