@@ -3,7 +3,14 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
-import { evaluateAdequacyAndUnknownState } from "../src/lib/smartphone/input-decision.mjs";
+import {
+  UNKNOWN,
+  USER_SITUATION_FACT,
+  RESEARCH_EVIDENCE_PARAMETER,
+  evaluateAdequacyAndUnknownState,
+  isUnknown,
+  resolveMissingInput,
+} from "../src/lib/smartphone/input-decision.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = resolve(scriptDirectory, "../..");
@@ -106,6 +113,13 @@ const coveredAssertionIds = [
   "A-T34-NO-EARLY-REPLACEMENT-AMORTIZATION",
   "A-T35-MISSING-CLASSES-DISTINCT",
   "A-T35-NO-SILENT-DEFAULT",
+];
+const coveredGlobalAssertionIds = [
+  "A-GLOBAL-UNKNOWN-NOT-ZERO",
+  "A-GLOBAL-UNKNOWN-NOT-FALSE",
+  "A-GLOBAL-NO-SITUATIONAL-DEFAULT",
+  "A-GLOBAL-RESEARCH-FALLBACK",
+  "A-GLOBAL-NO-UNAPPROVED-FALLBACK",
 ];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
@@ -442,4 +456,155 @@ test("T32–T35 keep grade descriptive, operational non-adequate, and missing cl
   );
   assert.equal(missingClasses["remaining_service.without_repair.expected_years"], undefined);
   assert.equal(missingClasses.repair?.climate_CO2e_kg, null);
+});
+
+test("A-GLOBAL-UNKNOWN-NOT-ZERO keeps unknown distinct from numeric zero", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const unknownHorizon = evaluateAdequacyAndUnknownState(byId.T02.inputs);
+  const majorBoard = evaluateAdequacyAndUnknownState(byId.T11.inputs);
+  const eol = evaluateAdequacyAndUnknownState(byId.T24.inputs);
+  const missingClasses = evaluateAdequacyAndUnknownState(byId.T35.inputs);
+  const resolvedUnknown = resolveMissingInput({
+    field: "remaining_service.without_repair",
+    missingClass: USER_SITUATION_FACT,
+  });
+
+  assert.notEqual(UNKNOWN, 0);
+  assert.equal(isUnknown(UNKNOWN), true);
+  assert.equal(isUnknown(0), false);
+  assert.equal(isUnknown(unknownHorizon.H_primary_years), true);
+  assert.notEqual(unknownHorizon.H_primary_years, 0);
+  assert.equal(isUnknown(majorBoard.repair.climate_CO2e_kg), true);
+  assert.notEqual(majorBoard.repair.climate_CO2e_kg, 0);
+  assert.equal(isUnknown(eol.generic_EOL_CO2e_kg), true);
+  assert.notEqual(eol.generic_EOL_CO2e_kg, 0);
+  assert.equal(isUnknown(missingClasses.repair?.climate_CO2e_kg), true);
+  assert.notEqual(missingClasses.repair?.climate_CO2e_kg, 0);
+  assert.equal(resolvedUnknown.value, UNKNOWN);
+  assert.notEqual(resolvedUnknown.value, 0);
+});
+
+test("A-GLOBAL-UNKNOWN-NOT-FALSE keeps unknown distinct from boolean false", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const unknownAdequacy = evaluateAdequacyAndUnknownState(byId.T03.inputs);
+  const supportUnknown = evaluateAdequacyAndUnknownState(byId.T07.inputs);
+  const tradeIn = evaluateAdequacyAndUnknownState(byId.T23.inputs);
+  const resolvedUnknown = resolveMissingInput({
+    field: "remaining_service.without_repair",
+    missingClass: USER_SITUATION_FACT,
+  });
+
+  assert.notEqual(UNKNOWN, false);
+  assert.equal(isUnknown(false), false);
+  assert.equal(unknownAdequacy.derived.adequacy_gate.adequacy_status, UNKNOWN);
+  assert.notEqual(unknownAdequacy.derived.adequacy_gate.adequacy_status, false);
+  assert.equal(unknownAdequacy.derived.adequacy_gate.feasible_keep_as_is, UNKNOWN);
+  assert.notEqual(unknownAdequacy.derived.adequacy_gate.feasible_keep_as_is, false);
+  assert.equal(unknownAdequacy.keep_as_is.feasible, UNKNOWN);
+  assert.notEqual(unknownAdequacy.keep_as_is.feasible, false);
+  assert.equal(supportUnknown.derived.adequacy_gate.adequacy_status, UNKNOWN);
+  assert.notEqual(supportUnknown.derived.adequacy_gate.adequacy_status, false);
+  assert.equal(tradeIn.old_device_fate.immediate_e_waste, UNKNOWN);
+  assert.notEqual(tradeIn.old_device_fate.immediate_e_waste, false);
+  assert.equal(resolvedUnknown.value, UNKNOWN);
+  assert.notEqual(resolvedUnknown.value, false);
+});
+
+test("A-GLOBAL-NO-SITUATIONAL-DEFAULT never resolves a missing user fact through approved_default", () => {
+  const t35 = cases.find(({ id }) => id === "T35");
+  assert.ok(t35);
+  const missingClasses = evaluateAdequacyAndUnknownState(t35.inputs);
+  const resolved = resolveMissingInput({
+    field: "remaining_service.without_repair",
+    missingClass: USER_SITUATION_FACT,
+    researchApprovedFallback: true,
+    attemptApprovedDefault: true,
+  });
+
+  assert.equal(resolved.missingClass, USER_SITUATION_FACT);
+  assert.equal(resolved.approvedDefaultPermitted, false);
+  assert.equal(resolved.usedApprovedDefault, false);
+  assert.equal(resolved.value, UNKNOWN);
+  assert.notEqual(resolved.value, 0);
+  assert.notEqual(resolved.value, false);
+  assert.equal(typeof resolved.value === "number", false);
+  assert.deepEqual(missingClasses.missing_required_fields[0], {
+    field: "remaining_service.without_repair",
+    missingClass: USER_SITUATION_FACT,
+  });
+  assert.equal(missingClasses["remaining_service.without_repair.expected_years"], undefined);
+  assert.notEqual(missingClasses.H_primary_years, 3);
+  assert.equal(isUnknown(missingClasses.H_primary_years), true);
+});
+
+test("A-GLOBAL-RESEARCH-FALLBACK permits an approved Research fallback without inventing a value", () => {
+  const resolved = resolveMissingInput({
+    field: "repair.model_specific_climate_CO2e_kg",
+    missingClass: RESEARCH_EVIDENCE_PARAMETER,
+    researchApprovedFallback: true,
+    attemptApprovedDefault: true,
+  });
+
+  assert.equal(resolved.missingClass, RESEARCH_EVIDENCE_PARAMETER);
+  assert.equal(resolved.approvedDefaultPermitted, true);
+  assert.equal(resolved.usedApprovedDefault, false);
+  assert.equal(resolved.value, UNKNOWN);
+  assert.equal(typeof resolved.value === "number", false);
+  assert.equal("fallbackValue" in resolved, false);
+  assert.equal("approvedDefault" in resolved, false);
+  assert.notEqual(resolved.value, 0);
+  assert.notEqual(resolved.value, false);
+});
+
+test("A-GLOBAL-NO-UNAPPROVED-FALLBACK leaves an unapproved Research parameter null/unknown", () => {
+  const t35 = cases.find(({ id }) => id === "T35");
+  assert.ok(t35);
+  const missingClasses = evaluateAdequacyAndUnknownState(t35.inputs);
+  const resolved = resolveMissingInput({
+    field: "repair.model_specific_climate_CO2e_kg",
+    missingClass: RESEARCH_EVIDENCE_PARAMETER,
+    researchApprovedFallback: false,
+    attemptApprovedDefault: true,
+  });
+
+  assert.equal(resolved.missingClass, RESEARCH_EVIDENCE_PARAMETER);
+  assert.equal(resolved.approvedDefaultPermitted, false);
+  assert.equal(resolved.usedApprovedDefault, false);
+  assert.equal(isUnknown(resolved.value), true);
+  assert.notEqual(resolved.value, 0);
+  assert.notEqual(resolved.value, false);
+  assert.deepEqual(missingClasses.missing_required_fields[1], {
+    field: "repair.model_specific_climate_CO2e_kg",
+    missingClass: RESEARCH_EVIDENCE_PARAMETER,
+  });
+  assert.equal(isUnknown(missingClasses.repair?.climate_CO2e_kg), true);
+  assert.notEqual(missingClasses.repair?.climate_CO2e_kg, 0);
+  assert.equal(missingClasses.result_capability, "insufficient_information");
+});
+
+test("covered global unknown/default assertion IDs remain the five executed identifiers", () => {
+  const sourceGlobalIds = sourcePackage.globalAssertions.map(({ id }) => id);
+  assert.deepEqual(coveredGlobalAssertionIds, [
+    "A-GLOBAL-UNKNOWN-NOT-ZERO",
+    "A-GLOBAL-UNKNOWN-NOT-FALSE",
+    "A-GLOBAL-NO-SITUATIONAL-DEFAULT",
+    "A-GLOBAL-RESEARCH-FALLBACK",
+    "A-GLOBAL-NO-UNAPPROVED-FALLBACK",
+  ]);
+  assert.ok(
+    coveredGlobalAssertionIds.every((id) => sourceGlobalIds.includes(id)),
+  );
+  assert.ok(
+    sourceGlobalIds
+      .filter((id) => !coveredGlobalAssertionIds.includes(id))
+      .every((id) =>
+        [
+          "A-GLOBAL-EQUAL-SERVICE",
+          "A-GLOBAL-SUNK-MANUFACTURING",
+          "A-GLOBAL-NO-GENERIC-EOL-ZERO",
+          "A-GLOBAL-NO-GENERIC-RECYCLING-CREDIT",
+          "A-GLOBAL-NO-UNIFIED-HARM-SCORE",
+        ].includes(id),
+      ),
+  );
 });
