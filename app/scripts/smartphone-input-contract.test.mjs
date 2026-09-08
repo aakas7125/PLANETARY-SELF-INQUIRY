@@ -166,14 +166,13 @@ const coveredProhibitionIds = [
   "PI-013",
   "PI-014",
   "PI-015",
-];
-const remainingProhibitionIds = [
   "PI-016",
   "PI-017",
   "PI-018",
   "PI-019",
   "PI-020",
 ];
+const remainingProhibitionIds = [];
 const coveredReleaseGroups = [
   "RC01_ADEQUATE_KEEP_GENERIC_NEW",
   "RC02_UNKNOWN_REMAINING_LIFE",
@@ -1785,7 +1784,227 @@ test("PI-015 does not use annualized historic embodied emissions as the primary 
   assert.equal("comparative_ranking" in keepDecision, false);
 });
 
-test("covered prohibition IDs remain the fifteen executed PI identifiers", () => {
+test("PI-016 does not treat kg Sb-equivalent as kilograms of material mined", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const materials = evaluateAdequacyAndUnknownState(byId.T25.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const climateAfterMaterialCards = evaluateAdequacyAndUnknownState({
+    ...byId.T01.inputs,
+    material_pathway_cards_enabled: true,
+    "product_LCA.production.includes_raw_material_extraction": true,
+  });
+  const qualitative = resolveQualitativePathwayClimateBoundary();
+  const forbiddenMinedKeys = [
+    "kg_mined",
+    "kilograms_mined",
+    "kg_primary_ore",
+    "material_mined_kg",
+    "mined_material_kg",
+    "kg_Sb_eq_as_mined_kg",
+    "sb_equivalent_as_mined_kg",
+    "literal_kilograms_mined",
+    "fixed_primary_ore_kg",
+  ];
+  const materialsKeys = collectOwnKeys(materials);
+  const keepKeys = collectOwnKeys(keepDecision);
+  const climateKeys = collectOwnKeys(climateAfterMaterialCards);
+
+  assert.equal(materials.material_cards_role, "explanatory_only");
+  assert.equal(materials.material_cards_numerical_climate_addition, 0);
+  assert.equal(materials.kg_mined, undefined);
+  assert.equal(materials.kg_primary_ore, undefined);
+  assert.equal(materials.material_mined_kg, undefined);
+  assert.equal(materials.sb_equivalent_as_mined_kg, undefined);
+  assert.equal(materials.kg_Sb_eq_as_mined_kg, undefined);
+  assert.equal(materials.literal_kilograms_mined, undefined);
+  assert.equal(keepDecision.kg_mined, undefined);
+  assert.equal(keepDecision.kg_primary_ore, undefined);
+  assert.equal(climateAfterMaterialCards.kg_mined, undefined);
+  assert.equal(climateAfterMaterialCards.sb_equivalent_as_mined_kg, undefined);
+  assert.equal(climateAfterMaterialCards.material_cards_role, "explanatory_only");
+  assert.deepEqual(climateAfterMaterialCards.new.production_CO2e_kg, [25, 70]);
+  assert.equal(qualitative.qualitativePathwayRole, "explanatory_only");
+  assert.equal("materialsScore" in qualitative, false);
+
+  for (const key of forbiddenMinedKeys) {
+    assert.equal(materialsKeys.has(key), false, `T25 must not expose ${key}`);
+    assert.equal(keepKeys.has(key), false, `T01 must not expose ${key}`);
+    assert.equal(climateKeys.has(key), false, `material-card climate must not expose ${key}`);
+  }
+});
+
+test("PI-017 does not treat m3-equivalent water as literal drinking-water volume", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const waterCards = evaluateAdequacyAndUnknownState({
+    ...byId.T01.inputs,
+    water_pathway_cards_enabled: true,
+  });
+  const qualitative = resolveQualitativePathwayClimateBoundary();
+  const forbiddenDrinkingWaterKeys = [
+    "drinking_water_litres",
+    "litres_of_drinking_water_denied",
+    "drinking_water_volume_m3",
+    "literal_drinking_water_m3",
+    "m3_eq_as_drinking_water",
+    "water_deprivation_litres",
+    "generic_litres_per_phone",
+  ];
+  const keepKeys = collectOwnKeys(keepDecision);
+  const waterKeys = collectOwnKeys(waterCards);
+
+  assert.equal(qualitative.qualitativePathwayDomains.includes("water"), true);
+  assert.equal(qualitative.qualitativePathwayRole, "explanatory_only");
+  assert.equal(qualitative.qualitativePathwaysNumericallyModifyClimateRanking, false);
+  assert.equal("waterScore" in qualitative, false);
+  assert.equal(keepDecision.drinking_water_litres, undefined);
+  assert.equal(keepDecision.litres_of_drinking_water_denied, undefined);
+  assert.equal(keepDecision.m3_eq_as_drinking_water, undefined);
+  assert.equal(waterCards.drinking_water_litres, undefined);
+  assert.equal(waterCards.litres_of_drinking_water_denied, undefined);
+  assert.equal(waterCards.drinking_water_volume_m3, undefined);
+  assert.equal(waterCards.literal_drinking_water_m3, undefined);
+  assert.equal(waterCards.m3_eq_as_drinking_water, undefined);
+  assert.equal(waterCards.generic_litres_per_phone, undefined);
+  assert.equal(waterCards.unified_harm_score, null);
+  assert.deepEqual(waterCards.new.production_CO2e_kg, keepDecision.new.production_CO2e_kg);
+
+  for (const key of forbiddenDrinkingWaterKeys) {
+    assert.equal(keepKeys.has(key), false, `T01 must not expose ${key}`);
+    assert.equal(waterKeys.has(key), false, `water-card result must not expose ${key}`);
+  }
+});
+
+test("PI-018 does not assign identifiable human or ecosystem victims to one device purchase", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const peopleAndEcosystem = evaluateAdequacyAndUnknownState({
+    ...byId.T01.inputs,
+    people_pathway_cards_enabled: true,
+    ecosystem_pathway_cards_enabled: true,
+    material_pathway_cards_enabled: true,
+    "product_LCA.production.includes_raw_material_extraction": true,
+  });
+  const qualitative = resolveQualitativePathwayClimateBoundary();
+  const forbiddenVictimKeys = [
+    "victims_caused",
+    "identifiable_victims",
+    "named_victims",
+    "deaths_caused",
+    "deaths_avoided",
+    "people_harmed_count",
+    "ecosystem_victims",
+    "individual_victim_attribution",
+    "victim_locations",
+    "species_lost",
+    "biodiversity_area_destroyed",
+  ];
+  const keepKeys = collectOwnKeys(keepDecision);
+  const pathwayKeys = collectOwnKeys(peopleAndEcosystem);
+
+  assert.deepEqual(qualitative.qualitativePathwayDomains, [
+    "materials",
+    "water",
+    "people",
+    "ecosystem",
+  ]);
+  assert.equal(qualitative.qualitativePathwayRole, "explanatory_only");
+  assert.equal(qualitative.unified_harm_score, null);
+  assert.equal("peopleScore" in qualitative, false);
+  assert.equal("ecosystemScore" in qualitative, false);
+
+  assert.equal(peopleAndEcosystem.victims_caused, undefined);
+  assert.equal(peopleAndEcosystem.identifiable_victims, undefined);
+  assert.equal(peopleAndEcosystem.named_victims, undefined);
+  assert.equal(peopleAndEcosystem.deaths_caused, undefined);
+  assert.equal(peopleAndEcosystem.people_harmed_count, undefined);
+  assert.equal(peopleAndEcosystem.ecosystem_victims, undefined);
+  assert.equal(peopleAndEcosystem.individual_victim_attribution, undefined);
+  assert.equal(peopleAndEcosystem.victim_locations, undefined);
+  assert.equal(peopleAndEcosystem.species_lost, undefined);
+  assert.equal(peopleAndEcosystem.biodiversity_area_destroyed, undefined);
+  assert.equal(peopleAndEcosystem.unified_harm_score, null);
+  assert.equal(peopleAndEcosystem.qualitative_pathway_role, "explanatory_only");
+  assert.equal(peopleAndEcosystem.material_cards_numerical_climate_addition, 0);
+  assert.deepEqual(peopleAndEcosystem.new.production_CO2e_kg, [25, 70]);
+  assert.equal("winner" in peopleAndEcosystem, false);
+  assert.equal("recommendation" in peopleAndEcosystem, false);
+
+  for (const key of forbiddenVictimKeys) {
+    assert.equal(keepKeys.has(key), false, `T01 must not expose ${key}`);
+    assert.equal(pathwayKeys.has(key), false, `people/ecosystem pathway must not expose ${key}`);
+  }
+});
+
+test("PI-019 does not add already-included upstream material pathways onto product LCA climate", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const materials = evaluateAdequacyAndUnknownState(byId.T25.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const climateAfterMaterialCards = evaluateAdequacyAndUnknownState({
+    ...byId.T01.inputs,
+    material_pathway_cards_enabled: true,
+    "product_LCA.production.includes_raw_material_extraction": true,
+  });
+
+  assert.equal(byId.T25.inputs["product_LCA.production.includes_raw_material_extraction"], true);
+  assert.equal(byId.T25.inputs.material_pathway_cards_enabled, true);
+  assert.equal(materials.material_cards_numerical_climate_addition, 0);
+  assert.equal(materials.material_cards_role, "explanatory_only");
+  assert.equal(materials.material_cards_cobalt_mining_CO2e_kg, undefined);
+  assert.equal(materials.material_cards_gold_mining_CO2e_kg, undefined);
+  assert.equal(materials.material_cards_copper_mining_CO2e_kg, undefined);
+  assert.equal(materials.material_cards_lithium_mining_CO2e_kg, undefined);
+  assert.equal(materials.unified_harm_score, null);
+  assert.notEqual(materials.unified_harm_score, 0);
+
+  assert.deepEqual(keepDecision.new.production_CO2e_kg, [25, 70]);
+  assert.deepEqual(climateAfterMaterialCards.new.production_CO2e_kg, [25, 70]);
+  assert.deepEqual(
+    climateAfterMaterialCards.new.distribution_CO2e_kg,
+    keepDecision.new.distribution_CO2e_kg,
+  );
+  assert.equal(climateAfterMaterialCards.material_cards_numerical_climate_addition, 0);
+  assert.equal(climateAfterMaterialCards.material_cards_role, "explanatory_only");
+  assert.equal(climateAfterMaterialCards.unified_harm_score, null);
+  assert.equal(
+    climateAfterMaterialCards.qualitative_pathways_numerically_modify_climate_ranking,
+    false,
+  );
+  assert.equal("winner" in climateAfterMaterialCards, false);
+});
+
+test("PI-020 does not derive remaining service life or climate impact from marketplace grade", () => {
+  const byId = Object.fromEntries(cases.map((sourceCase) => [sourceCase.id, sourceCase]));
+  const grade = evaluateAdequacyAndUnknownState(byId.T32.inputs);
+  const keepDecision = evaluateAdequacyAndUnknownState(byId.T01.inputs);
+  const gradeKeys = collectOwnKeys(grade);
+
+  assert.equal(byId.T32.inputs["replacement.refurbished.condition"], "excellent");
+  assert.equal(grade.condition_descriptor_role, "descriptive_only");
+  assert.equal(grade.inferred_remaining_life_years, null);
+  assert.equal(grade.inferred_climate_CO2e_kg, null);
+  assert.notEqual(grade.inferred_remaining_life_years, 3);
+  assert.notEqual(grade.inferred_remaining_life_years, 0);
+  assert.notEqual(grade.inferred_climate_CO2e_kg, 0);
+  assert.equal(isUnknown(grade.inferred_remaining_life_years), true);
+  assert.equal(isUnknown(grade.inferred_climate_CO2e_kg), true);
+  assert.equal(grade.remaining_service_years_from_grade, undefined);
+  assert.equal(grade.climate_CO2e_kg_from_grade, undefined);
+  assert.equal(grade.quality_adjusted_emissions_CO2e_kg, undefined);
+  assert.equal(grade.pathway_preference_from_grade, undefined);
+  assert.equal(grade.environmentally_preferable_from_grade, undefined);
+  assert.equal(gradeKeys.has("remaining_service_years_from_grade"), false);
+  assert.equal(gradeKeys.has("climate_CO2e_kg_from_grade"), false);
+  assert.equal(gradeKeys.has("quality_adjusted_emissions_CO2e_kg"), false);
+  assert.equal(gradeKeys.has("pathway_preference_from_grade"), false);
+  assert.equal("winner" in grade, false);
+  assert.equal("recommendation" in grade, false);
+  assert.equal(keepDecision.condition_descriptor_role, undefined);
+  assert.equal(keepDecision.inferred_remaining_life_years, undefined);
+  assert.equal(keepDecision.inferred_climate_CO2e_kg, undefined);
+});
+
+test("covered prohibition IDs remain the twenty executed PI identifiers", () => {
   const sourceProhibitionIds = sourcePackage.prohibitedInterpretations.map(({ id }) => id);
   assert.deepEqual(
     sourceProhibitionIds.filter((id) => coveredProhibitionIds.includes(id)),
@@ -1795,4 +2014,5 @@ test("covered prohibition IDs remain the fifteen executed PI identifiers", () =>
     sourceProhibitionIds.filter((id) => !coveredProhibitionIds.includes(id)),
     remainingProhibitionIds,
   );
+  assert.deepEqual(sourceProhibitionIds, coveredProhibitionIds);
 });
