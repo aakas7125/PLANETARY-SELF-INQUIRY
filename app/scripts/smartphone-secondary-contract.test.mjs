@@ -13,7 +13,16 @@ import {
   SECONDARY_PATHWAY_CONSTANTS,
 } from "../src/lib/smartphone/secondary-pathway.mjs";
 
-const coveredCaseIds = ["SEC-01", "SEC-02", "SEC-03", "SEC-04", "SEC-05", "SEC-06", "SEC-09"];
+const coveredCaseIds = [
+  "SEC-01",
+  "SEC-02",
+  "SEC-03",
+  "SEC-04",
+  "SEC-05",
+  "SEC-06",
+  "SEC-09",
+  "SEC-11",
+];
 const coveredAssertionIds = [
   "A-SEC-01-01",
   "A-SEC-01-02",
@@ -39,6 +48,10 @@ const coveredAssertionIds = [
   "A-SEC-09-02",
   "A-SEC-09-03",
   "A-SEC-09-04",
+  "A-SEC-11-01",
+  "A-SEC-11-02",
+  "A-SEC-11-03",
+  "A-SEC-11-04",
 ];
 
 /** Exact immutable package inputs for SEC-01–SEC-04. */
@@ -100,7 +113,7 @@ const CASES = {
   },
 };
 
-/** Exact immutable package top-level inputs for SEC-05, SEC-06, and SEC-09. */
+/** Exact immutable package top-level inputs for SEC-05, SEC-06, SEC-09, and SEC-11. */
 const COMPOSED_CASES = {
   "SEC-05": {
     case_id: "SEC-05",
@@ -148,6 +161,27 @@ const COMPOSED_CASES = {
     },
     next_event_after_secondary_failure: null,
   },
+  "SEC-11": {
+    case_id: "SEC-11",
+    used_candidate: {
+      pathway: "used_secondhand",
+      expected_adequate_service: {
+        expected_years: 2.0,
+      },
+      transfer_CO2e: null,
+      repair_CO2e: null,
+    },
+    refurbished_candidate: {
+      pathway: "refurbished",
+      expected_adequate_service: {
+        expected_years: 2.0,
+      },
+      refurb_direct_CO2e: null,
+    },
+    comparison: {
+      common_service_horizon_years: 2.0,
+    },
+  },
 };
 
 /** Forbidden assertion-mirroring / unrequested output fields for this slice. */
@@ -167,7 +201,7 @@ function assertNoDefinitiveDecisionOutput(result) {
   }
 }
 
-test("secondary slice covers the seven authorized cases and 24 listed assertions only", () => {
+test("secondary slice covers the eight authorized cases and 28 listed assertions only", () => {
   assert.deepEqual(coveredCaseIds, [
     "SEC-01",
     "SEC-02",
@@ -176,9 +210,10 @@ test("secondary slice covers the seven authorized cases and 24 listed assertions
     "SEC-05",
     "SEC-06",
     "SEC-09",
+    "SEC-11",
   ]);
-  assert.equal(coveredAssertionIds.length, 24);
-  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-6]|09)-\d{2}$/.test(id)));
+  assert.equal(coveredAssertionIds.length, 28);
+  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-6]|09|11)-\d{2}$/.test(id)));
 });
 
 test("SEC-01 direct private resale stays used_secondhand without inferred refurbishment", () => {
@@ -393,8 +428,36 @@ test("SEC-09 short used service requires an incomplete service sequence", () => 
   assertNoDefinitiveDecisionOutput(result);
 });
 
-test("SEC-05, SEC-06, and SEC-09 domain results are invariant to case_id metadata", () => {
-  for (const caseId of ["SEC-05", "SEC-06", "SEC-09"]) {
+test("SEC-11 leaves both complete direct burdens unquantified with no numerical winner", () => {
+  const result = evaluateSecondaryPathwayCase(COMPOSED_CASES["SEC-11"]);
+
+  assert.equal(result.accounting_mode, ACCOUNTING_MODE);
+  assert.equal(result.used.direct_CO2e, null);
+  assert.equal(result.refurbished.direct_CO2e, null);
+  assert.equal(result.used.reuses_existing_device, true);
+  assert.equal(result.refurbished.reuses_existing_device, true);
+  assert.equal(result.result_capability, "qualitative_only");
+
+  // A-SEC-11-01
+  assert.equal(result.numeric_winner, null);
+  // A-SEC-11-02 and A-SEC-11-03 — neither pathway receives an automatic ordering.
+  for (const candidate of [result.used, result.refurbished]) {
+    assert.equal(Object.hasOwn(candidate, "rank"), false);
+    assert.equal(Object.hasOwn(candidate, "ranks_below"), false);
+    assert.equal(Object.hasOwn(candidate, "better_than"), false);
+  }
+  assert.equal(Object.hasOwn(result, "ranking"), false);
+  assert.equal(Object.hasOwn(result, "recommendation"), false);
+  // A-SEC-11-04 — qualitative reuse remains qualitative, not a fabricated number.
+  assert.equal(Number.isFinite(result.used.direct_CO2e), false);
+  assert.equal(Number.isFinite(result.refurbished.direct_CO2e), false);
+  assert.equal(Object.hasOwn(result.used, "reuse_CO2e"), false);
+  assert.equal(Object.hasOwn(result.refurbished, "reuse_CO2e"), false);
+  assert.equal(Object.hasOwn(result, "avoided_production_CO2e"), false);
+});
+
+test("SEC-05, SEC-06, SEC-09, and SEC-11 results are invariant to case_id metadata", () => {
+  for (const caseId of ["SEC-05", "SEC-06", "SEC-09", "SEC-11"]) {
     const input = COMPOSED_CASES[caseId];
     const { case_id: _omitted, ...withoutCaseId } = input;
     const renamedCaseId = {
@@ -413,6 +476,47 @@ test("SEC-05, SEC-06, and SEC-09 domain results are invariant to case_id metadat
       expected,
       `${caseId} must not depend on a renamed case_id`,
     );
+  }
+});
+
+test("guard: incomplete or unsupported SEC-11 candidate inputs gain no comparison", () => {
+  const unsupportedInputs = [
+    {
+      ...COMPOSED_CASES["SEC-11"],
+      used_candidate: {
+        ...COMPOSED_CASES["SEC-11"].used_candidate,
+        transfer_CO2e: 0,
+      },
+    },
+    {
+      ...COMPOSED_CASES["SEC-11"],
+      refurbished_candidate: {
+        ...COMPOSED_CASES["SEC-11"].refurbished_candidate,
+        refurb_direct_CO2e: 7.61,
+      },
+    },
+    {
+      ...COMPOSED_CASES["SEC-11"],
+      used_candidate: {
+        ...COMPOSED_CASES["SEC-11"].used_candidate,
+        expected_adequate_service: {},
+      },
+    },
+    {
+      ...COMPOSED_CASES["SEC-11"],
+      refurbished_candidate: {
+        ...COMPOSED_CASES["SEC-11"].refurbished_candidate,
+        unsupported_direct_CO2e: 0.5,
+      },
+    },
+  ];
+
+  for (const input of unsupportedInputs) {
+    const result = evaluateSecondaryPathwayCase(input);
+    assert.equal(result.result_capability, "insufficient_information");
+    assert.equal(Object.hasOwn(result, "used"), false);
+    assert.equal(Object.hasOwn(result, "refurbished"), false);
+    assert.equal(Object.hasOwn(result, "numeric_winner"), false);
   }
 });
 
