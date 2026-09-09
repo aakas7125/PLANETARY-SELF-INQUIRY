@@ -8,11 +8,12 @@ import {
   PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF,
   ACCOUNTING_MODE,
   evaluateSecondaryPathway,
+  evaluateSecondaryPathwayCase,
   isUnknown,
   SECONDARY_PATHWAY_CONSTANTS,
 } from "../src/lib/smartphone/secondary-pathway.mjs";
 
-const coveredCaseIds = ["SEC-01", "SEC-02", "SEC-03", "SEC-04"];
+const coveredCaseIds = ["SEC-01", "SEC-02", "SEC-03", "SEC-04", "SEC-05", "SEC-06", "SEC-09"];
 const coveredAssertionIds = [
   "A-SEC-01-01",
   "A-SEC-01-02",
@@ -28,6 +29,16 @@ const coveredAssertionIds = [
   "A-SEC-04-01",
   "A-SEC-04-02",
   "A-SEC-04-03",
+  "A-SEC-05-01",
+  "A-SEC-05-02",
+  "A-SEC-05-03",
+  "A-SEC-06-01",
+  "A-SEC-06-02",
+  "A-SEC-06-03",
+  "A-SEC-09-01",
+  "A-SEC-09-02",
+  "A-SEC-09-03",
+  "A-SEC-09-04",
 ];
 
 /** Exact immutable package inputs for SEC-01–SEC-04. */
@@ -89,16 +100,85 @@ const CASES = {
   },
 };
 
+/** Exact immutable package top-level inputs for SEC-05, SEC-06, and SEC-09. */
+const COMPOSED_CASES = {
+  "SEC-05": {
+    case_id: "SEC-05",
+    current_device: {
+      adequacy_status: "inadequate",
+    },
+    replacement: {
+      pathway: "used_secondhand",
+      expected_adequate_service: {
+        low_years: null,
+        expected_years: null,
+        high_years: null,
+      },
+    },
+    comparison: {
+      common_service_horizon_years: 2.0,
+    },
+  },
+  "SEC-06": {
+    case_id: "SEC-06",
+    replacement: {
+      pathway: "used_secondhand",
+      transfer: {
+        required_for_transaction: true,
+        mode: "parcel_delivery",
+        quantified_CO2e: null,
+        evidence_id: null,
+      },
+      repairs: [],
+      expected_adequate_service: {
+        expected_years: 2.0,
+      },
+    },
+  },
+  "SEC-09": {
+    case_id: "SEC-09",
+    comparison: {
+      common_service_horizon_years: 3.0,
+    },
+    replacement: {
+      pathway: "used_secondhand",
+      expected_adequate_service: {
+        expected_years: 0.5,
+      },
+    },
+    next_event_after_secondary_failure: null,
+  },
+};
+
 /** Forbidden assertion-mirroring / unrequested output fields for this slice. */
 const FORBIDDEN_OUTPUT_FIELDS = [
   "fabricated_preparation_processes",
   "marketplace_grade_selected_lca",
+  "winner",
+  "numeric_winner",
+  "ranking",
+  "recommendation",
+  "default_next_event",
 ];
 
-test("secondary slice covers SEC-01–SEC-04 and fourteen listed assertions only", () => {
-  assert.deepEqual(coveredCaseIds, ["SEC-01", "SEC-02", "SEC-03", "SEC-04"]);
-  assert.equal(coveredAssertionIds.length, 14);
-  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-0[1-4]-\d{2}$/.test(id)));
+function assertNoDefinitiveDecisionOutput(result) {
+  for (const field of Object.keys(result)) {
+    assert.doesNotMatch(field, /winner|ranking|recommendation|default/i);
+  }
+}
+
+test("secondary slice covers the seven authorized cases and 24 listed assertions only", () => {
+  assert.deepEqual(coveredCaseIds, [
+    "SEC-01",
+    "SEC-02",
+    "SEC-03",
+    "SEC-04",
+    "SEC-05",
+    "SEC-06",
+    "SEC-09",
+  ]);
+  assert.equal(coveredAssertionIds.length, 24);
+  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-6]|09)-\d{2}$/.test(id)));
 });
 
 test("SEC-01 direct private resale stays used_secondhand without inferred refurbishment", () => {
@@ -121,10 +201,7 @@ test("SEC-01 direct private resale stays used_secondhand without inferred refurb
   assert.notEqual(result.refurbishment_process.status, "DOCUMENTED");
   // A-SEC-01-03 — prior manufacturing excluded from direct acquisition; no avoided-credit output
   assert.equal(result.original_manufacturing.enters_direct_acquisition_total, false);
-  assert.equal(
-    Object.hasOwn(result.original_manufacturing, "avoided_production_credit"),
-    false,
-  );
+  assert.equal(Object.hasOwn(result.original_manufacturing, "avoided_production_credit"), false);
   assert.equal(result.avoided_production_credit, undefined);
   // A-SEC-01-04
   assert.equal(result.market_displacement_credit, null);
@@ -144,10 +221,9 @@ test("SEC-02 documented refurbishment with battery uses provisional range and ke
   assert.equal(result.secondary_pathway, "refurbished");
   assert.equal(result.original_manufacturing.status, PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF);
   assert.deepEqual(result.battery_replacement_CO2e, [0.3, 0.7]);
-  assert.deepEqual(
-    result.battery_replacement_CO2e,
-    [...SECONDARY_PATHWAY_CONSTANTS.BATTERY_REPLACEMENT_CO2E_KG],
-  );
+  assert.deepEqual(result.battery_replacement_CO2e, [
+    ...SECONDARY_PATHWAY_CONSTANTS.BATTERY_REPLACEMENT_CO2E_KG,
+  ]);
   assert.equal(result.battery_replacement_CO2e_status, PROVISIONAL_GENERIC_RANGE);
   assert.equal(result.inspection_testing_CO2e, null);
   assert.equal(result.cleaning_CO2e, null);
@@ -170,10 +246,7 @@ test("SEC-02 documented refurbishment with battery uses provisional range and ke
 
   // No model-specific approval status invented for this slice
   assert.notEqual(result.battery_replacement_CO2e_status, "APPROVED_MODEL_SPECIFIC");
-  assert.equal(
-    Object.hasOwn(result.original_manufacturing, "avoided_production_credit"),
-    false,
-  );
+  assert.equal(Object.hasOwn(result.original_manufacturing, "avoided_production_credit"), false);
 });
 
 test("SEC-03 commercial used listing does not imply refurbishment", () => {
@@ -228,6 +301,119 @@ test("SEC-04 refurbished label without LCA stays null and does not apply ADEME 7
   assert.equal(CASES["SEC-04"].source_specific_reference_selected, null);
   assert.equal(result.ADEME_7_61_applied, false);
   assert.notEqual(result.refurb_direct_CO2e.value, 7.61);
+});
+
+test("SEC-05 unknown used service life blocks equivalent-service ranking", () => {
+  const result = evaluateSecondaryPathwayCase(COMPOSED_CASES["SEC-05"]);
+
+  assert.equal(result.secondary_pathway, "used_secondhand");
+  assert.equal(result.used_service_life, null);
+  assert.equal(result.equivalent_service_established, false);
+  assert.ok(result.missing_required_fields.includes("replacement.expected_adequate_service"));
+  assert.equal(result.result_capability, "insufficient_information");
+
+  // A-SEC-05-01
+  assert.equal(isUnknown(result.used_service_life), true);
+  assert.notEqual(result.used_service_life, 0);
+  // A-SEC-05-02 — metadata cannot supply a service-life default.
+  const metadataResult = evaluateSecondaryPathwayCase({
+    ...COMPOSED_CASES["SEC-05"],
+    replacement: {
+      ...COMPOSED_CASES["SEC-05"].replacement,
+      seller_type: "commercial_reseller",
+      model: "Example Phone",
+      device_age_years: 1,
+      warranty_years: 2,
+      price: 500,
+      marketplace_condition_label: "Excellent",
+    },
+  });
+  assert.equal(metadataResult.used_service_life, null);
+  assert.deepEqual(metadataResult.missing_required_fields, [
+    "replacement.expected_adequate_service",
+  ]);
+  // A-SEC-05-03 — definitive equivalent-service ranking is absent.
+  assert.equal(result.equivalent_service_established, false);
+  for (const field of FORBIDDEN_OUTPUT_FIELDS) {
+    assert.equal(Object.hasOwn(result, field), false);
+    assert.equal(Object.hasOwn(metadataResult, field), false);
+  }
+  assertNoDefinitiveDecisionOutput(result);
+  assertNoDefinitiveDecisionOutput(metadataResult);
+});
+
+test("SEC-06 unresolved parcel transfer remains unknown with no generic fallback", () => {
+  const result = evaluateSecondaryPathwayCase(COMPOSED_CASES["SEC-06"]);
+
+  assert.equal(result.secondary_pathway, "used_secondhand");
+  assert.equal(result.transfer_CO2e.value, null);
+  assert.equal(result.transfer_CO2e.status, UNKNOWN_NO_FALLBACK);
+  assert.equal(result.used_direct_CO2e.value, null);
+  assert.equal(result.result_capability, "qualitative_only");
+
+  // A-SEC-06-01
+  assert.notEqual(result.transfer_CO2e.value, 0);
+  assert.equal(isUnknown(result.transfer_CO2e.value), true);
+  // A-SEC-06-02
+  assert.notEqual(result.transfer_CO2e.value, 0.475);
+  // A-SEC-06-03
+  assert.equal(result.used_direct_CO2e.value, null);
+  assert.notEqual(result.used_direct_CO2e.value, 0);
+
+  for (const field of FORBIDDEN_OUTPUT_FIELDS) {
+    assert.equal(Object.hasOwn(result, field), false);
+  }
+  assertNoDefinitiveDecisionOutput(result);
+});
+
+test("SEC-09 short used service requires an incomplete service sequence", () => {
+  const result = evaluateSecondaryPathwayCase(COMPOSED_CASES["SEC-09"]);
+
+  assert.equal(result.secondary_pathway, "used_secondhand");
+  assert.equal(result.service_sequence_required, true);
+  assert.equal(result.covered_service_years, 0.5);
+  assert.equal(result.uncovered_service_years, 2.5);
+  assert.equal(result.next_event, UNKNOWN);
+  assert.equal(result.result_capability, "insufficient_information");
+
+  // A-SEC-09-01 — the remaining 2.5 years are represented, not truncated.
+  assert.equal(
+    result.covered_service_years + result.uncovered_service_years,
+    COMPOSED_CASES["SEC-09"].comparison.common_service_horizon_years,
+  );
+  // A-SEC-09-02
+  assert.equal(result.service_sequence_required, true);
+  // A-SEC-09-03
+  assert.notEqual(result.next_event, "buy_new");
+  assert.equal(result.next_event, UNKNOWN);
+  // A-SEC-09-04
+  for (const field of FORBIDDEN_OUTPUT_FIELDS) {
+    assert.equal(Object.hasOwn(result, field), false);
+  }
+  assertNoDefinitiveDecisionOutput(result);
+});
+
+test("SEC-05, SEC-06, and SEC-09 domain results are invariant to case_id metadata", () => {
+  for (const caseId of ["SEC-05", "SEC-06", "SEC-09"]) {
+    const input = COMPOSED_CASES[caseId];
+    const { case_id: _omitted, ...withoutCaseId } = input;
+    const renamedCaseId = {
+      ...input,
+      case_id: `RENAMED-${caseId}`,
+    };
+    const expected = evaluateSecondaryPathwayCase(input);
+
+    assert.deepEqual(
+      evaluateSecondaryPathwayCase(withoutCaseId),
+      expected,
+      `${caseId} must not depend on an absent case_id`,
+    );
+    assert.deepEqual(
+      evaluateSecondaryPathwayCase(renamedCaseId),
+      expected,
+      `${caseId} must not depend on a renamed case_id`,
+    );
+  }
 });
 
 test("used_secondhand and refurbished remain distinct across the executed slice", () => {
@@ -314,4 +500,45 @@ test("guard: numeric transfer input does not gain APPROVED status in this slice"
   const unknownTransfer = evaluateSecondaryPathway(CASES["SEC-01"]);
   assert.equal(unknownTransfer.transfer_CO2e.value, null);
   assert.equal(unknownTransfer.transfer_CO2e.status, UNKNOWN_NO_FALLBACK);
+
+  const offSliceNumericTransfer = evaluateSecondaryPathwayCase({
+    ...COMPOSED_CASES["SEC-06"],
+    replacement: {
+      ...COMPOSED_CASES["SEC-06"].replacement,
+      transfer: {
+        ...COMPOSED_CASES["SEC-06"].replacement.transfer,
+        quantified_CO2e: 0.475,
+      },
+    },
+  });
+  assert.notEqual(offSliceNumericTransfer.transfer_CO2e?.status, "APPROVED");
+  assert.equal(Object.hasOwn(offSliceNumericTransfer, "used_direct_CO2e"), false);
+});
+
+test("guard: absent next event does not default to buy_new", () => {
+  const { next_event_after_secondary_failure: _omitted, ...withoutNextEvent } =
+    COMPOSED_CASES["SEC-09"];
+  const result = evaluateSecondaryPathwayCase(withoutNextEvent);
+
+  assert.equal(result.service_sequence_required, true);
+  assert.equal(Object.hasOwn(result, "next_event"), false);
+  assert.notEqual(result.next_event, "buy_new");
+  assert.equal(Object.hasOwn(result, "default_next_event"), false);
+});
+
+test("guard: unimplemented secondary cases do not gain composed behavior", () => {
+  const result = evaluateSecondaryPathwayCase({
+    case_id: "SEC-07",
+    replacement: {
+      pathway: "refurbished",
+      source_specific_reference: {
+        source_id: "ADEME_REFURB_SMARTPHONE_REFERENCE",
+        explicitly_selected: true,
+      },
+    },
+  });
+
+  assert.equal(result.secondary_pathway, UNKNOWN);
+  assert.equal(Object.hasOwn(result, "refurb_direct_reference_CO2e"), false);
+  assert.equal(Object.hasOwn(result, "ADEME_7_61_applied"), false);
 });
