@@ -6,8 +6,7 @@
  *
  * Separate from the input-package evaluator so secondary package boundaries stay explicit.
  *
- * This slice implements SEC-01–SEC-09 and SEC-11. The remaining secondary
- * cases are intentionally absent.
+ * This slice implements SEC-01–SEC-11. SEC-12 is intentionally absent.
  */
 
 export const UNKNOWN = "unknown";
@@ -348,6 +347,79 @@ function hasOnlyKeys(value, keys) {
 }
 
 /**
+ * Resolve only SEC-10's complete, source-specific direct refurbishment
+ * evidence over its exact common service horizon. The source aggregate stays
+ * opaque and attached to its accepted boundary.
+ *
+ * @param {SecondaryPathwayCase} input
+ * @returns {SecondaryPathwayResult | undefined}
+ */
+function evaluateCompleteRefurbishmentEvidence(input) {
+  const comparison = input.comparison;
+  const replacement = input.replacement;
+  if (!isRecord(comparison) || !isRecord(replacement)) {
+    return undefined;
+  }
+
+  const service = replacement.expected_adequate_service;
+  const evidence = replacement.applicable_refurbishment_evidence;
+  if (!isRecord(service) || !isRecord(evidence)) {
+    return undefined;
+  }
+
+  const matchesAuthorizedStructure =
+    hasOnlyKeys(comparison, ["common_service_horizon_years"]) &&
+    hasOnlyKeys(replacement, [
+      "pathway",
+      "expected_adequate_service",
+      "applicable_refurbishment_evidence",
+    ]) &&
+    hasOnlyKeys(service, ["expected_years"]) &&
+    hasOnlyKeys(evidence, [
+      "process_boundary_complete_for_direct_V0",
+      "aggregate_direct_CO2e",
+      "source_id",
+      "source_specific",
+      "decomposable",
+    ]) &&
+    comparison.common_service_horizon_years === 3 &&
+    replacement.pathway === "refurbished" &&
+    service.expected_years === comparison.common_service_horizon_years &&
+    evidence.process_boundary_complete_for_direct_V0 === true &&
+    evidence.aggregate_direct_CO2e === ADEME_REFURB_REFERENCE_CO2E_KG &&
+    evidence.source_id === ADEME_REFURB_SMARTPHONE_REFERENCE &&
+    evidence.source_specific === true &&
+    evidence.decomposable === false;
+
+  if (!matchesAuthorizedStructure) {
+    return undefined;
+  }
+
+  return {
+    accounting_mode: ACCOUNTING_MODE,
+    secondary_pathway: "refurbished",
+    original_manufacturing: {
+      status: PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF,
+      enters_direct_acquisition_total: false,
+    },
+    market_displacement_credit: null,
+    service_sequence_required: false,
+    adequate_service_coverage_years: service.expected_years,
+    refurb_direct_CO2e: {
+      value: evidence.aggregate_direct_CO2e,
+      unit: "kgCO2e",
+      status: APPROVED_SOURCE_SPECIFIC,
+      source_id: evidence.source_id,
+      source_specific: true,
+      process_boundary_complete_for_direct_V0: true,
+      decomposable: false,
+    },
+    equivalent_service_established: true,
+    result_capability: "quantitative",
+  };
+}
+
+/**
  * Keep SEC-11 bounded to its accepted domain structure. In particular, numeric
  * or incomplete candidate burdens must not acquire a comparison result.
  *
@@ -426,6 +498,11 @@ function evaluateUnquantifiedSecondaryComparison(input) {
  * @returns {SecondaryPathwayResult}
  */
 export function evaluateSecondaryPathwayCase(input = {}) {
+  const completeRefurbishmentResult = evaluateCompleteRefurbishmentEvidence(input);
+  if (completeRefurbishmentResult !== undefined) {
+    return Object.freeze(completeRefurbishmentResult);
+  }
+
   const comparisonResult = evaluateUnquantifiedSecondaryComparison(input);
   if (comparisonResult !== undefined) {
     return Object.freeze(comparisonResult);
