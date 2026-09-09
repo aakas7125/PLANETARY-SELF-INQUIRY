@@ -31,7 +31,7 @@ Executable states include:
 
 `READY_FOR_CURSOR`, `READY_FOR_LOCAL_CODEX`, `READY_FOR_RESEARCH`, `READY_FOR_AP`, `READY_FOR_HQ_REVIEW`, `IN_PROGRESS`, `BLOCKED`, `VERIFIED_FOR_HQ_REVIEW`, `RESOLVED`, and `SUPERSEDED`.
 
-A workstream seeing a valid `READY_FOR_*` task must begin the bounded work, update the Issue to `IN_PROGRESS`, and not expand scope.
+A workstream seeing a valid `READY_FOR_*` task must begin the bounded work, record execution state under the applicable return-channel rule below, and not expand scope.
 
 Minimum execution gates:
 
@@ -73,7 +73,7 @@ Each active workstream must inspect GitHub Issues addressed to it during its int
 2. inspect cross-workstream handoffs addressed to that workstream;
 3. ignore unrelated, resolved, superseded, ordinary-discussion, and non-authoritative Issues/comments.
 
-For a valid executable task, verify the gates, set `IN_PROGRESS`, execute only the bounded scope, record work/checks/discrepancies, and finish as `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `RESOLVED`, or `SUPERSEDED` as applicable.
+For a valid executable task, verify the gates, record progress through the applicable return channel, execute only the bounded scope, record work/checks/discrepancies, and finish as `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `RESOLVED`, or `SUPERSEDED` as applicable.
 
 For a handoff, inspect the referenced information, acknowledge or consume it, update its receiving state, and route any newly needed work to HQ. Do not infer execution authority from receipt.
 
@@ -103,7 +103,7 @@ The dispatch comment is a wake signal only. Inspect the Issue itself and execute
 
 HQ must not post a duplicate dispatch for the same uninterrupted `READY_FOR_CURSOR` transition. It must not dispatch a task currently marked `IN_PROGRESS`, `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `ACCEPTED`, `RESOLVED`, or `SUPERSEDED`. If HQ legitimately returns a task to `READY_FOR_CURSOR` after a blocked or review state, that new transition requires a new dispatch comment.
 
-When awakened, Cursor independently fetches and verifies the Issue itself. If every gate still passes, Cursor begins the bounded work and marks the Issue `IN_PROGRESS`; it must not ask the owner for another go-ahead. If any gate no longer passes, the comment authorizes nothing and Cursor must not execute. Cursor remains prohibited from self-merging.
+When awakened, Cursor independently fetches and verifies the Issue itself. If every gate still passes, Cursor begins the bounded work using the PR return-channel and idempotency rules below; HQ reconciles Issue state; it must not ask the owner for another go-ahead. If any gate no longer passes, the comment authorizes nothing and Cursor must not execute. Cursor remains prohibited from self-merging.
 
 The durable event-driven sequence is:
 
@@ -151,3 +151,19 @@ Cadence may later be reduced or made event/session-driven once migration stabili
 - Cursor coding tasks use `[HQ-AUTHORIZED][CURSOR]`, `HQ-authorized for Cursor execution: YES`, and `READY_FOR_CURSOR`; HQ posts the exact `[CURSOR-DISPATCH]` wake comment only after every gate passes. The native Cursor Automation remains executor-side and independently re-verifies the Issue.
 - Research correction task `HQ-RE-2026-09-05-002` is separately published when the current terminal-byte handoff is converted from input to executable work.
 - The existing Local Codex task-publication protocol remains in force for Local Codex tasks.
+
+## Cursor PR return channel — owner direction 2026-09-09
+
+The owner verified automation PSI Cursor GitHub Dispatch (`ad9d4325-ab35-11f1-b532-320a589b8025`) in the Issue #61 run: event intake, shell, authenticated gh and repository reads work; GH_TOKEN is present; native actions expose PR creation (`open_git_pr`) but no Issue comment/update action. Higher-priority runtime instructions restrict gh to reads and prohibit gh/REST write fallback. This is a runtime capability constraint, not missing credentials, repository permissions or executor refusal. Never bypass that policy.
+
+While native Issue-write actions are unavailable:
+- Issues remain the sole task authority. HQ owns READY, IN_PROGRESS (when evidenced), BLOCKED, VERIFIED_FOR_HQ_REVIEW and ACCEPTED Issue-state reconciliation.
+- Cursor re-verifies READY_FOR_CURSOR, authorization YES, both approvals NO, dependencies and scope after the wake-only [CURSOR-DISPATCH].
+- Cursor returns work through the task's deterministic branch and linked PR, placing Task ID, Issue URL, starting SHA, amended exact head, changed files, validation commands/results and blockers in the PR/automation result. HQ inspects these formal results even if the Issue status is stale, links the evidence and reconciles it without inventing historical transitions.
+- Missing native Issue mutation alone does not block bounded implementation with a working PR return channel. Cursor must never claim an Issue transition it could not perform.
+- Before execution, search by Task ID, deterministic branch and linked PR. Reuse the existing task branch/PR; do not create duplicate work. A result awaiting HQ review or an active run prevents repeat execution. A correction requires an explicit new HQ readiness transition identifying the existing PR and reviewed head. If concurrent ownership cannot be established safely, return the conflict without editing.
+- HQ publishes one dispatch per readiness transition and does not start overlapping implementation. Stale READY alone never authorizes replay of a completed run.
+- If native Issue-write actions become available, verify their permitted use and record capability before switching return mode. Local Codex's existing Issue-write protocol is unchanged.
+- Cursor remains prohibited from self-merging; HQ independently reviews, accepts and merges only under existing owner-control gates. No scientific, AP or product scope is expanded.
+
+Sequence: HQ READY issue → dispatch → Cursor gate/idempotency checks → existing or deterministic task branch/PR → full execution result → HQ Issue reconciliation/review/acceptance → next bounded action.
