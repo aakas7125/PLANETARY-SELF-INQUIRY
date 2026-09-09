@@ -20,7 +20,6 @@ export const PROVISIONAL_GENERIC_RANGE = "PROVISIONAL_GENERIC_RANGE";
 
 /** Accepted battery intervention fallback from used/refurb pathways (kg CO2e). */
 const BATTERY_REPLACEMENT_CO2E_KG = Object.freeze([0.3, 0.7]);
-const IMPLEMENTED_COMPOSED_CASE_IDS = new Set(["SEC-05", "SEC-06", "SEC-09"]);
 
 /** @typedef {"used_secondhand" | "refurbished" | "unknown"} SecondaryPathway */
 /** @typedef {Record<string, unknown>} SecondaryReplacement */
@@ -296,97 +295,91 @@ export function evaluateSecondaryPathwayCase(input = {}) {
     input.replacement && typeof input.replacement === "object" && !Array.isArray(input.replacement)
       ? /** @type {SecondaryReplacement} */ (input.replacement)
       : {};
-  const caseId = typeof input.case_id === "string" ? input.case_id : undefined;
+  const currentDevice =
+    input.current_device &&
+    typeof input.current_device === "object" &&
+    !Array.isArray(input.current_device)
+      ? /** @type {Record<string, unknown>} */ (input.current_device)
+      : null;
+  const comparison =
+    input.comparison && typeof input.comparison === "object" && !Array.isArray(input.comparison)
+      ? /** @type {Record<string, unknown>} */ (input.comparison)
+      : null;
+  const service =
+    replacement.expected_adequate_service &&
+    typeof replacement.expected_adequate_service === "object" &&
+    !Array.isArray(replacement.expected_adequate_service)
+      ? /** @type {Record<string, unknown>} */ (replacement.expected_adequate_service)
+      : null;
+  const transfer =
+    replacement.transfer &&
+    typeof replacement.transfer === "object" &&
+    !Array.isArray(replacement.transfer)
+      ? /** @type {Record<string, unknown>} */ (replacement.transfer)
+      : null;
+  const horizon = comparison?.common_service_horizon_years;
+  const covered = service?.expected_years;
+  const isUsedPathway = replacement.pathway === "used_secondhand";
+  const hasFiniteHorizon = typeof horizon === "number" && Number.isFinite(horizon) && horizon >= 0;
+  const hasFiniteCoveredService =
+    typeof covered === "number" && Number.isFinite(covered) && covered >= 0;
+  const allServiceValuesUnknown =
+    service !== null &&
+    ["low_years", "expected_years", "high_years"].every((field) => isUnknown(service[field]));
+  const hasUnknownUsedService =
+    isUsedPathway &&
+    currentDevice?.adequacy_status === "inadequate" &&
+    hasFiniteHorizon &&
+    allServiceValuesUnknown;
+  const hasUnknownParcelTransfer =
+    isUsedPathway &&
+    transfer?.required_for_transaction === true &&
+    transfer.mode === "parcel_delivery" &&
+    transfer.quantified_CO2e === null &&
+    transfer.evidence_id === null &&
+    Array.isArray(replacement.repairs) &&
+    replacement.repairs.length === 0 &&
+    hasFiniteCoveredService;
+  const hasIncompleteServiceSequence =
+    isUsedPathway && hasFiniteHorizon && hasFiniteCoveredService && covered < horizon;
 
-  if (!caseId || !IMPLEMENTED_COMPOSED_CASE_IDS.has(caseId)) {
-    return evaluateSecondaryPathway(replacement);
-  }
-
+  // `case_id` is provenance metadata. Only the implemented domain structures
+  // opt into the accepted top-level `pathway` spelling and composed behavior.
   const normalizedReplacement =
-    replacement.pathway === "used_secondhand"
+    hasUnknownUsedService || hasUnknownParcelTransfer || hasIncompleteServiceSequence
       ? { ...replacement, pathway_user_selection: "used_secondhand" }
       : replacement;
   const result = {
     ...evaluateSecondaryPathway(normalizedReplacement),
   };
 
-  if (caseId === "SEC-05") {
-    const service =
-      replacement.expected_adequate_service &&
-      typeof replacement.expected_adequate_service === "object" &&
-      !Array.isArray(replacement.expected_adequate_service)
-        ? /** @type {Record<string, unknown>} */ (replacement.expected_adequate_service)
-        : {};
-    const allServiceValuesUnknown = ["low_years", "expected_years", "high_years"].every((field) =>
-      isUnknown(service[field]),
-    );
-
-    if (replacement.pathway === "used_secondhand" && allServiceValuesUnknown) {
-      result.used_service_life = null;
-      result.equivalent_service_established = false;
-      result.missing_required_fields = ["replacement.expected_adequate_service"];
-      result.result_capability = "insufficient_information";
-    }
+  if (hasUnknownUsedService) {
+    result.used_service_life = null;
+    result.equivalent_service_established = false;
+    result.missing_required_fields = ["replacement.expected_adequate_service"];
+    result.result_capability = "insufficient_information";
   }
 
-  if (caseId === "SEC-06") {
-    const transfer =
-      replacement.transfer &&
-      typeof replacement.transfer === "object" &&
-      !Array.isArray(replacement.transfer)
-        ? /** @type {Record<string, unknown>} */ (replacement.transfer)
-        : {};
-
-    if (
-      replacement.pathway === "used_secondhand" &&
-      transfer.required_for_transaction === true &&
-      transfer.mode === "parcel_delivery" &&
-      transfer.quantified_CO2e === null &&
-      transfer.evidence_id === null
-    ) {
-      result.transfer_CO2e = {
-        value: null,
-        status: UNKNOWN_NO_FALLBACK,
-      };
-      result.used_direct_CO2e = { value: null };
-      result.result_capability = "qualitative_only";
-    }
+  if (hasUnknownParcelTransfer) {
+    result.transfer_CO2e = {
+      value: null,
+      status: UNKNOWN_NO_FALLBACK,
+    };
+    result.used_direct_CO2e = { value: null };
+    result.result_capability = "qualitative_only";
   }
 
-  if (caseId === "SEC-09") {
-    const comparison =
-      input.comparison && typeof input.comparison === "object" && !Array.isArray(input.comparison)
-        ? /** @type {Record<string, unknown>} */ (input.comparison)
-        : {};
-    const service =
-      replacement.expected_adequate_service &&
-      typeof replacement.expected_adequate_service === "object" &&
-      !Array.isArray(replacement.expected_adequate_service)
-        ? /** @type {Record<string, unknown>} */ (replacement.expected_adequate_service)
-        : {};
-    const horizon = comparison.common_service_horizon_years;
-    const covered = service.expected_years;
-
+  if (hasIncompleteServiceSequence) {
+    result.service_sequence_required = true;
+    result.covered_service_years = covered;
+    result.uncovered_service_years = horizon - covered;
     if (
-      replacement.pathway === "used_secondhand" &&
-      typeof horizon === "number" &&
-      Number.isFinite(horizon) &&
-      typeof covered === "number" &&
-      Number.isFinite(covered) &&
-      covered >= 0 &&
-      covered < horizon
+      Object.hasOwn(input, "next_event_after_secondary_failure") &&
+      isUnknown(input.next_event_after_secondary_failure)
     ) {
-      result.service_sequence_required = true;
-      result.covered_service_years = covered;
-      result.uncovered_service_years = horizon - covered;
-      if (
-        Object.hasOwn(input, "next_event_after_secondary_failure") &&
-        isUnknown(input.next_event_after_secondary_failure)
-      ) {
-        result.next_event = UNKNOWN;
-      }
-      result.result_capability = "insufficient_information";
+      result.next_event = UNKNOWN;
     }
+    result.result_capability = "insufficient_information";
   }
 
   return Object.freeze(result);

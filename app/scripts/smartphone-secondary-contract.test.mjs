@@ -393,6 +393,29 @@ test("SEC-09 short used service requires an incomplete service sequence", () => 
   assertNoDefinitiveDecisionOutput(result);
 });
 
+test("SEC-05, SEC-06, and SEC-09 domain results are invariant to case_id metadata", () => {
+  for (const caseId of ["SEC-05", "SEC-06", "SEC-09"]) {
+    const input = COMPOSED_CASES[caseId];
+    const { case_id: _omitted, ...withoutCaseId } = input;
+    const renamedCaseId = {
+      ...input,
+      case_id: `RENAMED-${caseId}`,
+    };
+    const expected = evaluateSecondaryPathwayCase(input);
+
+    assert.deepEqual(
+      evaluateSecondaryPathwayCase(withoutCaseId),
+      expected,
+      `${caseId} must not depend on an absent case_id`,
+    );
+    assert.deepEqual(
+      evaluateSecondaryPathwayCase(renamedCaseId),
+      expected,
+      `${caseId} must not depend on a renamed case_id`,
+    );
+  }
+});
+
 test("used_secondhand and refurbished remain distinct across the executed slice", () => {
   const used = evaluateSecondaryPathway(CASES["SEC-01"]);
   const refurbished = evaluateSecondaryPathway(CASES["SEC-02"]);
