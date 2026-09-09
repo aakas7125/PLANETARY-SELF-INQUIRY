@@ -6,9 +6,8 @@
  *
  * Separate from the input-package evaluator so secondary package boundaries stay explicit.
  *
- * This slice implements SEC-01–SEC-06, SEC-09, and SEC-11 only. Positive
- * ADEME source-specific selection and the remaining secondary cases are
- * intentionally absent.
+ * This slice implements SEC-01–SEC-09 and SEC-11. The remaining secondary
+ * cases are intentionally absent.
  */
 
 export const UNKNOWN = "unknown";
@@ -17,9 +16,13 @@ export const PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF = "PRIOR_LIFE_EXCLUDED_DIRECT_CUT
 export const NOT_EVIDENCED = "NOT_EVIDENCED";
 export const UNKNOWN_NO_FALLBACK = "UNKNOWN_NO_FALLBACK";
 export const PROVISIONAL_GENERIC_RANGE = "PROVISIONAL_GENERIC_RANGE";
+export const APPROVED_SOURCE_SPECIFIC = "APPROVED_SOURCE_SPECIFIC";
 
 /** Accepted battery intervention fallback from used/refurb pathways (kg CO2e). */
 const BATTERY_REPLACEMENT_CO2E_KG = Object.freeze([0.3, 0.7]);
+const ADEME_REFURB_SMARTPHONE_REFERENCE = "ADEME_REFURB_SMARTPHONE_REFERENCE";
+const ADEME_REFURB_REFERENCE_CO2E_KG = 7.61;
+const ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS = 2;
 
 /** @typedef {"used_secondhand" | "refurbished" | "unknown"} SecondaryPathway */
 /** @typedef {Record<string, unknown>} SecondaryReplacement */
@@ -182,21 +185,58 @@ function resolveBatteryReplacement(replacement) {
 }
 
 /**
- * SEC-04 proves that an explicit null source-specific selection does not apply ADEME.
- * Emit false only for that exact null selection; absent or non-null unimplemented
- * selections must not be coerced to false. Positive ADEME selection is out of scope.
+ * SEC-04 and SEC-08 prove that explicit null source-specific selections do not
+ * apply ADEME. Absent, malformed, or non-null unimplemented selections must not
+ * be coerced to false.
  *
  * @param {SecondaryReplacement} replacement
  * @returns {false | undefined}
  */
 function resolveAdemeApplied(replacement) {
   if (
-    Object.hasOwn(replacement, "source_specific_reference_selected") &&
-    replacement.source_specific_reference_selected === null
+    (Object.hasOwn(replacement, "source_specific_reference_selected") &&
+      replacement.source_specific_reference_selected === null) ||
+    (Object.hasOwn(replacement, "source_specific_reference") &&
+      replacement.source_specific_reference === null)
   ) {
     return false;
   }
   return undefined;
+}
+
+/**
+ * Resolve only the exact two-year ADEME source-specific reference scenario.
+ * Pathway, service horizon, model, seller, or grade cannot select this value.
+ *
+ * @param {SecondaryReplacement} replacement
+ * @param {SecondaryPathway} pathway
+ * @returns {{
+ *   value: number,
+ *   unit: string,
+ *   status: string,
+ *   source_id: string,
+ * } | undefined}
+ */
+function resolveAdemeReference(replacement, pathway) {
+  const reference = replacement.source_specific_reference;
+  const service = replacement.expected_adequate_service;
+  if (
+    pathway !== "refurbished" ||
+    !isRecord(reference) ||
+    !isRecord(service) ||
+    reference.source_id !== ADEME_REFURB_SMARTPHONE_REFERENCE ||
+    reference.explicitly_selected !== true ||
+    service.expected_years !== ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS
+  ) {
+    return undefined;
+  }
+
+  return {
+    value: ADEME_REFURB_REFERENCE_CO2E_KG,
+    unit: "kgCO2e",
+    status: APPROVED_SOURCE_SPECIFIC,
+    source_id: ADEME_REFURB_SMARTPHONE_REFERENCE,
+  };
 }
 
 /**
@@ -209,6 +249,7 @@ export function evaluateSecondaryPathway(replacement = {}) {
   const pathway = classifyPathway(replacement);
   const battery = resolveBatteryReplacement(replacement);
   const ademeApplied = resolveAdemeApplied(replacement);
+  const ademeReference = resolveAdemeReference(replacement, pathway);
   const processUncertainty = resolveProcessUncertainty(replacement, pathway);
   const refurbishmentProcess = resolveRefurbishmentProcess(replacement, pathway);
 
@@ -223,7 +264,7 @@ export function evaluateSecondaryPathway(replacement = {}) {
     market_displacement_credit: null,
   };
 
-  // Emit ADEME_7_61_applied only for SEC-04's explicit-null selection proof.
+  // Emit ADEME_7_61_applied only for an explicit-null selection proof.
   if (ademeApplied !== undefined) {
     result.ADEME_7_61_applied = ademeApplied;
   }
@@ -250,26 +291,35 @@ export function evaluateSecondaryPathway(replacement = {}) {
   }
 
   if (pathway === "refurbished") {
-    if (battery.value !== null) {
-      result.battery_replacement_CO2e = battery.value;
-      result.battery_replacement_CO2e_status = battery.status;
-    }
-
-    const evidence = replacement.process_evidence;
-    if (hasDocumentedStructuredRefurbishment(evidence)) {
-      // Documented processes without supported burdens stay null/unknown, never zero.
-      result.inspection_testing_CO2e = null;
-      result.cleaning_CO2e = null;
-      result.refurb_total_direct_CO2e = null;
-      result.result_capability =
-        battery.value !== null ? "partial_quantitative" : "qualitative_only";
+    if (ademeReference !== undefined) {
+      result.refurb_direct_reference_CO2e = ademeReference;
+      result.reference_second_life_years =
+        ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS;
+      result.decomposable = false;
+      result.generic_default = false;
+      result.result_capability = "quantitative";
     } else {
-      result.refurb_direct_CO2e = {
-        value: null,
-        status: UNKNOWN_NO_FALLBACK,
-      };
-      result.direct_secondary_CO2e = null;
-      result.result_capability = "qualitative_only";
+      if (battery.value !== null) {
+        result.battery_replacement_CO2e = battery.value;
+        result.battery_replacement_CO2e_status = battery.status;
+      }
+
+      const evidence = replacement.process_evidence;
+      if (hasDocumentedStructuredRefurbishment(evidence)) {
+        // Documented processes without supported burdens stay null/unknown, never zero.
+        result.inspection_testing_CO2e = null;
+        result.cleaning_CO2e = null;
+        result.refurb_total_direct_CO2e = null;
+        result.result_capability =
+          battery.value !== null ? "partial_quantitative" : "qualitative_only";
+      } else {
+        result.refurb_direct_CO2e = {
+          value: null,
+          status: UNKNOWN_NO_FALLBACK,
+        };
+        result.direct_secondary_CO2e = null;
+        result.result_capability = "qualitative_only";
+      }
     }
   } else if (pathway === "used_secondhand") {
     result.direct_secondary_CO2e = null;
@@ -432,13 +482,30 @@ export function evaluateSecondaryPathwayCase(input = {}) {
     hasFiniteCoveredService;
   const hasIncompleteServiceSequence =
     isUsedPathway && hasFiniteHorizon && hasFiniteCoveredService && covered < horizon;
+  const sourceSpecificReference = replacement.source_specific_reference;
+  const hasExplicitAdemeReference =
+    replacement.pathway === "refurbished" &&
+    isRecord(sourceSpecificReference) &&
+    sourceSpecificReference.source_id === ADEME_REFURB_SMARTPHONE_REFERENCE &&
+    sourceSpecificReference.explicitly_selected === true &&
+    service?.expected_years === ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS;
+  const hasExplicitlyAbsentRefurbishedReference =
+    replacement.pathway === "refurbished" &&
+    replacement.exact_model === "arbitrary_model" &&
+    Object.hasOwn(replacement, "source_specific_reference") &&
+    replacement.source_specific_reference === null &&
+    Object.hasOwn(replacement, "model_specific_refurb_LCA") &&
+    replacement.model_specific_refurb_LCA === null &&
+    service?.expected_years === ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS;
 
   // `case_id` is provenance metadata. Only the implemented domain structures
   // opt into the accepted top-level `pathway` spelling and composed behavior.
   const normalizedReplacement =
     hasUnknownUsedService || hasUnknownParcelTransfer || hasIncompleteServiceSequence
       ? { ...replacement, pathway_user_selection: "used_secondhand" }
-      : replacement;
+      : hasExplicitAdemeReference || hasExplicitlyAbsentRefurbishedReference
+        ? { ...replacement, pathway_user_selection: "refurbished" }
+        : replacement;
   const result = {
     ...evaluateSecondaryPathway(normalizedReplacement),
   };
@@ -477,4 +544,7 @@ export function evaluateSecondaryPathwayCase(input = {}) {
 
 export const SECONDARY_PATHWAY_CONSTANTS = Object.freeze({
   BATTERY_REPLACEMENT_CO2E_KG,
+  ADEME_REFURB_SMARTPHONE_REFERENCE,
+  ADEME_REFURB_REFERENCE_CO2E_KG,
+  ADEME_REFURB_REFERENCE_SECOND_LIFE_YEARS,
 });
