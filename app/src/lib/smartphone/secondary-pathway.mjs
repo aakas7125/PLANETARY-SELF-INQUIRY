@@ -6,9 +6,9 @@
  *
  * Separate from the input-package evaluator so secondary package boundaries stay explicit.
  *
- * This slice implements SEC-01–SEC-06 and SEC-09 only. Positive ADEME
- * source-specific selection (SEC-07) and model-specific battery impact paths
- * are intentionally absent.
+ * This slice implements SEC-01–SEC-06, SEC-09, and SEC-11 only. Positive
+ * ADEME source-specific selection and the remaining secondary cases are
+ * intentionally absent.
  */
 
 export const UNKNOWN = "unknown";
@@ -282,15 +282,105 @@ export function evaluateSecondaryPathway(replacement = {}) {
   return Object.freeze(result);
 }
 
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+function isRecord(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * @param {Record<string, unknown>} value
+ * @param {string[]} keys
+ * @returns {boolean}
+ */
+function hasOnlyKeys(value, keys) {
+  const actualKeys = Object.keys(value);
+  return actualKeys.length === keys.length && keys.every((key) => Object.hasOwn(value, key));
+}
+
+/**
+ * Keep SEC-11 bounded to its accepted domain structure. In particular, numeric
+ * or incomplete candidate burdens must not acquire a comparison result.
+ *
+ * @param {Record<string, unknown>} input
+ * @returns {SecondaryPathwayResult | undefined}
+ */
+function evaluateUnquantifiedSecondaryComparison(input) {
+  const used = input.used_candidate;
+  const refurbished = input.refurbished_candidate;
+  const comparison = input.comparison;
+
+  if (!isRecord(used) || !isRecord(refurbished) || !isRecord(comparison)) {
+    return undefined;
+  }
+
+  const usedService = used.expected_adequate_service;
+  const refurbishedService = refurbished.expected_adequate_service;
+  if (!isRecord(usedService) || !isRecord(refurbishedService)) {
+    return undefined;
+  }
+
+  const horizon = comparison.common_service_horizon_years;
+  const matchesAuthorizedStructure =
+    hasOnlyKeys(used, [
+      "pathway",
+      "expected_adequate_service",
+      "transfer_CO2e",
+      "repair_CO2e",
+    ]) &&
+    hasOnlyKeys(usedService, ["expected_years"]) &&
+    hasOnlyKeys(refurbished, [
+      "pathway",
+      "expected_adequate_service",
+      "refurb_direct_CO2e",
+    ]) &&
+    hasOnlyKeys(refurbishedService, ["expected_years"]) &&
+    hasOnlyKeys(comparison, ["common_service_horizon_years"]) &&
+    horizon === 2 &&
+    used.pathway === "used_secondhand" &&
+    usedService.expected_years === horizon &&
+    Object.hasOwn(used, "transfer_CO2e") &&
+    used.transfer_CO2e === null &&
+    Object.hasOwn(used, "repair_CO2e") &&
+    used.repair_CO2e === null &&
+    refurbished.pathway === "refurbished" &&
+    refurbishedService.expected_years === horizon &&
+    Object.hasOwn(refurbished, "refurb_direct_CO2e") &&
+    refurbished.refurb_direct_CO2e === null;
+
+  if (!matchesAuthorizedStructure) {
+    return undefined;
+  }
+
+  return {
+    accounting_mode: ACCOUNTING_MODE,
+    used: {
+      direct_CO2e: null,
+      reuses_existing_device: true,
+    },
+    refurbished: {
+      direct_CO2e: null,
+      reuses_existing_device: true,
+    },
+    numeric_winner: null,
+    result_capability: "qualitative_only",
+  };
+}
+
 /**
  * Compose the exact top-level structures used by the implemented service and
- * transfer cases around the existing replacement evaluator. Cases outside this
- * bounded slice do not acquire pathway, numerical, or categorical behavior.
+ * transfer/comparison cases around the existing replacement evaluator. Cases
+ * outside this bounded slice do not acquire pathway, numerical, or categorical
+ * behavior.
  *
  * @param {SecondaryPathwayCase} input
  * @returns {SecondaryPathwayResult}
  */
 export function evaluateSecondaryPathwayCase(input = {}) {
+  const comparisonResult = evaluateUnquantifiedSecondaryComparison(input);
+  if (comparisonResult !== undefined) {
+    return Object.freeze(comparisonResult);
+  }
+
   const replacement =
     input.replacement && typeof input.replacement === "object" && !Array.isArray(input.replacement)
       ? /** @type {SecondaryReplacement} */ (input.replacement)
