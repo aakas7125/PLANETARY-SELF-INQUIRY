@@ -6,7 +6,8 @@
  *
  * Separate from the input-package evaluator so secondary package boundaries stay explicit.
  *
- * This slice implements SEC-01–SEC-11. SEC-12 is intentionally absent.
+ * This slice implements SEC-01–SEC-12. Global secondary assertions remain
+ * intentionally absent.
  */
 
 export const UNKNOWN = "unknown";
@@ -420,6 +421,56 @@ function evaluateCompleteRefurbishmentEvidence(input) {
 }
 
 /**
+ * Resolve only SEC-12's exact personal buy-new counterfactual structure.
+ * Personal substitution is stored separately from market displacement and
+ * avoided-production credit; unspecified geography never applies D≈0.40.
+ *
+ * @param {SecondaryPathwayCase} input
+ * @returns {SecondaryPathwayResult | undefined}
+ */
+function evaluatePersonalCounterfactualSeparation(input) {
+  const replacement = input.replacement;
+  if (!isRecord(replacement)) {
+    return undefined;
+  }
+
+  const marketContext = replacement.market_context;
+  if (!isRecord(marketContext)) {
+    return undefined;
+  }
+
+  const matchesAuthorizedStructure =
+    hasOnlyKeys(replacement, [
+      "pathway",
+      "personal_counterfactual_if_unavailable",
+      "market_context",
+    ]) &&
+    hasOnlyKeys(marketContext, ["geography"]) &&
+    replacement.pathway === "used_secondhand" &&
+    replacement.personal_counterfactual_if_unavailable === "buy_new" &&
+    marketContext.geography === "unspecified";
+
+  if (!matchesAuthorizedStructure) {
+    return undefined;
+  }
+
+  return {
+    accounting_mode: ACCOUNTING_MODE,
+    secondary_pathway: "used_secondhand",
+    original_manufacturing: {
+      status: PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF,
+      enters_direct_acquisition_total: false,
+    },
+    personal_purchase_substitution: "buy_new",
+    market_displacement_credit: null,
+    avoided_new_production_CO2e: null,
+    US_displacement_coefficient_applied: false,
+    direct_secondary_CO2e: null,
+    result_capability: "qualitative_only",
+  };
+}
+
+/**
  * Keep SEC-11 bounded to its accepted domain structure. In particular, numeric
  * or incomplete candidate burdens must not acquire a comparison result.
  *
@@ -501,6 +552,11 @@ export function evaluateSecondaryPathwayCase(input = {}) {
   const completeRefurbishmentResult = evaluateCompleteRefurbishmentEvidence(input);
   if (completeRefurbishmentResult !== undefined) {
     return Object.freeze(completeRefurbishmentResult);
+  }
+
+  const personalCounterfactualResult = evaluatePersonalCounterfactualSeparation(input);
+  if (personalCounterfactualResult !== undefined) {
+    return Object.freeze(personalCounterfactualResult);
   }
 
   const comparisonResult = evaluateUnquantifiedSecondaryComparison(input);

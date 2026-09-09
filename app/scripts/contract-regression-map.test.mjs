@@ -188,7 +188,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   ];
   const expectedCoveredSecondaryIds = [
     "SEC-01", "SEC-02", "SEC-03", "SEC-04", "SEC-05", "SEC-06",
-    "SEC-07", "SEC-08", "SEC-09", "SEC-10", "SEC-11",
+    "SEC-07", "SEC-08", "SEC-09", "SEC-10", "SEC-11", "SEC-12",
     "A-SEC-01-01", "A-SEC-01-02", "A-SEC-01-03", "A-SEC-01-04",
     "A-SEC-02-01", "A-SEC-02-02", "A-SEC-02-03", "A-SEC-02-04",
     "A-SEC-03-01", "A-SEC-03-02", "A-SEC-03-03",
@@ -200,6 +200,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     "A-SEC-09-01", "A-SEC-09-02", "A-SEC-09-03", "A-SEC-09-04",
     "A-SEC-10-01", "A-SEC-10-02", "A-SEC-10-03",
     "A-SEC-11-01", "A-SEC-11-02", "A-SEC-11-03", "A-SEC-11-04",
+    "A-SEC-12-01", "A-SEC-12-02", "A-SEC-12-03", "A-SEC-12-04",
   ];
   const expectedSecondaryGlobals = [
     "A-SEC-GLOBAL-01",
@@ -219,7 +220,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   assert.deepEqual(coveredInputIds, expectedCoveredInputIds);
   assert.deepEqual(remainingInputCases, []);
   assert.deepEqual(coveredSecondaryIds, expectedCoveredSecondaryIds);
-  assert.deepEqual(remainingSecondaryCases, ["SEC-12"]);
+  assert.deepEqual(remainingSecondaryCases, []);
   assert.deepEqual(secondaryGlobalIds, expectedSecondaryGlobals);
   assert.deepEqual(remainingSecondaryGlobals, expectedSecondaryGlobals);
   assert.ok(
@@ -240,7 +241,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
 });
 
 test.todo(
-  "implement remaining secondary-pathway cases (SEC-12, its A-SEC-* case assertions, and A-SEC-GLOBAL-01–A-SEC-GLOBAL-08)",
+  "implement remaining secondary-pathway global assertions (A-SEC-GLOBAL-01–A-SEC-GLOBAL-08)",
 );
 test.todo(
   "implement the mapped AP interaction behavior suite (APQ1–APQ6 and INV-AP-01–INV-AP-20)",

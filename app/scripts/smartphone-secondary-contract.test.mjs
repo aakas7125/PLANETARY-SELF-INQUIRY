@@ -26,6 +26,7 @@ const coveredCaseIds = [
   "SEC-09",
   "SEC-10",
   "SEC-11",
+  "SEC-12",
 ];
 const coveredAssertionIds = [
   "A-SEC-01-01",
@@ -65,6 +66,10 @@ const coveredAssertionIds = [
   "A-SEC-11-02",
   "A-SEC-11-03",
   "A-SEC-11-04",
+  "A-SEC-12-01",
+  "A-SEC-12-02",
+  "A-SEC-12-03",
+  "A-SEC-12-04",
 ];
 
 /** Exact immutable package inputs for SEC-01–SEC-04. */
@@ -126,7 +131,7 @@ const CASES = {
   },
 };
 
-/** Exact immutable package top-level inputs for SEC-05–SEC-09 and SEC-11. */
+/** Exact immutable package top-level inputs for SEC-05–SEC-12. */
 const COMPOSED_CASES = {
   "SEC-05": {
     case_id: "SEC-05",
@@ -239,6 +244,16 @@ const COMPOSED_CASES = {
       common_service_horizon_years: 2.0,
     },
   },
+  "SEC-12": {
+    case_id: "SEC-12",
+    replacement: {
+      pathway: "used_secondhand",
+      personal_counterfactual_if_unavailable: "buy_new",
+      market_context: {
+        geography: "unspecified",
+      },
+    },
+  },
 };
 
 /** Forbidden assertion-mirroring / unrequested output fields for this slice. */
@@ -258,7 +273,7 @@ function assertNoDefinitiveDecisionOutput(result) {
   }
 }
 
-test("secondary slice covers the eleven authorized cases and 37 listed assertions only", () => {
+test("secondary slice covers the twelve authorized cases and 41 listed assertions only", () => {
   assert.deepEqual(coveredCaseIds, [
     "SEC-01",
     "SEC-02",
@@ -271,9 +286,10 @@ test("secondary slice covers the eleven authorized cases and 37 listed assertion
     "SEC-09",
     "SEC-10",
     "SEC-11",
+    "SEC-12",
   ]);
-  assert.equal(coveredAssertionIds.length, 37);
-  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-9]|1[01])-\d{2}$/.test(id)));
+  assert.equal(coveredAssertionIds.length, 41);
+  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-9]|1[0-2])-\d{2}$/.test(id)));
 });
 
 test("SEC-01 direct private resale stays used_secondhand without inferred refurbishment", () => {
@@ -616,6 +632,42 @@ test("SEC-11 leaves both complete direct burdens unquantified with no numerical 
   assert.equal(Object.hasOwn(result, "avoided_production_CO2e"), false);
 });
 
+test("SEC-12 stores personal buy-new separately from displacement and avoided-production credit", () => {
+  const result = evaluateSecondaryPathwayCase(COMPOSED_CASES["SEC-12"]);
+
+  assert.equal(result.accounting_mode, ACCOUNTING_MODE);
+  assert.equal(result.secondary_pathway, "used_secondhand");
+  assert.equal(result.original_manufacturing.status, PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF);
+  assert.equal(result.original_manufacturing.enters_direct_acquisition_total, false);
+  assert.equal(result.direct_secondary_CO2e, null);
+  // Absence of consequential credit alone does not downgrade the direct pathway.
+  assert.equal(result.result_capability, "qualitative_only");
+
+  // A-SEC-12-01 — personal counterfactual must be stored
+  assert.equal(result.personal_purchase_substitution, "buy_new");
+  // A-SEC-12-02 — buy_new is not one new phone displaced
+  assert.notEqual(result.personal_purchase_substitution, result.market_displacement_credit);
+  assert.notEqual(result.market_displacement_credit, 1);
+  assert.notEqual(result.market_displacement_credit, 0.98);
+  assert.equal(Object.hasOwn(result, "survey_substitution_coefficient"), false);
+  assert.equal(Object.hasOwn(result, "displacement_coefficient"), false);
+  // A-SEC-12-03
+  assert.equal(result.market_displacement_credit, null);
+  assert.equal(result.avoided_new_production_CO2e, null);
+  // A-SEC-12-04 — D≈0.40 requires an explicit US consequential scenario
+  assert.equal(result.US_displacement_coefficient_applied, false);
+  assert.notEqual(result.market_displacement_credit, 0.4);
+
+  // Prohibited: no credit, direct-score subtraction, ranking, or recommendation.
+  assert.equal(Object.hasOwn(result, "avoided_production_credit"), false);
+  assert.equal(Object.hasOwn(result, "direct_score_after_credit"), false);
+  assert.equal(Object.hasOwn(result, "primary_attributional_score_modified"), false);
+  assert.equal(Object.hasOwn(result, "winner"), false);
+  assert.equal(Object.hasOwn(result, "ranking"), false);
+  assert.equal(Object.hasOwn(result, "recommendation"), false);
+  assertNoDefinitiveDecisionOutput(result);
+});
+
 test("composed secondary results are invariant to case_id metadata", () => {
   for (const caseId of [
     "SEC-05",
@@ -625,6 +677,7 @@ test("composed secondary results are invariant to case_id metadata", () => {
     "SEC-09",
     "SEC-10",
     "SEC-11",
+    "SEC-12",
   ]) {
     const input = COMPOSED_CASES[caseId];
     const { case_id: _omitted, ...withoutCaseId } = input;
@@ -1051,4 +1104,134 @@ test("guard: SEC-10 approval requires its complete exact evidence and service bo
     assert.notEqual(result.refurb_direct_CO2e?.value, 7.61);
     assert.equal(Object.hasOwn(result, "adequate_service_coverage_years"), false);
   }
+});
+
+test("guard: SEC-12 personal counterfactual grants no displacement or credit authority off-structure", () => {
+  const base = COMPOSED_CASES["SEC-12"];
+  const unsupportedInputs = [
+    {
+      ...base,
+      replacement: {
+        pathway: "refurbished",
+        personal_counterfactual_if_unavailable: "buy_new",
+        market_context: {
+          geography: "unspecified",
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        market_context: {
+          geography: "unspecified",
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: null,
+        market_context: {
+          geography: "unspecified",
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: "keep_using",
+        market_context: {
+          geography: "unspecified",
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: "buy_new",
+        market_context: {
+          geography: "US",
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: "buy_new",
+        market_context: {
+          geography: "unspecified",
+          claimed_displacement_coefficient: 0.4,
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: "buy_new",
+        market_context: {
+          geography: "unspecified",
+        },
+        US_displacement_coefficient: 0.4,
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: "buy_new",
+        market_context: {
+          geography: "unspecified",
+        },
+        avoided_new_production_CO2e: 55,
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: "buy_new",
+        market_context: {
+          geography: "unspecified",
+        },
+        survey_substitution_rate: 0.98,
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        pathway: "used_secondhand",
+        personal_counterfactual_if_unavailable: "buy_new",
+        market_context: "unspecified",
+      },
+    },
+  ];
+
+  for (const input of unsupportedInputs) {
+    const result = evaluateSecondaryPathwayCase(input);
+    assert.equal(Object.hasOwn(result, "personal_purchase_substitution"), false);
+    assert.notEqual(result.US_displacement_coefficient_applied, true);
+    assert.equal(result.market_displacement_credit, null);
+    assert.notEqual(result.market_displacement_credit, 1);
+    assert.notEqual(result.market_displacement_credit, 0.4);
+    assert.notEqual(result.market_displacement_credit, 0.98);
+    assert.notEqual(result.avoided_new_production_CO2e, 55);
+    assert.equal(Object.hasOwn(result, "survey_substitution_coefficient"), false);
+    assert.equal(Object.hasOwn(result, "displacement_coefficient"), false);
+    assert.equal(Object.hasOwn(result, "winner"), false);
+    assert.equal(Object.hasOwn(result, "recommendation"), false);
+  }
+
+  // Exact SEC-12 structure still stores the personal counterfactual without credit.
+  const authorized = evaluateSecondaryPathwayCase(base);
+  assert.equal(authorized.personal_purchase_substitution, "buy_new");
+  assert.equal(authorized.market_displacement_credit, null);
+  assert.equal(authorized.avoided_new_production_CO2e, null);
+  assert.equal(authorized.US_displacement_coefficient_applied, false);
+  assert.equal(authorized.result_capability, "qualitative_only");
 });
