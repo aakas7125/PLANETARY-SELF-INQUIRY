@@ -24,6 +24,7 @@ const coveredCaseIds = [
   "SEC-07",
   "SEC-08",
   "SEC-09",
+  "SEC-10",
   "SEC-11",
 ];
 const coveredAssertionIds = [
@@ -57,6 +58,9 @@ const coveredAssertionIds = [
   "A-SEC-09-02",
   "A-SEC-09-03",
   "A-SEC-09-04",
+  "A-SEC-10-01",
+  "A-SEC-10-02",
+  "A-SEC-10-03",
   "A-SEC-11-01",
   "A-SEC-11-02",
   "A-SEC-11-03",
@@ -195,6 +199,25 @@ const COMPOSED_CASES = {
     },
     next_event_after_secondary_failure: null,
   },
+  "SEC-10": {
+    case_id: "SEC-10",
+    comparison: {
+      common_service_horizon_years: 3.0,
+    },
+    replacement: {
+      pathway: "refurbished",
+      expected_adequate_service: {
+        expected_years: 3.0,
+      },
+      applicable_refurbishment_evidence: {
+        process_boundary_complete_for_direct_V0: true,
+        aggregate_direct_CO2e: 7.61,
+        source_id: "ADEME_REFURB_SMARTPHONE_REFERENCE",
+        source_specific: true,
+        decomposable: false,
+      },
+    },
+  },
   "SEC-11": {
     case_id: "SEC-11",
     used_candidate: {
@@ -235,7 +258,7 @@ function assertNoDefinitiveDecisionOutput(result) {
   }
 }
 
-test("secondary slice covers the ten authorized cases and 34 listed assertions only", () => {
+test("secondary slice covers the eleven authorized cases and 37 listed assertions only", () => {
   assert.deepEqual(coveredCaseIds, [
     "SEC-01",
     "SEC-02",
@@ -246,10 +269,11 @@ test("secondary slice covers the ten authorized cases and 34 listed assertions o
     "SEC-07",
     "SEC-08",
     "SEC-09",
+    "SEC-10",
     "SEC-11",
   ]);
-  assert.equal(coveredAssertionIds.length, 34);
-  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-9]|11)-\d{2}$/.test(id)));
+  assert.equal(coveredAssertionIds.length, 37);
+  assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-9]|1[01])-\d{2}$/.test(id)));
 });
 
 test("SEC-01 direct private resale stays used_secondhand without inferred refurbishment", () => {
@@ -523,6 +547,47 @@ test("SEC-09 short used service requires an incomplete service sequence", () => 
   assertNoDefinitiveDecisionOutput(result);
 });
 
+test("SEC-10 complete source-specific refurbishment evidence permits a quantitative result", () => {
+  const result = evaluateSecondaryPathwayCase(COMPOSED_CASES["SEC-10"]);
+
+  assert.equal(result.secondary_pathway, "refurbished");
+  assert.equal(result.accounting_mode, ACCOUNTING_MODE);
+  assert.equal(result.service_sequence_required, false);
+  assert.equal(result.adequate_service_coverage_years, 3.0);
+  assert.equal(result.refurb_direct_CO2e.value, 7.61);
+  assert.equal(result.refurb_direct_CO2e.unit, "kgCO2e");
+  assert.equal(result.refurb_direct_CO2e.status, APPROVED_SOURCE_SPECIFIC);
+  assert.equal(result.equivalent_service_established, true);
+  assert.equal(result.result_capability, "quantitative");
+
+  // A-SEC-10-01
+  assert.equal(result.refurb_direct_CO2e.value, 7.61);
+  assert.equal(result.adequate_service_coverage_years, 3.0);
+  assert.equal(result.equivalent_service_established, true);
+  assert.equal(result.result_capability, "quantitative");
+  // A-SEC-10-02 — retain the complete source-specific boundary with the value.
+  assert.equal(
+    result.refurb_direct_CO2e.source_id,
+    "ADEME_REFURB_SMARTPHONE_REFERENCE",
+  );
+  assert.equal(result.refurb_direct_CO2e.source_specific, true);
+  assert.equal(
+    result.refurb_direct_CO2e.process_boundary_complete_for_direct_V0,
+    true,
+  );
+  assert.equal(result.refurb_direct_CO2e.decomposable, false);
+  // A-SEC-10-03 — the aggregate remains opaque with no invented stages.
+  assert.equal(Object.hasOwn(result.refurb_direct_CO2e, "stages"), false);
+  assert.equal(Object.hasOwn(result, "inspection_testing_CO2e"), false);
+  assert.equal(Object.hasOwn(result, "cleaning_CO2e"), false);
+  assert.equal(Object.hasOwn(result, "parts_CO2e"), false);
+  assert.equal(Object.hasOwn(result, "transport_CO2e"), false);
+  assert.equal(Object.hasOwn(result, "charging_CO2e"), false);
+  assert.equal(Object.hasOwn(result, "refurb_direct_reference_CO2e"), false);
+  assert.equal(result.original_manufacturing.enters_direct_acquisition_total, false);
+  assert.equal(result.market_displacement_credit, null);
+});
+
 test("SEC-11 leaves both complete direct burdens unquantified with no numerical winner", () => {
   const result = evaluateSecondaryPathwayCase(COMPOSED_CASES["SEC-11"]);
 
@@ -552,12 +617,26 @@ test("SEC-11 leaves both complete direct burdens unquantified with no numerical 
 });
 
 test("composed secondary results are invariant to case_id metadata", () => {
-  for (const caseId of ["SEC-05", "SEC-06", "SEC-07", "SEC-08", "SEC-09", "SEC-11"]) {
+  for (const caseId of [
+    "SEC-05",
+    "SEC-06",
+    "SEC-07",
+    "SEC-08",
+    "SEC-09",
+    "SEC-10",
+    "SEC-11",
+  ]) {
     const input = COMPOSED_CASES[caseId];
     const { case_id: _omitted, ...withoutCaseId } = input;
     const renamedCaseId = {
       ...input,
       case_id: `RENAMED-${caseId}`,
+    };
+    const withAdditionalRegressionMetadata = {
+      ...input,
+      case_id: `RENAMED-${caseId}`,
+      assertion_id: `A-${caseId}-METADATA-ONLY`,
+      test_fixture_name: `${caseId}-fixture`,
     };
     const expected = evaluateSecondaryPathwayCase(input);
 
@@ -570,6 +649,11 @@ test("composed secondary results are invariant to case_id metadata", () => {
       evaluateSecondaryPathwayCase(renamedCaseId),
       expected,
       `${caseId} must not depend on a renamed case_id`,
+    );
+    assert.deepEqual(
+      evaluateSecondaryPathwayCase(withAdditionalRegressionMetadata),
+      expected,
+      `${caseId} must not depend on test/provenance metadata`,
     );
   }
 });
@@ -823,29 +907,148 @@ test("guard: absent next event does not default to buy_new", () => {
   assert.equal(Object.hasOwn(result, "default_next_event"), false);
 });
 
-test("guard: unimplemented SEC-10 does not gain composed behavior", () => {
-  const result = evaluateSecondaryPathwayCase({
-    case_id: "SEC-10",
-    comparison: {
-      common_service_horizon_years: 3,
-    },
-    replacement: {
-      pathway: "refurbished",
-      expected_adequate_service: {
-        expected_years: 3,
-      },
-      applicable_refurbishment_evidence: {
-        process_boundary_complete_for_direct_V0: true,
-        aggregate_direct_CO2e: 7.61,
-        source_id: "ADEME_REFURB_SMARTPHONE_REFERENCE",
-        source_specific: true,
-        decomposable: false,
+test("guard: SEC-10 approval requires its complete exact evidence and service boundary", () => {
+  const base = COMPOSED_CASES["SEC-10"];
+  const evidence = base.replacement.applicable_refurbishment_evidence;
+  const { process_boundary_complete_for_direct_V0: _omittedBoundary, ...incompleteEvidence } =
+    evidence;
+  const unsupportedInputs = [
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: incompleteEvidence,
       },
     },
-  });
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: {
+          ...evidence,
+          process_boundary_complete_for_direct_V0: false,
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: {
+          ...evidence,
+          aggregate_direct_CO2e: 7.62,
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: {
+          ...evidence,
+          aggregate_direct_CO2e: "7.61",
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: {
+          ...evidence,
+          source_id: "DIFFERENT_REFERENCE",
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: {
+          ...evidence,
+          source_specific: false,
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: {
+          ...evidence,
+          decomposable: true,
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        expected_adequate_service: {
+          expected_years: 2,
+        },
+      },
+    },
+    {
+      ...base,
+      comparison: {
+        common_service_horizon_years: 2,
+      },
+    },
+    {
+      ...base,
+      comparison: {
+        common_service_horizon_years: 4,
+      },
+      replacement: {
+        ...base.replacement,
+        expected_adequate_service: {
+          expected_years: 4,
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: {
+          ...evidence,
+          stages: [{ name: "undocumented_transport", CO2e: 1 }],
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        undocumented_refurbishment_stage: {
+          name: "cleaning",
+          CO2e: 0,
+        },
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        applicable_refurbishment_evidence: "ADEME_REFURB_SMARTPHONE_REFERENCE",
+      },
+    },
+    {
+      ...base,
+      replacement: {
+        ...base.replacement,
+        pathway: "used_secondhand",
+      },
+    },
+  ];
 
-  assert.equal(result.secondary_pathway, UNKNOWN);
-  assert.equal(Object.hasOwn(result, "refurb_direct_CO2e"), false);
-  assert.equal(Object.hasOwn(result, "adequate_service_coverage_years"), false);
-  assert.equal(result.result_capability, "insufficient_information");
+  for (const input of unsupportedInputs) {
+    const result = evaluateSecondaryPathwayCase(input);
+    assert.notEqual(result.result_capability, "quantitative");
+    assert.notEqual(result.equivalent_service_established, true);
+    assert.notEqual(result.refurb_direct_CO2e?.status, APPROVED_SOURCE_SPECIFIC);
+    assert.notEqual(result.refurb_direct_CO2e?.value, 7.61);
+    assert.equal(Object.hasOwn(result, "adequate_service_coverage_years"), false);
+  }
 });
