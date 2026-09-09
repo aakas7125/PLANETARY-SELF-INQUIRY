@@ -1,8 +1,8 @@
 # Executable Contract Test Mapping V0
 
-Status: **Proposed mapping of accepted contracts; T01–T35 case-level input slices, all ten `A-GLOBAL-*` assertions, the sixteen-source `A-LOGIC-*` family, all twenty `PI-001`–`PI-020` prohibitions, and secondary `SEC-01`–`SEC-12`, with 41 case assertions execute**
+Status: **Proposed mapping of accepted contracts; T01–T35 case-level input slices, all ten `A-GLOBAL-*` assertions, the sixteen-source `A-LOGIC-*` family, all twenty `PI-001`–`PI-020` prohibitions, and secondary `SEC-01`–`SEC-12`, with 41 case assertions and all eight `A-SEC-GLOBAL-*` assertions execute**
 
-Task: `HQ-LC-2026-09-06-002` (Issue #16); global unknown/default slice `HQ-CURSOR-2026-09-08-004` (Issue #40); global comparison/scoring-boundary slice `HQ-CURSOR-2026-09-08-005` (Issue #43); core logic slice `HQ-CURSOR-2026-09-08-006` (Issue #45); refurbished/fate logic slice `HQ-CURSOR-2026-09-08-007` (Issue #47); missingness/EOL/materials logic slice `HQ-CURSOR-2026-09-08-008` (Issue #49); adequacy/pathway-prohibition slice `HQ-CURSOR-2026-09-08-009` (Issue #51); fate/displacement/sunk-prohibition slice `HQ-CURSOR-2026-09-08-010` (Issue #53); numerical-evidence prohibition slice `HQ-CURSOR-2026-09-08-011` (Issue #55); units/attribution/grade prohibition slice `HQ-CURSOR-2026-09-08-012` (Issue #57); secondary pathway classification/fallback slice `HQ-CURSOR-2026-09-08-013` (Issue #59); secondary service sufficiency/transfer uncertainty slice `HQ-CURSOR-2026-09-08-014` (Issue #61); secondary qualitative comparison slice `HQ-CURSOR-2026-09-09-015` (Issue #65); secondary ADEME applicability slice `HQ-CURSOR-2026-09-09-016` (Issue #67); secondary complete source-specific refurbishment evidence slice `HQ-CURSOR-2026-09-09-017` (Issue #70); secondary personal-counterfactual separation slice `HQ-CURSOR-2026-09-09-018` (Issue #72)
+Task: `HQ-LC-2026-09-06-002` (Issue #16); global unknown/default slice `HQ-CURSOR-2026-09-08-004` (Issue #40); global comparison/scoring-boundary slice `HQ-CURSOR-2026-09-08-005` (Issue #43); core logic slice `HQ-CURSOR-2026-09-08-006` (Issue #45); refurbished/fate logic slice `HQ-CURSOR-2026-09-08-007` (Issue #47); missingness/EOL/materials logic slice `HQ-CURSOR-2026-09-08-008` (Issue #49); adequacy/pathway-prohibition slice `HQ-CURSOR-2026-09-08-009` (Issue #51); fate/displacement/sunk-prohibition slice `HQ-CURSOR-2026-09-08-010` (Issue #53); numerical-evidence prohibition slice `HQ-CURSOR-2026-09-08-011` (Issue #55); units/attribution/grade prohibition slice `HQ-CURSOR-2026-09-08-012` (Issue #57); secondary pathway classification/fallback slice `HQ-CURSOR-2026-09-08-013` (Issue #59); secondary service sufficiency/transfer uncertainty slice `HQ-CURSOR-2026-09-08-014` (Issue #61); secondary qualitative comparison slice `HQ-CURSOR-2026-09-09-015` (Issue #65); secondary ADEME applicability slice `HQ-CURSOR-2026-09-09-016` (Issue #67); secondary complete source-specific refurbishment evidence slice `HQ-CURSOR-2026-09-09-017` (Issue #70); secondary personal-counterfactual separation slice `HQ-CURSOR-2026-09-09-018` (Issue #72); secondary global assertion slice `HQ-CURSOR-2026-09-09-019` (Issue #74)
 
 ## Purpose and execution boundary
 
@@ -22,7 +22,7 @@ a complete smartphone-behavior certification.
 | Domain | Exact identifiers mapped | Governing material | Planned behavioral test target | Coverage kind | Current state |
 | --- | --- | --- | --- | --- | --- |
 | Input model | `T01`–`T35`, their listed `A-T-*` assertions, `RC01`–`RC10`, all ten `A-GLOBAL-*` assertions, the sixteen-source `A-LOGIC-*` family, and all twenty `PI-001`–`PI-020` prohibitions execute. | `R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0.json`, `USER_INPUT_MODEL_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-input-contract.test.mjs` | Positive, prohibitions, release gates | `covered_by_executing_assertion` for T01–T35 case assertions, RC01–RC10, all ten executed `A-GLOBAL-*` assertions, all sixteen executed `A-LOGIC-*` assertions, and all twenty `PI-001`–`PI-020` |
-| Secondary pathways | `SEC-01`–`SEC-12`, every source `A-SEC-*` case assertion, and `A-SEC-GLOBAL-01`–`A-SEC-GLOBAL-08` | `R&E-V0-SMARTPHONE-SECONDARY-PATHWAY-TESTS-1.0.0.md`, `SECONDARY_PATHWAYS_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-secondary-contract.test.mjs` | Positive and prohibited behavior | `covered_by_executing_assertion` for `SEC-01`–`SEC-12` and their 41 case assertions; `requires_smartphone_implementation` for all eight `A-SEC-GLOBAL-*` identifiers |
+| Secondary pathways | `SEC-01`–`SEC-12`, every source `A-SEC-*` case assertion, and `A-SEC-GLOBAL-01`–`A-SEC-GLOBAL-08` | `R&E-V0-SMARTPHONE-SECONDARY-PATHWAY-TESTS-1.0.0.md`, `SECONDARY_PATHWAYS_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-secondary-contract.test.mjs` | Positive and prohibited behavior | `covered_by_executing_assertion` for `SEC-01`–`SEC-12`, their 41 case assertions, and all eight `A-SEC-GLOBAL-*` identifiers |
 | AP inquiry | `APQ1_FUNCTION`–`APQ6_RESEE`; `INV-AP-01`–`INV-AP-20` | `tests/ap-integrity/AP_V0_INVARIANTS.md`, `AP_INTERACTION_V0.md` | `app/scripts/smartphone-ap-contract.test.mjs` | Positive and prohibited behavior | `requires_smartphone_implementation` |
 | Empirical claim boundary | `SP-PATH-CLIMATE-001`, `SP-PATH-MINING-ECO-001`, `SP-PATH-MINING-PEOPLE-001`, `SP-PATH-EWASTE-PEOPLE-001`, `SP-PATH-EWASTE-ECO-001`, `SP-PATH-WATER-001` | `EMPIRICAL_SMARTPHONE_V0.md` | `app/scripts/smartphone-empirical-boundary.test.mjs` | Prohibited unsupported impact/displacement claims | `requires_smartphone_implementation` |
 
@@ -41,16 +41,14 @@ copying, normalizing, or silently maintaining a second package serialization.
 - Completing this input package does not certify the whole smartphone slice and
   does not count as executing the separate empirical-boundary suite.
 - `smartphone-secondary-contract.test.mjs` executes `SEC-01`–`SEC-12`,
-  with their 41 listed case assertions. It does not claim complete
-  secondary-suite or smartphone certification.
-- The mapping enumerates all eight `A-SEC-GLOBAL-*` source IDs and keeps them
-  `requires_smartphone_implementation` until a later authorized task proves the
-  complete global secondary scope.
+  with their 41 listed case assertions, and all eight `A-SEC-GLOBAL-*`
+  assertions. The secondary executable suite is complete for those identifiers.
+  It does not claim complete smartphone, AP, empirical, UX, or release
+  certification.
 - The mapping-integrity tests distinguish those executing assertions from every
   remaining implementation gap.
-- Three explicit `todo` entries remain in the application test output for the
-  remaining secondary-pathway global assertions (`A-SEC-GLOBAL-*`), AP
-  interaction/integrity, and empirical-boundary suites.
+- Two explicit `todo` entries remain in the application test output for the
+  AP interaction/integrity and empirical-boundary suites.
 - A later implementation task must change only the registry rows backed by its
   executing assertions from `requires_smartphone_implementation`.
 
@@ -61,6 +59,6 @@ requirements, used/refurbished separation, no unsupported displacement or
 individual-impact claims, AP raw-answer authority, `unclear`, traceability,
 branch precedence, non-diagnostic language, and the no-motive-score rule as
 test requirements. This bounded slice executes only listed input-contract and
-secondary pathway-classification/fallback behavior; it does not display it. No UI,
+secondary pathway behavior; it does not display it. No UI,
 scientific semantics, AP semantics, V17 material, or
 source package changes are included.

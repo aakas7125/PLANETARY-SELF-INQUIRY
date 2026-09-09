@@ -6,8 +6,8 @@
  *
  * Separate from the input-package evaluator so secondary package boundaries stay explicit.
  *
- * This slice implements SEC-01–SEC-12. Global secondary assertions remain
- * intentionally absent.
+ * This slice implements SEC-01–SEC-12 and the A-SEC-GLOBAL-01–08 invariants
+ * exercised by the secondary contract suite.
  */
 
 export const UNKNOWN = "unknown";

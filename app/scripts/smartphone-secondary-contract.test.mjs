@@ -71,6 +71,54 @@ const coveredAssertionIds = [
   "A-SEC-12-03",
   "A-SEC-12-04",
 ];
+const coveredGlobalAssertionIds = [
+  "A-SEC-GLOBAL-01",
+  "A-SEC-GLOBAL-02",
+  "A-SEC-GLOBAL-03",
+  "A-SEC-GLOBAL-04",
+  "A-SEC-GLOBAL-05",
+  "A-SEC-GLOBAL-06",
+  "A-SEC-GLOBAL-07",
+  "A-SEC-GLOBAL-08",
+];
+
+/** Single-pathway acquisition cases; SEC-11 is the dual-candidate comparison partition. */
+const SINGLE_PATHWAY_CASE_IDS = coveredCaseIds.filter((id) => id !== "SEC-11");
+
+/**
+ * Evaluate the authorized domain input for each SEC case.
+ * SEC-01–SEC-04 use the replacement evaluator; SEC-05–SEC-12 use the composed case evaluator.
+ */
+function evaluateAuthorizedCase(caseId) {
+  if (Object.hasOwn(CASES, caseId)) {
+    return evaluateSecondaryPathway(CASES[caseId]);
+  }
+  return evaluateSecondaryPathwayCase(COMPOSED_CASES[caseId]);
+}
+
+function assertNoAvoidedProductionCredit(result, label) {
+  assert.equal(Object.hasOwn(result, "avoided_production_credit"), false, label);
+  assert.equal(Object.hasOwn(result, "avoided_production_CO2e"), false, label);
+  if (Object.hasOwn(result, "avoided_new_production_CO2e")) {
+    assert.equal(result.avoided_new_production_CO2e, null, label);
+  }
+  assert.notEqual(result.original_manufacturing?.status, "AVOIDED_NEW_MANUFACTURING_CREDIT", label);
+}
+
+function assertDisplacementCreditAbsentOrNull(result, label) {
+  if (Object.hasOwn(result, "market_displacement_credit")) {
+    assert.equal(result.market_displacement_credit, null, label);
+  } else {
+    assert.equal(Object.hasOwn(result, "market_displacement_credit"), false, label);
+  }
+  assert.notEqual(result.market_displacement_credit, 0.4, label);
+  assert.notEqual(result.market_displacement_credit, 1, label);
+  assert.equal(Object.hasOwn(result, "displacement_coefficient"), false, label);
+  assert.equal(Object.hasOwn(result, "survey_substitution_coefficient"), false, label);
+  assert.notEqual(result.US_displacement_coefficient_applied, true, label);
+  assert.equal(Object.hasOwn(result, "direct_score_after_credit"), false, label);
+  assert.equal(Object.hasOwn(result, "primary_attributional_score_modified"), false, label);
+}
 
 /** Exact immutable package inputs for SEC-01–SEC-04. */
 const CASES = {
@@ -273,7 +321,7 @@ function assertNoDefinitiveDecisionOutput(result) {
   }
 }
 
-test("secondary slice covers the twelve authorized cases and 41 listed assertions only", () => {
+test("secondary slice covers the twelve cases, 41 case assertions, and eight globals", () => {
   assert.deepEqual(coveredCaseIds, [
     "SEC-01",
     "SEC-02",
@@ -290,6 +338,16 @@ test("secondary slice covers the twelve authorized cases and 41 listed assertion
   ]);
   assert.equal(coveredAssertionIds.length, 41);
   assert.ok(coveredAssertionIds.every((id) => /^A-SEC-(?:0[1-9]|1[0-2])-\d{2}$/.test(id)));
+  assert.deepEqual(coveredGlobalAssertionIds, [
+    "A-SEC-GLOBAL-01",
+    "A-SEC-GLOBAL-02",
+    "A-SEC-GLOBAL-03",
+    "A-SEC-GLOBAL-04",
+    "A-SEC-GLOBAL-05",
+    "A-SEC-GLOBAL-06",
+    "A-SEC-GLOBAL-07",
+    "A-SEC-GLOBAL-08",
+  ]);
 });
 
 test("SEC-01 direct private resale stays used_secondhand without inferred refurbishment", () => {
@@ -1234,4 +1292,324 @@ test("guard: SEC-12 personal counterfactual grants no displacement or credit aut
   assert.equal(authorized.avoided_new_production_CO2e, null);
   assert.equal(authorized.US_displacement_coefficient_applied, false);
   assert.equal(authorized.result_capability, "qualitative_only");
+});
+
+test("A-SEC-GLOBAL-01 keeps used_secondhand distinct from refurbished across SEC-01–SEC-12", () => {
+  assert.notEqual("used_secondhand", "refurbished");
+
+  const usedCaseIds = ["SEC-01", "SEC-03", "SEC-05", "SEC-06", "SEC-09", "SEC-12"];
+  const refurbishedCaseIds = ["SEC-02", "SEC-04", "SEC-07", "SEC-08", "SEC-10"];
+
+  for (const caseId of usedCaseIds) {
+    const result = evaluateAuthorizedCase(caseId);
+    assert.equal(result.secondary_pathway, "used_secondhand", caseId);
+    assert.notEqual(result.secondary_pathway, "refurbished", caseId);
+  }
+  for (const caseId of refurbishedCaseIds) {
+    const result = evaluateAuthorizedCase(caseId);
+    assert.equal(result.secondary_pathway, "refurbished", caseId);
+    assert.notEqual(result.secondary_pathway, "used_secondhand", caseId);
+  }
+
+  // SEC-11 partition: dual-candidate comparison preserves both pathways without collapse.
+  const comparison = evaluateAuthorizedCase("SEC-11");
+  assert.equal(COMPOSED_CASES["SEC-11"].used_candidate.pathway, "used_secondhand");
+  assert.equal(COMPOSED_CASES["SEC-11"].refurbished_candidate.pathway, "refurbished");
+  assert.notEqual(
+    COMPOSED_CASES["SEC-11"].used_candidate.pathway,
+    COMPOSED_CASES["SEC-11"].refurbished_candidate.pathway,
+  );
+  assert.equal(comparison.used.reuses_existing_device, true);
+  assert.equal(comparison.refurbished.reuses_existing_device, true);
+  assert.equal(Object.hasOwn(comparison, "secondary_pathway"), false);
+  assert.equal(comparison.numeric_winner, null);
+
+  // Negative: commercial used listing does not become refurbished.
+  const commercialUsed = evaluateAuthorizedCase("SEC-03");
+  assert.equal(CASES["SEC-03"].seller_type, "commercial_reseller");
+  assert.equal(CASES["SEC-03"].listing_label, "used");
+  assert.equal(commercialUsed.secondary_pathway, "used_secondhand");
+  assert.notEqual(commercialUsed.secondary_pathway, "refurbished");
+});
+
+test("A-SEC-GLOBAL-02 keeps direct/cutoff prior-life exclusion distinct from avoided-new credit", () => {
+  for (const caseId of SINGLE_PATHWAY_CASE_IDS) {
+    const result = evaluateAuthorizedCase(caseId);
+    assert.equal(result.accounting_mode, ACCOUNTING_MODE, caseId);
+    assert.equal(
+      result.original_manufacturing.status,
+      PRIOR_LIFE_EXCLUDED_DIRECT_CUTOFF,
+      caseId,
+    );
+    assert.equal(result.original_manufacturing.enters_direct_acquisition_total, false, caseId);
+    assertNoAvoidedProductionCredit(result, caseId);
+  }
+
+  // SEC-11 partition: comparison invents neither avoided-production credit nor a winner.
+  const comparison = evaluateAuthorizedCase("SEC-11");
+  assert.equal(comparison.accounting_mode, ACCOUNTING_MODE);
+  assertNoAvoidedProductionCredit(comparison, "SEC-11");
+  assert.equal(comparison.numeric_winner, null);
+  assert.equal(Object.hasOwn(comparison, "winner"), false);
+
+  // SEC-12 stores personal buy_new separately from avoided-new credit.
+  const personal = evaluateAuthorizedCase("SEC-12");
+  assert.equal(personal.personal_purchase_substitution, "buy_new");
+  assert.equal(personal.avoided_new_production_CO2e, null);
+  assert.notEqual(personal.personal_purchase_substitution, personal.avoided_new_production_CO2e);
+});
+
+test("A-SEC-GLOBAL-03 keeps market_displacement_credit null without a valid enabled scenario", () => {
+  for (const caseId of coveredCaseIds) {
+    const result = evaluateAuthorizedCase(caseId);
+    assertDisplacementCreditAbsentOrNull(result, caseId);
+  }
+
+  // Single-pathway outputs explicitly carry null credit under direct/cutoff.
+  for (const caseId of SINGLE_PATHWAY_CASE_IDS) {
+    const result = evaluateAuthorizedCase(caseId);
+    assert.equal(result.market_displacement_credit, null, caseId);
+  }
+
+  // Negative: off-structure US / coefficient claims do not enable displacement credit.
+  const injected = evaluateSecondaryPathwayCase({
+    ...COMPOSED_CASES["SEC-12"],
+    replacement: {
+      pathway: "used_secondhand",
+      personal_counterfactual_if_unavailable: "buy_new",
+      market_context: {
+        geography: "US",
+        claimed_displacement_coefficient: 0.4,
+      },
+    },
+  });
+  assertDisplacementCreditAbsentOrNull(injected, "injected-US-coefficient");
+  assert.equal(Object.hasOwn(injected, "personal_purchase_substitution"), false);
+});
+
+test("A-SEC-GLOBAL-04 keeps unknown environmental burden distinct from numeric zero", () => {
+  assert.notEqual(UNKNOWN, 0);
+  assert.equal(isUnknown(UNKNOWN), true);
+  assert.equal(isUnknown(0), false);
+
+  const sec01 = evaluateAuthorizedCase("SEC-01");
+  assert.equal(sec01.transfer_CO2e.value, null);
+  assert.notEqual(sec01.transfer_CO2e.value, 0);
+  assert.equal(sec01.direct_secondary_CO2e, null);
+  assert.notEqual(sec01.direct_secondary_CO2e, 0);
+
+  const sec02 = evaluateAuthorizedCase("SEC-02");
+  assert.equal(sec02.inspection_testing_CO2e, null);
+  assert.notEqual(sec02.inspection_testing_CO2e, 0);
+  assert.equal(sec02.cleaning_CO2e, null);
+  assert.notEqual(sec02.cleaning_CO2e, 0);
+  assert.equal(sec02.refurb_total_direct_CO2e, null);
+  assert.notEqual(sec02.refurb_total_direct_CO2e, 0);
+
+  const sec04 = evaluateAuthorizedCase("SEC-04");
+  assert.equal(sec04.refurb_direct_CO2e.value, null);
+  assert.notEqual(sec04.refurb_direct_CO2e.value, 0);
+
+  const sec05 = evaluateAuthorizedCase("SEC-05");
+  assert.equal(isUnknown(sec05.used_service_life), true);
+  assert.notEqual(sec05.used_service_life, 0);
+
+  const sec06 = evaluateAuthorizedCase("SEC-06");
+  assert.equal(sec06.transfer_CO2e.value, null);
+  assert.notEqual(sec06.transfer_CO2e.value, 0);
+  assert.equal(sec06.used_direct_CO2e.value, null);
+  assert.notEqual(sec06.used_direct_CO2e.value, 0);
+
+  const sec08 = evaluateAuthorizedCase("SEC-08");
+  assert.equal(sec08.refurb_direct_CO2e.value, null);
+  assert.notEqual(sec08.refurb_direct_CO2e.value, 0);
+
+  const sec11 = evaluateAuthorizedCase("SEC-11");
+  assert.equal(sec11.used.direct_CO2e, null);
+  assert.notEqual(sec11.used.direct_CO2e, 0);
+  assert.equal(sec11.refurbished.direct_CO2e, null);
+  assert.notEqual(sec11.refurbished.direct_CO2e, 0);
+
+  const sec12 = evaluateAuthorizedCase("SEC-12");
+  assert.equal(sec12.direct_secondary_CO2e, null);
+  assert.notEqual(sec12.direct_secondary_CO2e, 0);
+});
+
+test("A-SEC-GLOBAL-05 prevents seller condition grade from deriving service life", () => {
+  const gradedRefurbished = evaluateAuthorizedCase("SEC-04");
+  assert.equal(CASES["SEC-04"].marketplace_condition_label, "Excellent");
+  assert.equal(CASES["SEC-04"].expected_adequate_service.expected_years, 3.0);
+  assert.equal(Object.hasOwn(gradedRefurbished, "used_service_life"), false);
+  assert.equal(Object.hasOwn(gradedRefurbished, "grade_derived_service_life"), false);
+  assert.equal(Object.hasOwn(gradedRefurbished, "inferred_remaining_life_years"), false);
+  assert.notEqual(gradedRefurbished.result_capability, "quantitative");
+
+  // Unknown service stays unknown even when grade/metadata are injected.
+  const unknownWithGrade = evaluateSecondaryPathwayCase({
+    ...COMPOSED_CASES["SEC-05"],
+    replacement: {
+      ...COMPOSED_CASES["SEC-05"].replacement,
+      marketplace_condition_label: "Excellent",
+      seller_condition_grade: "A",
+      device_age_years: 1,
+      warranty_years: 2,
+      price: 499,
+    },
+  });
+  assert.equal(unknownWithGrade.used_service_life, null);
+  assert.notEqual(unknownWithGrade.used_service_life, 3);
+  assert.notEqual(unknownWithGrade.used_service_life, 2);
+  assert.equal(unknownWithGrade.equivalent_service_established, false);
+  assert.equal(unknownWithGrade.result_capability, "insufficient_information");
+  assert.equal(Object.hasOwn(unknownWithGrade, "grade_derived_service_life"), false);
+
+  // Across the suite, no case invents a grade→service output field.
+  for (const caseId of coveredCaseIds) {
+    const result = evaluateAuthorizedCase(caseId);
+    assert.equal(Object.hasOwn(result, "grade_derived_service_life"), false, caseId);
+    assert.equal(Object.hasOwn(result, "inferred_remaining_life_years"), false, caseId);
+  }
+});
+
+test("A-SEC-GLOBAL-06 requires adequate service over the common horizon or a complete ServiceSequence", () => {
+  const unknownService = evaluateAuthorizedCase("SEC-05");
+  assert.equal(unknownService.equivalent_service_established, false);
+  assert.equal(unknownService.result_capability, "insufficient_information");
+  assert.equal(Object.hasOwn(unknownService, "winner"), false);
+
+  const shortService = evaluateAuthorizedCase("SEC-09");
+  assert.equal(shortService.service_sequence_required, true);
+  assert.equal(shortService.covered_service_years, 0.5);
+  assert.equal(
+    shortService.uncovered_service_years,
+    COMPOSED_CASES["SEC-09"].comparison.common_service_horizon_years - 0.5,
+  );
+  assert.equal(shortService.next_event, UNKNOWN);
+  assert.equal(shortService.result_capability, "insufficient_information");
+  assert.equal(Object.hasOwn(shortService, "winner"), false);
+  assert.equal(Object.hasOwn(shortService, "default_next_event"), false);
+
+  const completeHorizon = evaluateAuthorizedCase("SEC-10");
+  assert.equal(completeHorizon.equivalent_service_established, true);
+  assert.equal(completeHorizon.service_sequence_required, false);
+  assert.equal(
+    completeHorizon.adequate_service_coverage_years,
+    COMPOSED_CASES["SEC-10"].comparison.common_service_horizon_years,
+  );
+  assert.equal(completeHorizon.result_capability, "quantitative");
+
+  // Adequate dual candidates may be described qualitatively without fabricating a winner.
+  const qualitativePair = evaluateAuthorizedCase("SEC-11");
+  assert.equal(
+    COMPOSED_CASES["SEC-11"].used_candidate.expected_adequate_service.expected_years,
+    COMPOSED_CASES["SEC-11"].comparison.common_service_horizon_years,
+  );
+  assert.equal(
+    COMPOSED_CASES["SEC-11"].refurbished_candidate.expected_adequate_service.expected_years,
+    COMPOSED_CASES["SEC-11"].comparison.common_service_horizon_years,
+  );
+  assert.equal(qualitativePair.numeric_winner, null);
+  assert.equal(qualitativePair.result_capability, "qualitative_only");
+});
+
+test("A-SEC-GLOBAL-07 never uses ADEME 7.61 as a generic refurbished fallback", () => {
+  const ademeExplicit = evaluateAuthorizedCase("SEC-07");
+  assert.equal(ademeExplicit.refurb_direct_reference_CO2e.value, 7.61);
+  assert.equal(ademeExplicit.refurb_direct_reference_CO2e.status, APPROVED_SOURCE_SPECIFIC);
+  assert.equal(
+    ademeExplicit.refurb_direct_reference_CO2e.source_id,
+    SECONDARY_PATHWAY_CONSTANTS.ADEME_REFURB_SMARTPHONE_REFERENCE,
+  );
+  assert.equal(ademeExplicit.generic_default, false);
+  assert.equal(ademeExplicit.decomposable, false);
+
+  const completeEvidence = evaluateAuthorizedCase("SEC-10");
+  assert.equal(completeEvidence.refurb_direct_CO2e.value, 7.61);
+  assert.equal(completeEvidence.refurb_direct_CO2e.source_specific, true);
+  assert.equal(completeEvidence.refurb_direct_CO2e.decomposable, false);
+
+  // Generic / absent refurbished selections must not inherit 7.61.
+  for (const caseId of ["SEC-02", "SEC-04", "SEC-08"]) {
+    const result = evaluateAuthorizedCase(caseId);
+    assert.notEqual(result.refurb_direct_CO2e?.value, 7.61, caseId);
+    assert.notEqual(result.refurb_total_direct_CO2e, 7.61, caseId);
+    assert.notEqual(result.refurb_direct_reference_CO2e?.value, 7.61, caseId);
+    if (Object.hasOwn(result, "ADEME_7_61_applied")) {
+      assert.equal(result.ADEME_7_61_applied, false, caseId);
+    }
+  }
+
+  // Used pathways never receive ADEME as a generic numerical burden.
+  for (const caseId of ["SEC-01", "SEC-03", "SEC-05", "SEC-06", "SEC-09", "SEC-12"]) {
+    const result = evaluateAuthorizedCase(caseId);
+    assert.notEqual(result.direct_secondary_CO2e, 7.61, caseId);
+    assert.equal(Object.hasOwn(result, "refurb_direct_reference_CO2e"), false, caseId);
+    assert.notEqual(result.ADEME_7_61_applied, true, caseId);
+  }
+
+  const comparison = evaluateAuthorizedCase("SEC-11");
+  assert.notEqual(comparison.refurbished.direct_CO2e, 7.61);
+  assert.equal(comparison.refurbished.direct_CO2e, null);
+
+  // Negative: arbitrary refurbished model / seller / grade cannot select ADEME.
+  const arbitrary = evaluateSecondaryPathwayCase({
+    ...COMPOSED_CASES["SEC-08"],
+    replacement: {
+      ...COMPOSED_CASES["SEC-08"].replacement,
+      marketplace_condition_label: "Excellent",
+      seller_type: "commercial_reseller",
+      expected_adequate_service: { expected_years: 2.0 },
+    },
+  });
+  assert.equal(arbitrary.ADEME_7_61_applied, false);
+  assert.notEqual(arbitrary.refurb_direct_CO2e?.value, 7.61);
+  assert.equal(Object.hasOwn(arbitrary, "refurb_direct_reference_CO2e"), false);
+});
+
+test("A-SEC-GLOBAL-08 never applies the U.S. 0.40 coefficient to primary direct scoring", () => {
+  for (const caseId of coveredCaseIds) {
+    const result = evaluateAuthorizedCase(caseId);
+    assertDisplacementCreditAbsentOrNull(result, caseId);
+    assert.notEqual(result.market_displacement_credit, 0.4, caseId);
+    assert.notEqual(result.market_displacement_credit, 0.4, caseId);
+    assert.equal(Object.hasOwn(result, "primary_direct_score_with_US_coefficient"), false, caseId);
+  }
+
+  const personal = evaluateAuthorizedCase("SEC-12");
+  assert.equal(personal.US_displacement_coefficient_applied, false);
+  assert.equal(personal.market_displacement_credit, null);
+  assert.equal(personal.avoided_new_production_CO2e, null);
+  assert.equal(personal.personal_purchase_substitution, "buy_new");
+  assert.notEqual(personal.personal_purchase_substitution, 0.4);
+
+  // Negative: geography or injected coefficient never enters primary scoring.
+  const usClaim = evaluateSecondaryPathwayCase({
+    ...COMPOSED_CASES["SEC-12"],
+    replacement: {
+      pathway: "used_secondhand",
+      personal_counterfactual_if_unavailable: "buy_new",
+      market_context: {
+        geography: "US",
+      },
+      US_displacement_coefficient: 0.4,
+    },
+  });
+  assert.notEqual(usClaim.US_displacement_coefficient_applied, true);
+  assert.equal(usClaim.market_displacement_credit, null);
+  assert.equal(Object.hasOwn(usClaim, "direct_score_after_credit"), false);
+  assert.equal(Object.hasOwn(usClaim, "primary_attributional_score_modified"), false);
+});
+
+test("covered secondary global assertion IDs remain the eight executed A-SEC-GLOBAL identifiers", () => {
+  assert.deepEqual(coveredGlobalAssertionIds, [
+    "A-SEC-GLOBAL-01",
+    "A-SEC-GLOBAL-02",
+    "A-SEC-GLOBAL-03",
+    "A-SEC-GLOBAL-04",
+    "A-SEC-GLOBAL-05",
+    "A-SEC-GLOBAL-06",
+    "A-SEC-GLOBAL-07",
+    "A-SEC-GLOBAL-08",
+  ]);
+  assert.equal(coveredGlobalAssertionIds.length, 8);
 });

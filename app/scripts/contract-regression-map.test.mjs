@@ -201,6 +201,14 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     "A-SEC-10-01", "A-SEC-10-02", "A-SEC-10-03",
     "A-SEC-11-01", "A-SEC-11-02", "A-SEC-11-03", "A-SEC-11-04",
     "A-SEC-12-01", "A-SEC-12-02", "A-SEC-12-03", "A-SEC-12-04",
+    "A-SEC-GLOBAL-01",
+    "A-SEC-GLOBAL-02",
+    "A-SEC-GLOBAL-03",
+    "A-SEC-GLOBAL-04",
+    "A-SEC-GLOBAL-05",
+    "A-SEC-GLOBAL-06",
+    "A-SEC-GLOBAL-07",
+    "A-SEC-GLOBAL-08",
   ];
   const expectedSecondaryGlobals = [
     "A-SEC-GLOBAL-01",
@@ -222,7 +230,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   assert.deepEqual(coveredSecondaryIds, expectedCoveredSecondaryIds);
   assert.deepEqual(remainingSecondaryCases, []);
   assert.deepEqual(secondaryGlobalIds, expectedSecondaryGlobals);
-  assert.deepEqual(remainingSecondaryGlobals, expectedSecondaryGlobals);
+  assert.deepEqual(remainingSecondaryGlobals, []);
   assert.ok(
     mapping
       .filter(
@@ -240,9 +248,6 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   ]);
 });
 
-test.todo(
-  "implement remaining secondary-pathway global assertions (A-SEC-GLOBAL-01–A-SEC-GLOBAL-08)",
-);
 test.todo(
   "implement the mapped AP interaction behavior suite (APQ1–APQ6 and INV-AP-01–INV-AP-20)",
 );
