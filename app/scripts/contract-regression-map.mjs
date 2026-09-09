@@ -156,8 +156,8 @@ const EXECUTED_INPUT_IDS = new Set([
 ]);
 
 /**
- * SEC-01–SEC-06, SEC-09, SEC-11, and their 28 case assertions only; globals
- * remain gaps.
+ * SEC-01–SEC-09, SEC-11, and their 34 case assertions only; globals remain
+ * gaps.
  */
 const EXECUTED_SECONDARY_IDS = new Set([
   "SEC-01",
@@ -186,6 +186,14 @@ const EXECUTED_SECONDARY_IDS = new Set([
   "A-SEC-06-01",
   "A-SEC-06-02",
   "A-SEC-06-03",
+  "SEC-07",
+  "A-SEC-07-01",
+  "A-SEC-07-02",
+  "A-SEC-07-03",
+  "A-SEC-07-04",
+  "SEC-08",
+  "A-SEC-08-01",
+  "A-SEC-08-02",
   "SEC-09",
   "A-SEC-09-01",
   "A-SEC-09-02",
