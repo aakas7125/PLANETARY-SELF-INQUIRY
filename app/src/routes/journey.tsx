@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   JOURNEY_ACCEPTED_NOW,
@@ -107,14 +108,6 @@ function MomentHeader({ moment }: { moment: JourneyMoment }) {
       <p className="mt-2 font-display text-xl leading-snug text-pine sm:text-2xl">
         {moment.lead}
       </p>
-      <div className="mt-3 flex flex-wrap gap-2 text-[0.65rem] tracking-[0.08em] text-muted-foreground">
-        <span className="rounded-sm border border-border bg-card px-2 py-1 uppercase tracking-[0.14em]">
-          {moment.evidenceClass}
-        </span>
-        <span className="rounded-sm border border-border px-2 py-1 normal-case tracking-normal">
-          status: {moment.status}
-        </span>
-      </div>
       {moment.reconstructionLabel ? (
         <p className="mt-2 text-xs italic text-muted-foreground">
           {moment.reconstructionLabel}
@@ -388,48 +381,132 @@ function laneTone(kind: JourneyLane["kind"]): string {
   }
 }
 
+function GraphStemNode({
+  children,
+  tone = "border-border bg-background",
+}: {
+  children: ReactNode;
+  tone?: string;
+}) {
+  return (
+    <div
+      className={`w-full max-w-[14rem] rounded-md border px-3 py-2 text-center text-xs leading-snug text-foreground sm:max-w-[16rem] sm:text-sm ${tone}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function BranchFanOut() {
+  return (
+    <svg
+      viewBox="0 0 120 32"
+      className="mx-auto h-8 w-full max-w-lg text-pine"
+      aria-hidden
+      preserveAspectRatio="none"
+    >
+      <path
+        d="M60 0 V10 M60 10 L20 32 M60 10 L60 32 M60 10 L100 32"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function BranchFanIn() {
+  return (
+    <svg
+      viewBox="0 0 120 32"
+      className="mx-auto h-8 w-full max-w-lg text-pine"
+      aria-hidden
+      preserveAspectRatio="none"
+    >
+      <path
+        d="M20 0 L60 22 M60 0 L60 22 M100 0 L60 22 M60 22 V32"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function AuthorityLanesVisual({ lanes }: { lanes: JourneyLane[] }) {
   const claimLanes = lanes.filter((l) =>
     ["empirical", "model", "ap", "interpretation"].includes(l.kind),
   );
-  const orgLanes = lanes.filter((l) =>
-    ["governance", "executor"].includes(l.kind),
-  );
   return (
     <figure className="space-y-4" aria-label="Authority and workstream lanes">
-      <div className="rounded-md border border-border bg-card/50 p-4">
+      <div className="rounded-md border border-border bg-card/50 p-3 sm:p-4">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
           Claim-type lanes (must stay distinct)
         </p>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+        <ul className="mt-3 grid grid-cols-2 gap-2">
           {claimLanes.map((lane) => (
             <li
               key={lane.id}
-              className={`rounded-md border px-3 py-3 text-sm ${laneTone(lane.kind)}`}
+              className={`rounded-md border px-2 py-2.5 text-[0.7rem] leading-snug sm:px-3 sm:py-3 sm:text-sm ${laneTone(lane.kind)}`}
             >
               {lane.label}
             </li>
           ))}
         </ul>
       </div>
-      <div className="rounded-md border border-border p-4">
+      <div className="rounded-md border border-border p-3 sm:p-4">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
           Approximate organization (names evolved)
         </p>
-        <p className="mt-2 text-sm text-foreground">
-          Owner → Vision/Direction → HQ → Research & Evidence / AP Framework &
-          Corpus / executors → integrated PSI
+        <p className="sr-only">
+          Branching authority graph: Owner feeds Vision/Direction, then HQ.
+          HQ branches in parallel to Research and Evidence, AP Framework and
+          Corpus, and executors Cursor/Codex. Those parallel workstreams
+          converge into integrated PSI. Organization itself validates no claim.
         </p>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {orgLanes.map((lane) => (
+        <div
+          className="mt-3 flex flex-col items-center"
+          aria-hidden
+        >
+          <GraphStemNode tone="border-pine/40 bg-paper">Owner</GraphStemNode>
+          <span className="py-1 text-pine" aria-hidden>
+            ↓
+          </span>
+          <GraphStemNode tone="border-pine/40 bg-paper">
+            Vision / Direction
+          </GraphStemNode>
+          <span className="py-1 text-pine" aria-hidden>
+            ↓
+          </span>
+          <GraphStemNode tone="border-pine/50 bg-accent">HQ</GraphStemNode>
+          <BranchFanOut />
+          <ul className="grid w-full grid-cols-3 gap-1.5 sm:gap-3">
             <li
-              key={lane.id}
-              className={`rounded-sm border px-2 py-1 text-xs ${laneTone(lane.kind)}`}
+              className={`rounded-md border px-1.5 py-2 text-center text-[0.62rem] leading-snug sm:px-3 sm:py-3 sm:text-xs ${laneTone("empirical")}`}
             >
-              {lane.label}
+              Research &amp; Evidence
             </li>
-          ))}
-        </ul>
+            <li
+              className={`rounded-md border px-1.5 py-2 text-center text-[0.62rem] leading-snug sm:px-3 sm:py-3 sm:text-xs ${laneTone("ap")}`}
+            >
+              AP Framework &amp; Corpus
+            </li>
+            <li
+              className={`rounded-md border px-1.5 py-2 text-center text-[0.62rem] leading-snug sm:px-3 sm:py-3 sm:text-xs ${laneTone("executor")}`}
+            >
+              Executors
+              <span className="mt-0.5 block text-[0.55rem] text-muted-foreground sm:text-[0.65rem]">
+                Cursor / Codex
+              </span>
+            </li>
+          </ul>
+          <BranchFanIn />
+          <GraphStemNode tone="border-clay/40 bg-paper">
+            Integrated PSI
+          </GraphStemNode>
+        </div>
         <p className="mt-3 text-xs text-muted-foreground">
           Organization itself validates no claim.
         </p>
@@ -498,41 +575,62 @@ function GrokPanelVisual() {
 }
 
 function AuthoritySplitVisual() {
+  const lanes = [
+    {
+      title: "Evidence / Science",
+      note: "What sources actually support",
+    },
+    {
+      title: "Model / Assumptions",
+      note: "Ranges, uncertainty, accounting choices",
+    },
+    {
+      title: "Interpretation / Inquiry",
+      note: "AP keeps distinct source authority",
+    },
+  ] as const;
+
   return (
-    <figure className="space-y-4" aria-label="Persuasive box splits into authority lanes">
-      <div className="relative rounded-md border-2 border-destructive/35 bg-destructive/5 px-4 py-5 text-center">
-        <p className="font-display text-lg text-destructive line-through decoration-destructive/60">
+    <figure className="space-y-3" aria-label="Persuasive box splits into authority lanes">
+      <div className="relative rounded-md border-2 border-destructive/35 bg-destructive/5 px-3 py-4 text-center sm:px-4 sm:py-5">
+        <p className="font-display text-base text-destructive line-through decoration-destructive/60 sm:text-lg">
           One unified authoritative box
         </p>
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-[0.7rem] text-muted-foreground sm:text-xs">
           Overconfident scores · evidence/model conflation · provisional values
           presented too firmly — recalled failure mode, not reconstructed metrics
         </p>
       </div>
-      <div className="flex justify-center text-pine" aria-hidden>
-        ↓ splits into
-      </div>
-      <ul className="grid gap-2 sm:grid-cols-3">
-        {[
-          {
-            title: "Evidence / Science",
-            note: "What sources actually support",
-          },
-          {
-            title: "Model / Assumptions",
-            note: "Ranges, uncertainty, accounting choices",
-          },
-          {
-            title: "Interpretation / Inquiry",
-            note: "AP keeps distinct source authority",
-          },
-        ].map((item) => (
+      <svg
+        viewBox="0 0 120 28"
+        className="mx-auto h-7 w-full max-w-lg text-pine"
+        aria-hidden
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M60 0 V8 M60 8 L20 28 M60 8 L60 28 M60 8 L100 28"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+        />
+      </svg>
+      <p className="sr-only">
+        The unified box splits in parallel into Evidence/Science, Model/Assumptions,
+        and Interpretation/Inquiry.
+      </p>
+      <ul className="grid grid-cols-3 gap-1.5 sm:gap-3">
+        {lanes.map((item) => (
           <li
             key={item.title}
-            className="rounded-md border border-pine/35 bg-paper px-3 py-4 text-center"
+            className="rounded-md border border-pine/35 bg-paper px-1.5 py-3 text-center sm:px-3 sm:py-4"
           >
-            <p className="font-display text-base text-foreground">{item.title}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
+            <p className="font-display text-[0.7rem] leading-snug text-foreground sm:text-base">
+              {item.title}
+            </p>
+            <p className="mt-1.5 text-[0.58rem] leading-snug text-muted-foreground sm:mt-2 sm:text-xs">
+              {item.note}
+            </p>
           </li>
         ))}
       </ul>
@@ -552,20 +650,16 @@ function SecondaryCorrectionsVisual({ items }: { items: readonly string[] }) {
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
         Compact correction markers
       </p>
-      <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+      <ul className="mt-3 grid grid-cols-2 gap-2">
         {items.map((item) => (
           <li
             key={item}
-            className="rounded-sm border border-border bg-background px-3 py-2 text-xs leading-snug text-foreground"
+            className="rounded-sm border border-border bg-background px-2 py-2 text-[0.7rem] leading-snug text-foreground sm:px-3 sm:text-xs"
           >
             {item}
           </li>
         ))}
       </ul>
-      <p className="mt-4 text-xs text-muted-foreground">
-        Antigravity is not part of the main public narrative; optional technical
-        provenance remains in the expandable record below.
-      </p>
     </figure>
   );
 }
@@ -666,10 +760,24 @@ function RecordDisclosure({ moment }: { moment: JourneyMoment }) {
             Inspect the record
           </span>
           <span className="ml-2 text-xs text-muted-foreground">
-            Repository evidence ({count})
+            Classification &amp; sources ({count})
           </span>
         </summary>
         <div className="border-t border-border px-3 py-3">
+          <dl className="mb-4 grid gap-2 text-xs sm:grid-cols-2">
+            <div className="rounded-sm border border-border bg-background px-2 py-2">
+              <dt className="uppercase tracking-[0.12em] text-muted-foreground">
+                Evidence class
+              </dt>
+              <dd className="mt-1 text-foreground">{moment.evidenceClass}</dd>
+            </div>
+            <div className="rounded-sm border border-border bg-background px-2 py-2">
+              <dt className="uppercase tracking-[0.12em] text-muted-foreground">
+                Status
+              </dt>
+              <dd className="mt-1 text-foreground">{moment.status}</dd>
+            </div>
+          </dl>
           <ul className="space-y-2.5 text-sm">
             {primarySources.map((source) => (
               <li key={`${moment.id}-${source.path}`}>

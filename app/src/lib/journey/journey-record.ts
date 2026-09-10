@@ -305,7 +305,7 @@ export const JOURNEY_MILESTONES: readonly JourneyMoment[] = [
     title: "Workstreams split because claims need different authority",
     lead: "Organization separates claim types — it does not validate them.",
     summary:
-      "Approximate early organization: Project HQ → V0 build / Research-Evidence / AP Corpus; V0 build included environmental/empirical and Protect My Four/experience work. Names evolved. Current conceptual structure: Owner → Vision/Direction → HQ → Research & Evidence / AP Framework & Corpus / executors (Cursor/Codex) → integrated PSI. Empirical/science, model/calculator assumptions, AP/philosophical material, and project interpretation remain distinct. Organization itself validates no claim.",
+      "Names evolved from an early HQ / V0-build / Research-Evidence / AP Corpus split. Empirical/science, model/calculator assumptions, AP/philosophical material, and project interpretation remain distinct claim lanes. The visual shows Owner → Vision → HQ branching into parallel workstreams that converge as integrated PSI. Organization itself validates no claim.",
     status: "accepted governance",
     evidenceClass: "REPOSITORY-VERIFIED RECORD",
     visualKind: "authority-lanes",
@@ -404,7 +404,7 @@ export const JOURNEY_MILESTONES: readonly JourneyMoment[] = [
     title: "Engineering self-correction",
     lead: "Secondary moments — useful, not triumphant.",
     summary:
-      "Repository-backed lessons kept as expandable technical records: recover originals rather than reconstruct source packages from summaries; preserve provenance qualifications; refuse unvalidated imports; investigate fixture/environment discrepancies; UNKNOWN ≠ 0; test metadata such as case_id must not control production semantics; tests/contracts cannot create authority absent from domain inputs. Antigravity leaves the main public narrative and remains only in optional technical provenance. These are engineering and governance lessons — not moral triumphs or scientific claims.",
+      "Repository-backed lessons kept as compact correction markers and expandable technical records: recover originals rather than reconstruct source packages from summaries; preserve provenance qualifications; refuse unvalidated imports; investigate fixture/environment discrepancies; UNKNOWN ≠ 0; test metadata such as case_id must not control production semantics; tests/contracts cannot create authority absent from domain inputs. These are engineering and governance lessons — not moral triumphs or scientific claims.",
     status: "accepted correction",
     evidenceClass: "REPOSITORY-VERIFIED RECORD",
     visualKind: "secondary-corrections",

@@ -117,7 +117,7 @@ describe("journey-record curated visual development history", () => {
     );
   });
 
-  it("marks reconstructed visuals and keeps Antigravity out of the main public narrative ids", () => {
+  it("marks reconstructed visuals and keeps Antigravity out of the main public narrative", () => {
     const reconstructed = getJourneyMilestonesInOrder().filter(
       (m) => m.reconstructionLabel,
     );
@@ -126,10 +126,10 @@ describe("journey-record curated visual development history", () => {
       assert.equal(moment.reconstructionLabel, JOURNEY_RECONSTRUCTION_LABEL);
     }
 
-    const publicTitles = getJourneyMilestonesInOrder()
-      .map((m) => `${m.id}\n${m.title}\n${m.lead}`)
+    const publicNarrative = getJourneyMilestonesInOrder()
+      .map((m) => `${m.id}\n${m.title}\n${m.lead}\n${m.summary}`)
       .join("\n");
-    assert.doesNotMatch(publicTitles, /antigravity/i);
+    assert.doesNotMatch(publicNarrative, /antigravity/i);
 
     const corrections = getJourneyMilestonesInOrder().find(
       (m) => m.id === "engineering-self-correction",
@@ -139,7 +139,11 @@ describe("journey-record curated visual development history", () => {
       corrections.sources.some((s) => /ANTIGRAVITY/i.test(s.path)),
       "Antigravity may remain only in expandable technical provenance sources",
     );
-    assert.match(corrections.summary, /Antigravity leaves the main public narrative/i);
+    assert.ok(
+      corrections.sources.some((s) =>
+        /Optional technical provenance/i.test(s.label),
+      ),
+    );
   });
 
   it("carries the empirical-separation notice and does not invent environmental authority", () => {
