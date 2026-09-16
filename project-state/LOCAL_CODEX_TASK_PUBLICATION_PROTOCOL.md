@@ -161,7 +161,7 @@ Every blocked Issue or intentionally unmerged PR on the active product path must
 
 Progress should follow this order unless new evidence creates a real safety, provenance, or semantic ambiguity:
 
-`governed app baseline → executable contract/AP tests → canonical smartphone UX → reusable activity/evidence schema → broader V0 activities → public-beta readiness → public hosting`
+`Journey accepted → AP executable suite → empirical-boundary suite → canonical smartphone UX → integrate smartphone slice into Protect Four site → end-to-end local/staging QA → independent web hosting + public beta → reusable activity/evidence schema → more V0 activities`
 
 HQ must not create another broad governance or validation loop merely because no executor task is ready.
 
