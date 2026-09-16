@@ -103,6 +103,21 @@ The dispatch comment is a wake signal only. Inspect the Issue itself and execute
 
 HQ must not post a duplicate dispatch for the same uninterrupted `READY_FOR_CURSOR` transition. It must not dispatch a task currently marked `IN_PROGRESS`, `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `ACCEPTED`, `RESOLVED`, or `SUPERSEDED`. If HQ legitimately returns a task to `READY_FOR_CURSOR` after a blocked or review state, that new transition requires a new dispatch comment.
 
+### Cursor wake completeness and state reporting
+
+Whenever HQ determines that Cursor must perform any work, HQ must pair the authorized executable cycle with an actual `[CURSOR-DISPATCH]` wake comment. This applies to implementation, review corrections, regression repair, exact-head validation, test execution, rendered inspection, screenshot capture, evidence completion, and any other bounded Cursor action. Updating an Issue to `READY_FOR_CURSOR`, writing instructions, requesting PR changes, or saying that Cursor should continue does not by itself wake Cursor.
+
+Before dispatching, HQ must identify and check the Task ID, Issue, PR, deterministic branch, current head SHA where relevant, named implementation/correction/verification cycle, prior matching dispatches, active-run evidence, and returned results. Post one dispatch only when that exact executable cycle requires Cursor action and no equivalent run is active or complete. Polling an unchanged state never justifies another dispatch. If a matching run is active, HQ records `CURSOR_WORKING / return pending` only when observable. If matching evidence has returned, HQ reconciles it as `RETURNED_FOR_HQ_REVIEW` instead of waking Cursor again.
+
+HQ status reports must distinguish:
+- `READY_FOR_CURSOR`: the Issue gates pass, but no valid wake has yet been posted for the current cycle;
+- `DISPATCHED_TO_CURSOR`: the matching wake comment has been posted;
+- `CURSOR_WORKING / return pending`: an active matching run is observable;
+- `RETURNED_FOR_HQ_REVIEW`: the matching PR/automation result has returned;
+- `ACCEPTED`, `BLOCKED`, or `CHANGES_REQUESTED`: HQ's reviewed disposition.
+
+HQ must never report that it is waiting for Cursor while knowingly leaving the required wake unposted. A PR review requesting changes is review evidence, not a wake event. When HQ expects Cursor to act on that review, it must create or reconcile a bounded `READY_FOR_CURSOR` correction cycle and dispatch it. This wake-completeness rule changes transport only; the Issue remains execution authority and all scope, approval, concurrency, return-channel, and no-self-merge rules continue to apply.
+
 When awakened, Cursor independently fetches and verifies the Issue itself. If every gate still passes, Cursor begins the bounded work using the PR return-channel and idempotency rules below; HQ reconciles Issue state; it must not ask the owner for another go-ahead. If any gate no longer passes, the comment authorizes nothing and Cursor must not execute. Cursor remains prohibited from self-merging.
 
 The durable event-driven sequence is:
