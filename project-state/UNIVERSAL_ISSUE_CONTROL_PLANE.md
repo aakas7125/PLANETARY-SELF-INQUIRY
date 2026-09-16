@@ -118,6 +118,10 @@ HQ status reports must distinguish:
 
 HQ must never report that it is waiting for Cursor while knowingly leaving the required wake unposted. A PR review requesting changes is review evidence, not a wake event. When HQ expects Cursor to act on that review, it must create or reconcile a bounded `READY_FOR_CURSOR` correction cycle and dispatch it. This wake-completeness rule changes transport only; the Issue remains execution authority and all scope, approval, concurrency, return-channel, and no-self-merge rules continue to apply.
 
+A posted wake does not remain conclusive forever when the executor demonstrably did not start. If explicit owner, automation, or runtime evidence establishes non-start and no matching active run or return is observable, HQ may issue one numbered retry for the same bounded cycle. Before retrying, HQ rechecks the Task ID, Issue, PR, branch, head SHA, cycle, prior attempt, and returned evidence; records the non-start basis and next attempt number on the Issue; then posts a fresh `[CURSOR-DISPATCH]`. The retry does not create new scope or repeat completed work. Silence discovered during routine polling alone is insufficient to generate repeated wake attempts.
+
+Whenever Cursor has returned work and HQ determines that more Cursor action is required, HQ must create a named correction or verification cycle and post its dispatch after all gates pass. The returned PR, a changes-requested review, or added Issue instructions do not wake Cursor.
+
 When awakened, Cursor independently fetches and verifies the Issue itself. If every gate still passes, Cursor begins the bounded work using the PR return-channel and idempotency rules below; HQ reconciles Issue state; it must not ask the owner for another go-ahead. If any gate no longer passes, the comment authorizes nothing and Cursor must not execute. Cursor remains prohibited from self-merging.
 
 The durable event-driven sequence is:
