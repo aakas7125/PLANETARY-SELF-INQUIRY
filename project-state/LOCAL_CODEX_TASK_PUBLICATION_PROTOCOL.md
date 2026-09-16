@@ -125,6 +125,21 @@ The dispatch comment is not execution authority. Cursor must use the Issue body 
 
 HQ must not post duplicate dispatch comments for the same uninterrupted ready transition. It must not dispatch tasks in `IN_PROGRESS`, `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `ACCEPTED`, `RESOLVED`, or `SUPERSEDED`. A task deliberately returned to `READY_FOR_CURSOR` after one of those states receives a new dispatch because that is a new executable transition.
 
+### Cursor wake-completeness rule
+
+If HQ expects Cursor to implement, correct, validate, verify, run commands, inspect a render, capture screenshots, complete evidence, or perform another bounded action, the handoff is operationally incomplete until HQ posts a matching `[CURSOR-DISPATCH]` wake comment. `READY_FOR_CURSOR`, Issue instructions, a PR changes-requested review, a named correction or verification cycle, and prose saying Cursor should continue are authority or routing records; none is itself a wake event.
+
+For every proposed wake, HQ checks Task ID, Issue, linked PR, deterministic branch, current head SHA where relevant, named cycle, existing dispatch comments, observable active runs, and returned PR/automation evidence. HQ posts exactly one wake for the current executable cycle. It does not dispatch again because of polling, a stale `READY_FOR_CURSOR` field, or unchanged missing evidence. A matching active run is reconciled as `CURSOR_WORKING / return pending`; a matching completed result is reconciled as `RETURNED_FOR_HQ_REVIEW` and reviewed instead of replayed.
+
+Use these durable distinctions:
+- `READY_FOR_CURSOR`: authorized gates pass; current cycle has not yet been woken;
+- `DISPATCHED_TO_CURSOR`: matching wake posted;
+- `CURSOR_WORKING / return pending`: matching active run is observable;
+- `RETURNED_FOR_HQ_REVIEW`: matching result has returned;
+- `ACCEPTED`, `BLOCKED`, or `CHANGES_REQUESTED`: HQ disposition.
+
+When HQ requests changes and expects Cursor to respond, it must record a bounded correction cycle, restore `READY_FOR_CURSOR` with all gates satisfied, and post the wake. Verification-only and evidence-only returns follow the same rule. HQ must not say it is waiting for Cursor while knowingly omitting the required dispatch. These operational labels do not create authority, alter the Issue's canonical status field, permit duplicate work, or weaken scope, approval, concurrency, PR-return, and no-self-merge requirements.
+
 Cursor remains prohibited from self-merging. Event-driven intake changes latency only; it does not change task authority, workstream boundaries, HQ acceptance, routine-merge gates, or owner control.
 
 An existing hourly Cursor intake may remain temporarily as recovery. Event-driven execution must not depend on it. After one complete real dispatch-to-result cycle is verified, retirement of the hourly Cursor poll is a separate administrative action.
