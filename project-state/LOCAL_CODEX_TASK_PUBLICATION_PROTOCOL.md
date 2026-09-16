@@ -140,6 +140,10 @@ Use these durable distinctions:
 
 When HQ requests changes and expects Cursor to respond, it must record a bounded correction cycle, restore `READY_FOR_CURSOR` with all gates satisfied, and post the wake. Verification-only and evidence-only returns follow the same rule. HQ must not say it is waiting for Cursor while knowingly omitting the required dispatch. These operational labels do not create authority, alter the Issue's canonical status field, permit duplicate work, or weaken scope, approval, concurrency, PR-return, and no-self-merge requirements.
 
+If a matching wake was posted but explicit owner, automation, or runtime evidence shows that Cursor did not start, and no matching active run or returned result is observable, HQ may post a numbered retry for that same bounded cycle. HQ first records the non-start evidence and retry attempt on the Issue and rechecks Task ID, Issue, PR, deterministic branch, head SHA, cycle, prior dispatch, and return state. A retry wakes the existing authority; it does not expand scope, create another task, or authorize repetition of completed work. Routine polling silence alone must not cause recurring retries.
+
+Whenever Cursor submits a result and HQ finds that Cursor must do more work, HQ records a new named correction or verification cycle and posts `[CURSOR-DISPATCH]` for it once the gates pass. Updating the Issue or requesting PR changes without the wake leaves that follow-up operationally undispatched.
+
 Cursor remains prohibited from self-merging. Event-driven intake changes latency only; it does not change task authority, workstream boundaries, HQ acceptance, routine-merge gates, or owner control.
 
 An existing hourly Cursor intake may remain temporarily as recovery. Event-driven execution must not depend on it. After one complete real dispatch-to-result cycle is verified, retirement of the hourly Cursor poll is a separate administrative action.
