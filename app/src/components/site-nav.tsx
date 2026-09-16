@@ -27,8 +27,8 @@ export function SiteNav() {
           : "border-transparent bg-background/70",
       )}
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:h-16 sm:px-6">
-        <a href="/#top" className="flex items-center gap-2.5 text-foreground">
+      <div className="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-2 gap-y-1 px-4 py-2 sm:h-16 sm:flex-nowrap sm:gap-4 sm:px-6 sm:py-0">
+        <a href="/#top" className="flex shrink-0 items-center gap-2.5 text-foreground">
           <span className="relative flex size-7 items-center justify-center" aria-hidden>
             <span className="absolute inset-0 rounded-full border border-primary/40" />
             <span className="grid grid-cols-2 gap-0.5">
@@ -40,7 +40,10 @@ export function SiteNav() {
           </span>
           <span className="font-display text-base tracking-tight sm:text-lg">Protect Four</span>
         </a>
-        <nav className="flex items-center gap-1 sm:gap-2" aria-label="Sections">
+        <nav
+          className="flex min-w-0 flex-wrap items-center justify-end gap-x-1 gap-y-0 sm:gap-2"
+          aria-label="Sections"
+        >
           {sectionLinks.map((l) => (
             <a
               key={l.href}
