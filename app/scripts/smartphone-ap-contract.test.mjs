@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  AP_ANSWER_CORE_FIELDS,
   AP_INQUIRY_SEQUENCE,
   DERIVATION_EXPLICIT,
   DERIVATION_UNCLEAR,
   INTERACTION_VERSION,
+  LITERAL_FIELDS_BY_QUESTION,
   PROHIBITED_MOTIVE_SCORE_KEYS,
   PROVISIONAL_CHOICES,
+  SELF_REPORTED_SHIFT_VALUES,
   assessInquiryAutonomy,
   behaviouralExperimentRequired,
   buildApInquirySession,
@@ -15,6 +18,7 @@ import {
   getApInquirySequence,
   getProvisionalChoices,
   resolveDerivedObservation,
+  resolveSelfReportedShift,
 } from "../src/lib/smartphone/ap-inquiry.mjs";
 
 const AUTHORIZED_QUESTION_IDS = [
@@ -292,6 +296,133 @@ test("INV-AP-16: no behavioural experiment is required before proceeding", () =>
   assert.equal(Object.hasOwn(session, "must_stop_advertising"), false);
   assert.equal(Object.hasOwn(session, "must_stop_social_media"), false);
   assert.equal(Object.hasOwn(session, "must_stop_shopping"), false);
+});
+
+test("CORRECTION-2: literal_fields cannot overwrite core fields or attach non-allowlisted keys", () => {
+  const raw =
+    "My current phone cannot run the navigation app offline for field work.";
+  const span = "cannot run the navigation app offline";
+  const record = createApAnswerRecord({
+    question_id: "APQ1_FUNCTION",
+    exact_user_answer: raw,
+    proposed_observation: {
+      proposed_value: "concrete_limitation_stated",
+      supporting_exact_span: span,
+    },
+    literal_fields: {
+      // Attempt to overwrite authoritative/core fields with answer substrings.
+      exact_user_answer: "cannot run the navigation app offline",
+      question_id: "cannot run",
+      interaction_version: "offline",
+      question_version: "field work",
+      exact_question_text: "navigation app",
+      derived_observations: "for field work",
+      // Prohibited score-shaped and non-allowlisted keys.
+      ego_score: "offline",
+      greed_score: "field work",
+      planetary_concern_score: "navigation",
+      invented_motive_tag: "cannot run",
+      // Contract-backed Q1 optional literal (must remain attachable).
+      functional_limitation_text: "cannot run the navigation app offline",
+    },
+  });
+
+  assert.equal(record.exact_user_answer, raw);
+  assert.equal(record.question_id, "APQ1_FUNCTION");
+  assert.equal(record.interaction_version, INTERACTION_VERSION);
+  assert.equal(record.question_version, "1.0");
+  assert.equal(
+    record.exact_question_text,
+    EXACT_QUESTION_TEXT.APQ1_FUNCTION,
+  );
+  assert.equal(Array.isArray(record.derived_observations), true);
+  assert.equal(record.derived_observations[0].value, "concrete_limitation_stated");
+  assert.equal(
+    record.functional_limitation_text,
+    "cannot run the navigation app offline",
+  );
+  assert.equal(Object.hasOwn(record, "ego_score"), false);
+  assert.equal(Object.hasOwn(record, "greed_score"), false);
+  assert.equal(Object.hasOwn(record, "planetary_concern_score"), false);
+  assert.equal(Object.hasOwn(record, "invented_motive_tag"), false);
+  assert.deepEqual(findProhibitedMotiveScores(record), []);
+
+  // Q4 allowlist accepts visibility_meaning_text only among optional literals.
+  const q4Answer =
+    "Wanting would be unchanged because the phone is for maps, not display.";
+  const q4 = createApAnswerRecord({
+    question_id: "APQ4_VISIBILITY",
+    exact_user_answer: q4Answer,
+    proposed_observation: {
+      proposed_value: "unchanged",
+      supporting_exact_span: "unchanged",
+    },
+    literal_fields: {
+      visibility_meaning_text: "the phone is for maps, not display",
+      functional_limitation_text: "for maps",
+      exact_user_answer: "unchanged",
+      fear_score: "not display",
+    },
+  });
+  assert.equal(q4.exact_user_answer, q4Answer);
+  assert.equal(
+    q4.visibility_meaning_text,
+    "the phone is for maps, not display",
+  );
+  assert.equal(Object.hasOwn(q4, "functional_limitation_text"), false);
+  assert.equal(Object.hasOwn(q4, "fear_score"), false);
+  assert.deepEqual(LITERAL_FIELDS_BY_QUESTION.APQ1_FUNCTION, [
+    "functional_limitation_text",
+  ]);
+  assert.deepEqual(LITERAL_FIELDS_BY_QUESTION.APQ4_VISIBILITY, [
+    "visibility_meaning_text",
+  ]);
+  for (const core of AP_ANSWER_CORE_FIELDS) {
+    assert.equal(LITERAL_FIELDS_BY_QUESTION.APQ1_FUNCTION.includes(core), false);
+  }
+});
+
+test("CORRECTION-2: self_reported_shift is constrained; unsupported values become unclear", () => {
+  assert.deepEqual(SELF_REPORTED_SHIFT_VALUES, [
+    "changed",
+    "unchanged",
+    "uncertain",
+    "unclear",
+  ]);
+  for (const allowed of SELF_REPORTED_SHIFT_VALUES) {
+    assert.equal(resolveSelfReportedShift(allowed), allowed);
+  }
+  assert.equal(resolveSelfReportedShift("mostly_changed"), "unclear");
+  assert.equal(resolveSelfReportedShift("ego_deflated"), "unclear");
+  assert.equal(resolveSelfReportedShift(""), "unclear");
+  assert.equal(resolveSelfReportedShift(null), "unclear");
+  assert.equal(resolveSelfReportedShift(undefined), "unclear");
+
+  const unsupportedSession = buildApInquirySession({
+    APQ6_RESEE: {
+      exact_user_answer: "Buying new still seems appropriate.",
+      proposed_observation: {
+        proposed_value: "buy_new",
+        supporting_exact_span: "Buying new still seems appropriate",
+      },
+      self_reported_shift: "mostly_changed",
+    },
+  });
+  assert.equal(unsupportedSession.self_reported_shift, "unclear");
+  assert.equal(unsupportedSession.provisional_choice, "buy_new");
+  assert.equal(unsupportedSession.inquiry_failed, false);
+
+  const allowedSession = buildApInquirySession({
+    APQ6_RESEE: {
+      exact_user_answer: "Something looks different now.",
+      proposed_observation: {
+        proposed_value: "investigate_further",
+        supporting_exact_span: "Something looks different",
+      },
+      self_reported_shift: "changed",
+    },
+  });
+  assert.equal(allowedSession.self_reported_shift, "changed");
 });
 
 test("session assembly preserves order and raw answers across all six questions", () => {

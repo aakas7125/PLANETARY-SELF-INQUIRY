@@ -37,6 +37,42 @@ export const PROVISIONAL_CHOICES = Object.freeze([
   "unclear",
 ]);
 
+/** Accepted Q6 self_reported_shift values from AP_INTERACTION_V0. */
+export const SELF_REPORTED_SHIFT_VALUES = Object.freeze([
+  "changed",
+  "unchanged",
+  "uncertain",
+  "unclear",
+]);
+
+/**
+ * Core/schema fields on ap_answer_record. Never writable via literal_fields.
+ * Authority: contracts/AP_INTERACTION_V0.md §3.
+ */
+export const AP_ANSWER_CORE_FIELDS = Object.freeze([
+  "interaction_version",
+  "question_id",
+  "question_version",
+  "exact_question_text",
+  "exact_user_answer",
+  "derived_observations",
+]);
+
+/**
+ * Question-specific optional literal fields authorized by AP_INTERACTION_V0.
+ * Enum observations travel through derived_observations, not literal_fields.
+ *
+ * @type {Readonly<Record<string, readonly string[]>>}
+ */
+export const LITERAL_FIELDS_BY_QUESTION = Object.freeze({
+  APQ1_FUNCTION: Object.freeze(["functional_limitation_text"]),
+  APQ2_EXPECTATION: Object.freeze(/** @type {string[]} */ ([])),
+  APQ3_ORIGIN: Object.freeze(/** @type {string[]} */ ([])),
+  APQ4_VISIBILITY: Object.freeze(["visibility_meaning_text"]),
+  APQ5_NONPURCHASE: Object.freeze(/** @type {string[]} */ ([])),
+  APQ6_RESEE: Object.freeze(/** @type {string[]} */ ([])),
+});
+
 const QUESTION_VERSION = "1.0";
 
 /**
@@ -307,8 +343,17 @@ export function createApAnswerRecord(input) {
     derived_observations: Object.freeze([derived]),
   };
 
+  const allowedLiteralKeys =
+    LITERAL_FIELDS_BY_QUESTION[question.question_id] ?? Object.freeze([]);
+
   if (input.literal_fields && typeof input.literal_fields === "object") {
     for (const [key, value] of Object.entries(input.literal_fields)) {
+      if (AP_ANSWER_CORE_FIELDS.includes(key)) {
+        continue;
+      }
+      if (!allowedLiteralKeys.includes(key)) {
+        continue;
+      }
       if (isNonEmptyString(value) && exactUserAnswer.includes(value)) {
         record[key] = value;
       }
@@ -316,6 +361,27 @@ export function createApAnswerRecord(input) {
   }
 
   return Object.freeze(record);
+}
+
+/**
+ * @typedef {"changed" | "unchanged" | "uncertain" | "unclear"} SelfReportedShift
+ */
+
+/**
+ * Constrain Q6 self_reported_shift to the accepted enum.
+ * Unsupported or missing values resolve to unclear without inference.
+ *
+ * @param {unknown} value
+ * @returns {SelfReportedShift}
+ */
+export function resolveSelfReportedShift(value) {
+  if (
+    isNonEmptyString(value) &&
+    /** @type {readonly string[]} */ (SELF_REPORTED_SHIFT_VALUES).includes(value)
+  ) {
+    return /** @type {SelfReportedShift} */ (value);
+  }
+  return "unclear";
 }
 
 /**
@@ -350,9 +416,7 @@ export function buildApInquirySession(answersByQuestionId = {}) {
   const q6 = answersByQuestionId.APQ6_RESEE;
   const provisionalChoiceObservation = answerRecords[5].derived_observations[0];
   const provisionalChoice = provisionalChoiceObservation.value;
-  const selfReportedShift = isNonEmptyString(q6?.self_reported_shift)
-    ? q6.self_reported_shift
-    : "unclear";
+  const selfReportedShift = resolveSelfReportedShift(q6?.self_reported_shift);
 
   return Object.freeze({
     interaction_version: INTERACTION_VERSION,
