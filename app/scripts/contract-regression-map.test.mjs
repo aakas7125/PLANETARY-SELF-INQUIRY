@@ -275,7 +275,10 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
 
   assert.deepEqual(coveredApIds, expectedCoveredApIds);
   assert.deepEqual(remainingApInvariantIds, []);
-  const expectedCoveredEmpiricalIds = ["SP-PATH-CLIMATE-001"];
+  const expectedCoveredEmpiricalIds = [
+    "SP-PATH-CLIMATE-001",
+    "SP-PATH-MINING-ECO-001",
+  ];
   const coveredEmpiricalIds = mapping
     .filter(
       (row) =>
@@ -290,7 +293,6 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     .map((row) => row.id);
   assert.deepEqual(coveredEmpiricalIds, expectedCoveredEmpiricalIds);
   assert.deepEqual(remainingEmpiricalIds, [
-    "SP-PATH-MINING-ECO-001",
     "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",

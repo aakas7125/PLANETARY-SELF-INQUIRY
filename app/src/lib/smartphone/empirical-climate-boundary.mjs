@@ -32,9 +32,11 @@ export const ATTRIBUTION_PRESSURE_TO_OUTCOME = "pressure_to_outcome";
 export const PATHWAY_KIND_CONDITIONAL_PRESSURE_TO_OUTCOME =
   "conditional_pressure_to_outcome_pathway";
 
-/** Pathway IDs kept pending by HQ for later empirical slices. */
+/**
+ * Pathway IDs kept pending by HQ for later empirical slices.
+ * `SP-PATH-MINING-ECO-001` is covered by the mining-eco boundary module.
+ */
 export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([
-  "SP-PATH-MINING-ECO-001",
   "SP-PATH-MINING-PEOPLE-001",
   "SP-PATH-EWASTE-PEOPLE-001",
   "SP-PATH-EWASTE-ECO-001",

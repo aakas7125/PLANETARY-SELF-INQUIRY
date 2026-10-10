@@ -226,8 +226,9 @@ const EXECUTED_SECONDARY_IDS = new Set([
  * AP inquiry foundation + branch/reflection + Source Lens authority gate +
  * evidence-gated otherness / Protect My Four / licensing / historical pin:
  * exact six-question sequence plus INV-AP-01–20.
- * Empirical climate pathway boundary (`SP-PATH-CLIMATE-001`) is covered;
- * remaining five SP-PATH-* IDs stay mapped gaps until later slices.
+ * Empirical climate pathway boundary (`SP-PATH-CLIMATE-001`) and mining-
+ * ecosystem pathway (`SP-PATH-MINING-ECO-001`) are covered; remaining four
+ * SP-PATH-* IDs stay mapped gaps until later slices.
  */
 const EXECUTED_AP_IDS = new Set([
   "APQ1_FUNCTION",
@@ -259,7 +260,10 @@ const EXECUTED_AP_IDS = new Set([
 ]);
 
 /** Empirical claim IDs with direct executing assertions in this repository. */
-const EXECUTED_EMPIRICAL_IDS = new Set(["SP-PATH-CLIMATE-001"]);
+const EXECUTED_EMPIRICAL_IDS = new Set([
+  "SP-PATH-CLIMATE-001",
+  "SP-PATH-MINING-ECO-001",
+]);
 
 const SOURCES = {
   inputPackage:
