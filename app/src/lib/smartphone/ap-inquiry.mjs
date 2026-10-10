@@ -1,15 +1,17 @@
 /**
- * AP inquiry executable foundation for the six-question sequence and
- * raw-answer / unclear / autonomy safety layer.
+ * AP inquiry executable foundation for the six-question sequence,
+ * raw-answer / unclear / autonomy safety layer, deterministic presentation
+ * branches, and constrained reflection.
  *
  * Authority: contracts/AP_INTERACTION_V0.md,
  * tests/ap-integrity/AP_V0_INVARIANTS.md,
  * provenance/source-packages/AP-V0-INTERACTION-0.2.0.md.
  *
- * This slice covers APQ1–APQ6 and INV-AP-01, 02, 03, 04, 12, 16 only.
- * Branch selection, constrained reflection, Source Lens, and otherness
- * remain out of scope.
+ * Covered: APQ1–APQ6 and INV-AP-01–04, 05–11, 12, 13, 16.
+ * Source Lens, otherness, and empirical-boundary remain out of scope.
  */
+
+import { buildApBranchReflection } from "./ap-branch-reflection.mjs";
 
 export const INTERACTION_VERSION = "AP-V0-INTERACTION-0.2.0";
 
@@ -418,19 +420,31 @@ export function buildApInquirySession(answersByQuestionId = {}) {
   const provisionalChoice = provisionalChoiceObservation.value;
   const selfReportedShift = resolveSelfReportedShift(q6?.self_reported_shift);
 
+  const frozenRecords = Object.freeze(answerRecords);
+  const branchReflection = buildApBranchReflection({
+    answer_records: frozenRecords,
+    provisional_choices: PROVISIONAL_CHOICES,
+  });
+
   return Object.freeze({
     interaction_version: INTERACTION_VERSION,
     question_order: Object.freeze(
       AP_INQUIRY_SEQUENCE.map((question) => question.question_id),
     ),
     questions: AP_INQUIRY_SEQUENCE,
-    answer_records: Object.freeze(answerRecords),
+    answer_records: frozenRecords,
     provisional_choices: PROVISIONAL_CHOICES,
     provisional_choice: provisionalChoice,
     self_reported_shift: selfReportedShift,
     // Provisional choices never mark inquiry failure, including buy_new.
     inquiry_failed: false,
     behavioural_experiment_required: behaviouralExperimentRequired(),
+    // Deterministic presentation branch + constrained reflection (no Source Lens).
+    presentation_branch: branchReflection.primary_branch,
+    branch_flags: branchReflection.flags,
+    branch_precedence: branchReflection.branch_precedence,
+    retained_for_juxtaposition: branchReflection.retained_for_juxtaposition,
+    reflection: branchReflection.reflection,
     // Autonomy / safety foundation: no motive scores are computed or attached.
   });
 }
