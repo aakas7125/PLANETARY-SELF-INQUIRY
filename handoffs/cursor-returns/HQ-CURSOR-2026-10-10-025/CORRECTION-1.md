@@ -19,7 +19,7 @@ implementation-semantic change beyond the already-validated correction head.
 - INITIAL-1 base main SHA (Issue record): `2ad5512af0af57009bc06038589f5bcfe803d035`
 - Prior reviewed head: `f067df304887c87c5d19a45e462636b16f3872d2`
 - VALIDATED_IMPLEMENTATION_HEAD: `06f5267b0e3897436b180ac12addef50e7e9a5ba`
-- EVIDENCE_RETURN_HEAD: `7747b4fd78453a54623ae665ee11cddf0ca264b6`
+- EVIDENCE_RETURN_HEAD: the git commit that contains only this transport artifact (reported exactly in the Cursor executor return; not embedded here to avoid self-hash churn)
 
 ## Correction implemented
 
