@@ -222,6 +222,25 @@ const EXECUTED_SECONDARY_IDS = new Set([
   "A-SEC-GLOBAL-08",
 ]);
 
+/**
+ * AP inquiry foundation slice: exact six-question sequence plus
+ * INV-AP-01, 02, 03, 04, 12, 16. Remaining INV-AP-* stay gapped.
+ */
+const EXECUTED_AP_IDS = new Set([
+  "APQ1_FUNCTION",
+  "APQ2_EXPECTATION",
+  "APQ3_ORIGIN",
+  "APQ4_VISIBILITY",
+  "APQ5_NONPURCHASE",
+  "APQ6_RESEE",
+  "INV-AP-01",
+  "INV-AP-02",
+  "INV-AP-03",
+  "INV-AP-04",
+  "INV-AP-12",
+  "INV-AP-16",
+]);
+
 const SOURCES = {
   inputPackage:
     "provenance/source-packages/R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0.json",
@@ -308,6 +327,8 @@ export function buildContractRegressionMap() {
     EXECUTED_INPUT_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
   const secondaryStatus = (id) =>
     EXECUTED_SECONDARY_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
+  const apStatus = (id) =>
+    EXECUTED_AP_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
 
   return [
     ...rowsFor(inputCaseIds, "input", "positive", TARGETS.input, SOURCES.inputPackage, inputStatus),
@@ -332,13 +353,14 @@ export function buildContractRegressionMap() {
       SOURCES.secondaryPackage,
       secondaryStatus,
     ),
-    ...rowsFor(apQuestionIds, "ap", "positive", TARGETS.ap, SOURCES.apContract),
+    ...rowsFor(apQuestionIds, "ap", "positive", TARGETS.ap, SOURCES.apContract, apStatus),
     ...rowsFor(
       apInvariantIds,
       "ap",
       "positive_and_prohibition",
       TARGETS.ap,
       SOURCES.apInvariants,
+      apStatus,
     ),
     ...rowsFor(
       empiricalClaimIds,

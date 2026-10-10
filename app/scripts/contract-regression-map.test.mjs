@@ -231,25 +231,71 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   assert.deepEqual(remainingSecondaryCases, []);
   assert.deepEqual(secondaryGlobalIds, expectedSecondaryGlobals);
   assert.deepEqual(remainingSecondaryGlobals, []);
+  const expectedCoveredApIds = [
+    "APQ1_FUNCTION",
+    "APQ2_EXPECTATION",
+    "APQ3_ORIGIN",
+    "APQ4_VISIBILITY",
+    "APQ5_NONPURCHASE",
+    "APQ6_RESEE",
+    "INV-AP-01",
+    "INV-AP-02",
+    "INV-AP-03",
+    "INV-AP-04",
+    "INV-AP-12",
+    "INV-AP-16",
+  ];
+  const coveredApIds = mapping
+    .filter(
+      (row) => row.domain === "ap" && row.status === EXECUTING_ASSERTION_COVERAGE,
+    )
+    .map((row) => row.id);
+  const remainingApInvariantIds = mapping
+    .filter(
+      (row) =>
+        row.domain === "ap" &&
+        row.id.startsWith("INV-AP-") &&
+        row.status === IMPLEMENTATION_GAP,
+    )
+    .map((row) => row.id);
+
+  assert.deepEqual(coveredApIds, expectedCoveredApIds);
+  assert.deepEqual(remainingApInvariantIds, [
+    "INV-AP-05",
+    "INV-AP-06",
+    "INV-AP-07",
+    "INV-AP-08",
+    "INV-AP-09",
+    "INV-AP-10",
+    "INV-AP-11",
+    "INV-AP-13",
+    "INV-AP-14",
+    "INV-AP-15",
+    "INV-AP-17",
+    "INV-AP-18",
+    "INV-AP-19",
+    "INV-AP-20",
+  ]);
   assert.ok(
     mapping
       .filter(
         (row) =>
           !(row.domain === "input" && expectedCoveredInputIds.includes(row.id)) &&
-          !(row.domain === "secondary" && expectedCoveredSecondaryIds.includes(row.id)),
+          !(row.domain === "secondary" && expectedCoveredSecondaryIds.includes(row.id)) &&
+          !(row.domain === "ap" && expectedCoveredApIds.includes(row.id)),
       )
       .every((row) => row.status === IMPLEMENTATION_GAP),
   );
   assert.deepEqual(plannedTestTargets(), [
     { target: "scripts/smartphone-input-contract.test.mjs", exists: true },
     { target: "scripts/smartphone-secondary-contract.test.mjs", exists: true },
-    { target: "scripts/smartphone-ap-contract.test.mjs", exists: false },
+    { target: "scripts/smartphone-ap-contract.test.mjs", exists: true },
     { target: "scripts/smartphone-empirical-boundary.test.mjs", exists: false },
   ]);
 });
 
 test.todo(
-  "implement the mapped AP interaction behavior suite (APQ1–APQ6 and INV-AP-01–INV-AP-20)",
+  "implement remaining AP interaction behavior (INV-AP-05–INV-AP-11, INV-AP-13–INV-AP-15, INV-AP-17–INV-AP-20: branch selection, constrained reflection, Source Lens, otherness)",
 );
 test.todo(
   "implement the mapped empirical boundary suite (SP-PATH-CLIMATE-001 through SP-PATH-WATER-001)",
