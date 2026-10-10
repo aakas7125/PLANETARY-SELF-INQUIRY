@@ -8,7 +8,9 @@
  * provenance/source-packages/AP-V0-INTERACTION-0.2.0.md.
  *
  * Covered: APQ1–APQ6 and INV-AP-01–04, 05–11, 12, 13, 16.
- * Source Lens, otherness, and empirical-boundary remain out of scope.
+ * Source Lens authority gating (INV-AP-14/15) lives in ap-source-lens.mjs
+ * and is not emitted into reflections here.
+ * Otherness and empirical-boundary remain out of scope.
  */
 
 import { buildApBranchReflection } from "./ap-branch-reflection.mjs";
