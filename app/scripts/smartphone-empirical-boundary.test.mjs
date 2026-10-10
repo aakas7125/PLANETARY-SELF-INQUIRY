@@ -46,6 +46,21 @@ import {
   validateMiningPeopleClaimAuthorityRecord,
   validateMiningPeopleSourceRecords,
 } from "../src/lib/smartphone/empirical-mining-people-boundary.mjs";
+import {
+  ACCEPTED_EWASTE_PEOPLE_CLAIM,
+  ACCEPTED_EWASTE_PEOPLE_SOURCES,
+  ATTRIBUTION_CONDITIONAL_PATHWAY as EWASTE_PEOPLE_ATTRIBUTION,
+  EWASTE_PEOPLE_CLAIM_ID,
+  EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT,
+  EWASTE_PEOPLE_PATHWAY_REASON,
+  NON_ESTABLISHING_OLD_DEVICE_FATES,
+  PACKAGE_PROVENANCE as EWASTE_PEOPLE_PACKAGE_PROVENANCE,
+  PATHWAY_KIND_QUALITATIVE_CONDITIONAL as EWASTE_PEOPLE_PATHWAY_KIND,
+  PENDING_EMPIRICAL_PATHWAY_IDS as EWASTE_PEOPLE_PENDING_IDS,
+  resolveEwastePeoplePathwayBoundary,
+  validateEwastePeopleClaimAuthorityRecord,
+  validateEwastePeopleSourceRecords,
+} from "../src/lib/smartphone/empirical-ewaste-people-boundary.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = resolve(scriptsDirectory, "../..");
@@ -1859,4 +1874,831 @@ test("existing climate and mining-eco emission remain unchanged beside mining-pe
   assert.equal(miningPeople.pathway.status, "QUALITATIVE");
   assert.equal(miningPeople.pathway.unit, null);
   assert.equal(miningPeople.pathway.confidence, "moderate");
+});
+
+function validEwastePeopleRequest(overrides = {}) {
+  return {
+    claim_id: EWASTE_PEOPLE_CLAIM_ID,
+    claim_version: EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT,
+    requested_output: EWASTE_PEOPLE_PATHWAY_KIND,
+    unsafe_or_informal_handling_established: true,
+    ...overrides,
+  };
+}
+
+test("frozen e-waste-people claim matches evidence/CLAIM_REGISTRY.json exactly", () => {
+  const registry = readJson("evidence/CLAIM_REGISTRY.json");
+  const fromRegistry = registry.find(
+    (row) => row.claim_id === EWASTE_PEOPLE_CLAIM_ID,
+  );
+  assert.ok(fromRegistry, "SP-PATH-EWASTE-PEOPLE-001 must exist in claim registry");
+  assert.deepEqual(
+    {
+      claim_id: fromRegistry.claim_id,
+      package_commit: fromRegistry.package_commit,
+      package_provenance: fromRegistry.package_provenance,
+      statement: fromRegistry.statement,
+      evidence_domain: fromRegistry.evidence_domain,
+      confidence: fromRegistry.confidence,
+      attribution_status: fromRegistry.attribution_status,
+      evidence_scope: fromRegistry.evidence_scope,
+      status: fromRegistry.status,
+      conditions: fromRegistry.conditions,
+      source_ids: fromRegistry.source_ids,
+    },
+    { ...ACCEPTED_EWASTE_PEOPLE_CLAIM },
+  );
+});
+
+test("frozen e-waste-people source matches evidence/SOURCE_REGISTRY.json for S11", () => {
+  const registry = readJson("evidence/SOURCE_REGISTRY.json");
+  const fromRegistry = registry.find((row) => row.source_id === "S11");
+  assert.ok(fromRegistry, "S11 must exist in source registry");
+  assert.deepEqual(
+    {
+      source_id: fromRegistry.source_id,
+      package_commit: fromRegistry.package_commit,
+      package_provenance: fromRegistry.package_provenance,
+      citation: fromRegistry.citation,
+      scope: fromRegistry.scope,
+      metadata_limit: fromRegistry.metadata_limit,
+    },
+    { ...ACCEPTED_EWASTE_PEOPLE_SOURCES.S11 },
+  );
+});
+
+test("SP-PATH-EWASTE-PEOPLE-001 emits conditional pathway with preserved authority", () => {
+  const byParts = resolveEwastePeoplePathwayBoundary(validEwastePeopleRequest());
+  const byRef = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      claim_id: undefined,
+      claim_version: undefined,
+      claim_ref: `${EWASTE_PEOPLE_CLAIM_ID}@${EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT}`,
+    }),
+  );
+
+  for (const decision of [byParts, byRef]) {
+    assert.equal(decision.emitted, true);
+    assert.equal(decision.reason_code, null);
+    assert.equal(decision.claim_id, EWASTE_PEOPLE_CLAIM_ID);
+    assert.equal(decision.claim_version, EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT);
+    assert.equal(
+      decision.claim_ref,
+      `${EWASTE_PEOPLE_CLAIM_ID}@${EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT}`,
+    );
+    assert.ok(decision.pathway);
+    assert.equal(decision.pathway.pathway_kind, EWASTE_PEOPLE_PATHWAY_KIND);
+    assert.equal(
+      decision.pathway.statement,
+      ACCEPTED_EWASTE_PEOPLE_CLAIM.statement,
+    );
+    assert.deepEqual(
+      decision.pathway.evidence_domain,
+      ACCEPTED_EWASTE_PEOPLE_CLAIM.evidence_domain,
+    );
+    assert.deepEqual(
+      decision.pathway.evidence_scope,
+      ACCEPTED_EWASTE_PEOPLE_CLAIM.evidence_scope,
+    );
+    assert.equal(decision.pathway.confidence, "high");
+    assert.equal(decision.pathway.attribution_status, EWASTE_PEOPLE_ATTRIBUTION);
+    assert.deepEqual(
+      decision.pathway.conditions,
+      ACCEPTED_EWASTE_PEOPLE_CLAIM.conditions,
+    );
+    assert.deepEqual(
+      decision.pathway.major_assumptions,
+      ACCEPTED_EWASTE_PEOPLE_CLAIM.conditions,
+    );
+    assert.equal(decision.pathway.status, "APPROVED");
+    assert.equal(
+      decision.pathway.package_provenance,
+      EWASTE_PEOPLE_PACKAGE_PROVENANCE,
+    );
+    assert.equal(decision.pathway.quantitative_value, null);
+    assert.equal(decision.pathway.value_range, null);
+    assert.equal(decision.pathway.unit, null);
+    assert.equal(decision.pathway.metric, null);
+    assert.equal(decision.pathway.exposure, null);
+    assert.equal(decision.pathway.dose, null);
+    assert.equal(decision.pathway.burden, null);
+    assert.equal(decision.pathway.risk, null);
+    assert.equal(decision.pathway.illness_count, null);
+    assert.equal(decision.pathway.injury_count, null);
+    assert.equal(decision.pathway.death_count, null);
+    assert.equal(decision.pathway.victim_count, null);
+    assert.equal(decision.pathway.location, null);
+    assert.equal(decision.pathway.probability, null);
+    assert.equal(decision.pathway.collection_rate, null);
+    assert.equal(decision.pathway.model_specific_or_fallback_status, null);
+    assert.deepEqual(decision.pathway.source_ids, ["S11"]);
+    assert.equal(decision.pathway.sources.length, 1);
+    assert.equal(
+      decision.pathway.sources[0].citation,
+      ACCEPTED_EWASTE_PEOPLE_SOURCES.S11.citation,
+    );
+    assert.equal(decision.exposure, null);
+    assert.equal(decision.victim_count, null);
+    assert.equal(decision.collection_rate, null);
+    assert.equal(decision.unified_score, null);
+    assert.equal(decision.exact_individual_damage, null);
+    assert.equal(decision.exact_community_damage, null);
+    assert.equal(decision.named_target_attribution, null);
+    assert.equal(decision.device_person_attribution, null);
+    assert.equal(decision.quantitative_value, null);
+    assert.ok(decision.pathway.attribution_limits.includes("conditional_pathway"));
+    assert.ok(
+      decision.pathway.attribution_limits.includes(
+        "authoritative_assessment_scope_preserved",
+      ),
+    );
+    assert.equal(JSON.stringify(decision).includes("formal_recycling"), false);
+  }
+});
+
+test("e-waste-people missing, malformed, unknown and conflicting claim identity/version are denied", () => {
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary({
+      unsafe_or_informal_handling_established: true,
+    }).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_CLAIM_IDENTITY,
+  );
+
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary({
+      claim_id: EWASTE_PEOPLE_CLAIM_ID,
+      unsafe_or_informal_handling_established: true,
+    }).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_CLAIM_VERSION,
+  );
+
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ claim_id: "SP-PATH-UNKNOWN-999" }),
+    ).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.UNKNOWN_CLAIM,
+  );
+
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ claim_id: "not a claim" }),
+    ).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MALFORMED_CLAIM_IDENTITY,
+  );
+
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ claim_version: "wrong-commit" }),
+    ).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.WRONG_CLAIM_VERSION,
+  );
+
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({
+        claim_ref: `${EWASTE_PEOPLE_CLAIM_ID}@${EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT}`,
+        claim_id: "SP-PATH-CLIMATE-001",
+      }),
+    ).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.CONFLICTING_CLAIM_REPRESENTATION,
+  );
+});
+
+test("pending empirical pathway IDs remain non-emitting in the e-waste-people slice", () => {
+  assert.deepEqual(EWASTE_PEOPLE_PENDING_IDS, [
+    "SP-PATH-EWASTE-ECO-001",
+    "SP-PATH-WATER-001",
+  ]);
+  for (const claimId of EWASTE_PEOPLE_PENDING_IDS) {
+    const decision = resolveEwastePeoplePathwayBoundary({
+      claim_id: claimId,
+      claim_version: EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT,
+      unsafe_or_informal_handling_established: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.PATHWAY_NOT_IN_AUTHORIZED_SLICE,
+    );
+    assert.equal(decision.pathway, null);
+  }
+
+  for (const claimId of [
+    CLIMATE_CLAIM_ID,
+    MINING_ECO_CLAIM_ID,
+    MINING_PEOPLE_CLAIM_ID,
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary({
+      claim_id: claimId,
+      claim_version: EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT,
+      unsafe_or_informal_handling_established: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(decision.reason_code, EWASTE_PEOPLE_PATHWAY_REASON.UNKNOWN_CLAIM);
+  }
+});
+
+test("e-waste-people missing required claim/source/scope/condition/attribution metadata fails closed", () => {
+  const missingStatement = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_PEOPLE_CLAIM,
+        statement: "",
+      },
+    }),
+  );
+  assert.equal(missingStatement.emitted, false);
+  assert.equal(
+    missingStatement.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_CLAIM_METADATA,
+  );
+
+  const missingScope = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_PEOPLE_CLAIM,
+        evidence_scope: [],
+      },
+    }),
+  );
+  assert.equal(
+    missingScope.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SCOPE,
+  );
+
+  const missingConditions = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_PEOPLE_CLAIM,
+        conditions: [],
+      },
+    }),
+  );
+  assert.equal(
+    missingConditions.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_CONDITIONS,
+  );
+
+  const missingAttribution = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_PEOPLE_CLAIM,
+        attribution_status: "",
+      },
+    }),
+  );
+  assert.equal(
+    missingAttribution.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_ATTRIBUTION,
+  );
+
+  const missingSource = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      authority_source_map: {},
+    }),
+  );
+  assert.equal(
+    missingSource.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+  );
+
+  assert.equal(validateEwastePeopleClaimAuthorityRecord(null).ok, false);
+});
+
+test("e-waste-people malformed non-object source maps fail closed without throwing", () => {
+  const malformedMaps = [null, [], ["S11"], "S11", 0, false];
+
+  for (const [index, authority_source_map] of malformedMaps.entries()) {
+    let decision;
+    assert.doesNotThrow(() => {
+      decision = resolveEwastePeoplePathwayBoundary(
+        validEwastePeopleRequest({ authority_source_map }),
+      );
+    }, `resolve must not throw for malformed source map case ${index}`);
+    assert.equal(decision.emitted, false, `case ${index}`);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+    assert.equal(decision.pathway, null, `case ${index}`);
+
+    let validation;
+    assert.doesNotThrow(() => {
+      validation = validateEwastePeopleSourceRecords(
+        ACCEPTED_EWASTE_PEOPLE_CLAIM.source_ids,
+        authority_source_map,
+      );
+    }, `validate must not throw for malformed source map case ${index}`);
+    assert.equal(validation.ok, false, `case ${index}`);
+    assert.equal(
+      validation.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+  }
+
+  let undefinedValidation;
+  assert.doesNotThrow(() => {
+    undefinedValidation = validateEwastePeopleSourceRecords(
+      ACCEPTED_EWASTE_PEOPLE_CLAIM.source_ids,
+      undefined,
+    );
+  }, "validate must not throw for undefined source map");
+  assert.equal(undefinedValidation.ok, false);
+  assert.equal(
+    undefinedValidation.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+  );
+});
+
+test("one-device-to-person/community exposure or health outcome is denied", () => {
+  for (const marker of [
+    { request_one_device_to_person_exposure: true },
+    { request_one_device_to_community_exposure: true },
+    { request_one_device_health_outcome: true },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.DEVICE_PERSON_OR_COMMUNITY_ATTRIBUTION_PROHIBITED,
+    );
+    assert.equal(decision.device_person_attribution, null);
+    assert.equal(decision.exposure, null);
+  }
+});
+
+test("named person/child/worker/community/place/site/event attribution is denied", () => {
+  for (const marker of [
+    { named_person: "Person A" },
+    { named_child: "Child B" },
+    { named_worker: "Worker C" },
+    { named_community: "Community D" },
+    { named_place: "Place E" },
+    { named_site: "Dumpsite F" },
+    { named_event: "2021 exposure event" },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.NAMED_TARGET_ATTRIBUTION_PROHIBITED,
+    );
+    assert.equal(decision.named_target_attribution, null);
+  }
+});
+
+test("illness, injury, death and victim counts are denied", () => {
+  for (const marker of [
+    { request_illness_count: true },
+    { request_injury_count: true },
+    { request_death_count: true },
+    { request_victim_count: true },
+    { request_illness_injury_death_or_victim_counts: true },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.ILLNESS_INJURY_DEATH_OR_VICTIM_COUNTS_PROHIBITED,
+    );
+    assert.equal(decision.illness_count, null);
+    assert.equal(decision.injury_count, null);
+    assert.equal(decision.death_count, null);
+    assert.equal(decision.victim_count, null);
+  }
+});
+
+test("exact exposure, dose, risk and probability are denied", () => {
+  for (const marker of [
+    { request_exposure: true },
+    { request_dose: true },
+    { request_risk: true },
+    { request_probability: true },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.EXPOSURE_DOSE_RISK_OR_PROBABILITY_PROHIBITED,
+    );
+    assert.equal(decision.exposure, null);
+    assert.equal(decision.dose, null);
+    assert.equal(decision.risk, null);
+    assert.equal(decision.probability, null);
+  }
+});
+
+test("global e-waste collection rates are not an individual route or probability", () => {
+  for (const marker of [
+    { request_global_collection_rate_as_individual_route: true },
+    { request_global_collection_rate_as_probability: true },
+    { global_ewaste_collection_rate_context: 0.2 },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.GLOBAL_COLLECTION_RATE_AS_INDIVIDUAL_ROUTE_PROHIBITED,
+    );
+    assert.equal(decision.probability, null);
+    assert.equal(decision.collection_rate, null);
+  }
+});
+
+test("exact individual or community damage is denied", () => {
+  for (const marker of [
+    { request_exact_individual_damage: true },
+    { request_exact_community_damage: true },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.EXACT_INDIVIDUAL_OR_COMMUNITY_DAMAGE_PROHIBITED,
+    );
+    assert.equal(decision.exact_individual_damage, null);
+    assert.equal(decision.exact_community_damage, null);
+  }
+});
+
+test("e-waste-people unified scores, causal-proof and quantitative/location outputs are denied", () => {
+  for (const marker of [
+    { request_unified_score: true },
+    { request_unified_environmental_score: true },
+    { request_unified_safety_score: true },
+    { request_protect_four_score: true },
+    { request_unified_moral_score: true },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.UNIFIED_SCORE_PROHIBITED,
+    );
+    assert.equal(decision.unified_score, null);
+  }
+
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ request_causal_proof: true }),
+    ).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.UNSUPPORTED_CAUSAL_PROOF_WORDING,
+  );
+
+  for (const marker of [
+    { request_numerical_burden: true },
+    { request_location: true },
+    { request_quantitative_output: true },
+  ]) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.QUANTITATIVE_OR_LOCATION_OUTPUT_PROHIBITED,
+    );
+    assert.equal(decision.quantitative_value, null);
+    assert.equal(decision.location, null);
+    assert.equal(decision.burden, null);
+  }
+});
+
+test("e-waste-people missing, false, unknown or inferred handling does not emit", () => {
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ coerce_unknown_to_zero: true }),
+    ).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.UNKNOWN_COERCION_PROHIBITED,
+  );
+  assert.equal(
+    resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ coerce_unknown_to_false: true }),
+    ).reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.UNKNOWN_COERCION_PROHIBITED,
+  );
+
+  const omitted = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      unsafe_or_informal_handling_established: undefined,
+    }),
+  );
+  assert.equal(omitted.emitted, false);
+  assert.equal(
+    omitted.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+  assert.equal(omitted.quantitative_value, null);
+
+  const unknownCondition = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      unsafe_or_informal_handling_established: null,
+    }),
+  );
+  assert.equal(unknownCondition.emitted, false);
+  assert.equal(
+    unknownCondition.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+
+  const falseCondition = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      unsafe_or_informal_handling_established: false,
+    }),
+  );
+  assert.equal(falseCondition.emitted, false);
+  assert.equal(
+    falseCondition.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+
+  const inferred = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      unsafe_or_informal_handling_inferred: true,
+    }),
+  );
+  assert.equal(inferred.emitted, false);
+  assert.equal(
+    inferred.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.INFERRED_UNSAFE_OR_INFORMAL_HANDLING_PROHIBITED,
+  );
+});
+
+test("disposal, fate and collection-rate context do not establish unsafe or informal handling", () => {
+  assert.deepEqual(NON_ESTABLISHING_OLD_DEVICE_FATES, [
+    "continue_use",
+    "sell_or_gift_for_reuse",
+    "trade_in_unknown_next_use",
+    "store_in_drawer",
+    "formal_recycling",
+    "discard_general_waste",
+    "unknown",
+  ]);
+
+  for (const old_device_fate of NON_ESTABLISHING_OLD_DEVICE_FATES) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({
+        unsafe_or_informal_handling_established: undefined,
+        old_device_fate,
+      }),
+    );
+    assert.equal(decision.emitted, false, old_device_fate);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING,
+      old_device_fate,
+    );
+    assert.equal(decision.pathway, null, old_device_fate);
+  }
+
+  const collectionContext = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      unsafe_or_informal_handling_established: false,
+      global_ewaste_collection_rate_context: true,
+    }),
+  );
+  assert.equal(collectionContext.emitted, false);
+  assert.equal(
+    collectionContext.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING,
+  );
+  assert.equal(collectionContext.collection_rate, null);
+  assert.equal(collectionContext.probability, null);
+
+  const formalWithExplicitCondition = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({ old_device_fate: "formal_recycling" }),
+  );
+  assert.equal(formalWithExplicitCondition.emitted, false);
+  assert.equal(
+    formalWithExplicitCondition.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING,
+  );
+
+  const explicitDespiteOtherFate = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({ old_device_fate: "continue_use" }),
+  );
+  assert.equal(explicitDespiteOtherFate.emitted, true);
+  assert.equal(explicitDespiteOtherFate.reason_code, null);
+  assert.equal(
+    JSON.stringify(explicitDespiteOtherFate.pathway).includes("continue_use"),
+    false,
+  );
+  assert.equal(explicitDespiteOtherFate.pathway.location, null);
+  assert.equal(explicitDespiteOtherFate.pathway.probability, null);
+
+  const explicitWithContextOnly = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      global_ewaste_collection_rate_context: true,
+    }),
+  );
+  assert.equal(explicitWithContextOnly.emitted, true);
+  assert.equal(explicitWithContextOnly.pathway.collection_rate, null);
+  assert.equal(explicitWithContextOnly.pathway.probability, null);
+  assert.equal(explicitWithContextOnly.collection_rate, null);
+});
+
+test("e-waste-people case/test metadata is not production authority", () => {
+  const byCaseOnly = resolveEwastePeoplePathwayBoundary({
+    case_id: "SP-PATH-EWASTE-PEOPLE-001",
+    unsafe_or_informal_handling_established: true,
+  });
+  assert.equal(byCaseOnly.emitted, false);
+  assert.equal(
+    byCaseOnly.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const byAssertionOnly = resolveEwastePeoplePathwayBoundary({
+    assertion_id: "A-EWASTE-PEOPLE-001",
+    unsafe_or_informal_handling_established: true,
+  });
+  assert.equal(
+    byAssertionOnly.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const forced = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({ use_case_id_as_claim_authority: true }),
+  );
+  assert.equal(
+    forced.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const incidental = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({ case_id: "fixture-name-only" }),
+  );
+  assert.equal(incidental.emitted, true);
+  assert.equal(incidental.reason_code, null);
+});
+
+test("e-waste-people unsupported requested outputs do not emit", () => {
+  const decision = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest({
+      requested_output: "unified_environmental_harm_score",
+    }),
+  );
+  assert.equal(decision.emitted, false);
+  assert.equal(
+    decision.reason_code,
+    EWASTE_PEOPLE_PATHWAY_REASON.UNSUPPORTED_REQUESTED_OUTPUT,
+  );
+});
+
+test("altered, reordered, extra or substituted e-waste-people claim authority fails closed", () => {
+  const alteredClaims = [
+    { statement: "Altered e-waste-people statement under accepted identity." },
+    { evidence_domain: ["human_health", "waste"] },
+    { evidence_domain: ["waste"] },
+    { evidence_scope: ["site_specific"] },
+    { confidence: "moderate" },
+    { status: "QUALITATIVE" },
+    { attribution_status: "not_attributable_to_specific_device" },
+    {
+      conditions: [
+        "unsafe or informal handling occurs",
+        "extra invented condition",
+      ],
+    },
+    { conditions: ["unrelated condition"] },
+    { source_ids: ["S12"] },
+    { source_ids: ["S11", "S12"] },
+    { package_commit: "ffffffffffffffffffffffffffffffffffffffff" },
+    { package_provenance: "R&E-V0-SMARTPHONE-ALTERED" },
+  ];
+
+  for (const alteration of alteredClaims) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({
+        authority_claim_record: {
+          ...ACCEPTED_EWASTE_PEOPLE_CLAIM,
+          ...alteration,
+        },
+      }),
+    );
+    assert.equal(
+      decision.emitted,
+      false,
+      `expected deny for ${JSON.stringify(alteration)}`,
+    );
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("altered, extra or substituted e-waste-people source authority fails closed", () => {
+  const alteredSourceCases = [
+    {
+      S11: {
+        ...ACCEPTED_EWASTE_PEOPLE_SOURCES.S11,
+        package_commit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      },
+    },
+    {
+      S11: {
+        ...ACCEPTED_EWASTE_PEOPLE_SOURCES.S11,
+        citation: "Altered citation text.",
+      },
+    },
+    {
+      S11: {
+        ...ACCEPTED_EWASTE_PEOPLE_SOURCES.S11,
+        scope: "Altered source scope.",
+      },
+    },
+    {
+      S11: {
+        ...ACCEPTED_EWASTE_PEOPLE_SOURCES.S11,
+        metadata_limit: "Altered metadata limit.",
+      },
+    },
+    {
+      S11: ACCEPTED_EWASTE_PEOPLE_SOURCES.S11,
+      S12: {
+        source_id: "S12",
+        package_commit: EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT,
+        package_provenance: EWASTE_PEOPLE_PACKAGE_PROVENANCE,
+        citation: "Extra substituted source.",
+        scope: "extra",
+        metadata_limit: "extra",
+      },
+    },
+    {
+      S12: {
+        source_id: "S12",
+        package_commit: EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT,
+        package_provenance: EWASTE_PEOPLE_PACKAGE_PROVENANCE,
+        citation: "Substituted source identity.",
+        scope: "substituted",
+        metadata_limit: "substituted",
+      },
+    },
+  ];
+
+  for (const [index, authority_source_map] of alteredSourceCases.entries()) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ authority_source_map }),
+    );
+    assert.equal(
+      decision.emitted,
+      false,
+      `expected deny for altered source case ${index}`,
+    );
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("existing climate, mining-eco and mining-people emission remain unchanged beside e-waste-people coverage", () => {
+  const climate = resolveClimatePathwayBoundary({
+    claim_id: CLIMATE_CLAIM_ID,
+    claim_version: CLIMATE_CLAIM_PACKAGE_COMMIT,
+    scenario_produces_ghg_emissions: true,
+  });
+  assert.equal(climate.emitted, true);
+  assert.equal(climate.pathway.unit, CLIMATE_UNIT);
+  assert.equal(climate.pathway.status, "APPROVED");
+
+  const miningEco = resolveMiningEcoPathwayBoundary(validMiningEcoRequest());
+  assert.equal(miningEco.emitted, true);
+  assert.equal(miningEco.pathway.status, "APPROVED_QUALITATIVE");
+  assert.equal(miningEco.pathway.unit, null);
+
+  const miningPeople = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest(),
+  );
+  assert.equal(miningPeople.emitted, true);
+  assert.equal(miningPeople.pathway.status, "QUALITATIVE");
+  assert.equal(miningPeople.pathway.confidence, "moderate");
+
+  const ewastePeople = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest(),
+  );
+  assert.equal(ewastePeople.emitted, true);
+  assert.equal(ewastePeople.pathway.status, "APPROVED");
+  assert.equal(ewastePeople.pathway.confidence, "high");
+  assert.equal(ewastePeople.pathway.unit, null);
+  assert.deepEqual(ewastePeople.pathway.source_ids, ["S11"]);
 });
