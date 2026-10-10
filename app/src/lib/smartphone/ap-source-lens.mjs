@@ -87,6 +87,7 @@ export const SOURCE_LENS_REASON = Object.freeze({
   POST_EVIDENCE_ONLY_NOT_INITIAL_INQUIRY:
     "post_evidence_only_not_initial_inquiry",
   UNVERSIONED_FREE_TEXT_NOT_AUTHORITY: "unversioned_free_text_not_authority",
+  CONFLICTING_CLAIM_REPRESENTATION: "conflicting_claim_representation",
   AI_NOT_EXTERNAL_REFERENCE_AUTHORITY: "ai_not_external_reference_authority",
   CONTEXT_NOT_SUPPORTED: "context_not_supported",
 });
@@ -184,20 +185,27 @@ export function resolveSourceLensAuthority(input = {}) {
     input.designate_ai_as_text === true ||
     input.designate_ai_as_tradition === true;
 
-  let claimId = isNonEmptyString(input.claim_id) ? input.claim_id : null;
-  let claimVersion = isNonEmptyString(input.claim_version)
+  const partsClaimId = isNonEmptyString(input.claim_id) ? input.claim_id : null;
+  const partsClaimVersion = isNonEmptyString(input.claim_version)
     ? input.claim_version
     : null;
+  const parsedFromRef = isNonEmptyString(input.claim_ref)
+    ? parseClaimRef(input.claim_ref)
+    : { claim_id: null, claim_version: null };
 
-  if ((!claimId || !claimVersion) && isNonEmptyString(input.claim_ref)) {
-    const parsed = parseClaimRef(input.claim_ref);
-    if (!claimId) {
-      claimId = parsed.claim_id;
-    }
-    if (!claimVersion) {
-      claimVersion = parsed.claim_version;
-    }
-  }
+  // Conflicting claim_ref versus claim_id/claim_version must fail before any
+  // silent choice of one representation. Matching duplicates may proceed.
+  const claimIdConflict =
+    partsClaimId !== null &&
+    parsedFromRef.claim_id !== null &&
+    partsClaimId !== parsedFromRef.claim_id;
+  const claimVersionConflict =
+    partsClaimVersion !== null &&
+    parsedFromRef.claim_version !== null &&
+    partsClaimVersion !== parsedFromRef.claim_version;
+
+  const claimId = partsClaimId ?? parsedFromRef.claim_id;
+  const claimVersion = partsClaimVersion ?? parsedFromRef.claim_version;
 
   const freeText = isNonEmptyString(input.free_text_authority)
     ? input.free_text_authority
@@ -222,9 +230,14 @@ export function resolveSourceLensAuthority(input = {}) {
     return deny(SOURCE_LENS_REASON.AI_NOT_EXTERNAL_REFERENCE_AUTHORITY);
   }
 
-  // Unversioned free text is never AP external-reference authority.
-  if (freeText && !claimId) {
+  // Any non-empty free-text authority attempt fails, including when an
+  // otherwise valid versioned claim is also present.
+  if (freeText) {
     return deny(SOURCE_LENS_REASON.UNVERSIONED_FREE_TEXT_NOT_AUTHORITY);
+  }
+
+  if (claimIdConflict || claimVersionConflict) {
+    return deny(SOURCE_LENS_REASON.CONFLICTING_CLAIM_REPRESENTATION);
   }
 
   if (!claimId) {
@@ -232,10 +245,6 @@ export function resolveSourceLensAuthority(input = {}) {
   }
 
   if (!claimVersion) {
-    // Free-text-with-id-but-no-version is still unversioned authority attempt.
-    if (freeText) {
-      return deny(SOURCE_LENS_REASON.UNVERSIONED_FREE_TEXT_NOT_AUTHORITY);
-    }
     return deny(SOURCE_LENS_REASON.MISSING_VERSION);
   }
 
@@ -267,8 +276,6 @@ export function resolveSourceLensAuthority(input = {}) {
     return deny(SOURCE_LENS_REASON.UNKNOWN_CLAIM);
   }
 
-  // Free text alongside a valid versioned claim does not become authority;
-  // the versioned claim remains the only external-reference authority.
   const claimRef = `${claimId}@${claimVersion}`;
   return freezeDecision({
     authorized: true,

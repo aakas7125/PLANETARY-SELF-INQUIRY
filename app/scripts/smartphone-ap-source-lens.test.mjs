@@ -204,6 +204,68 @@ test("INV-AP-14: unversioned free text cannot become authority", () => {
   assert.equal(decision.ai_is_external_reference_authority, false);
 });
 
+test("INV-AP-14: free text alongside an otherwise valid claim is denied", () => {
+  const decision = resolveSourceLensAuthority({
+    claim_ref: "APF-SEE-001@1.2",
+    free_text_authority: "A teacher said phones are ego.",
+    context: CONTEXT_INITIAL_INQUIRY,
+  });
+  assert.equal(decision.authorized, false);
+  assert.equal(
+    decision.reason_code,
+    SOURCE_LENS_REASON.UNVERSIONED_FREE_TEXT_NOT_AUTHORITY,
+  );
+  assert.equal(decision.external_reference_authority, null);
+  assert.equal(decision.external_reference_authority_ref, null);
+  assert.equal(decision.ai_is_external_reference_authority, false);
+});
+
+test("INV-AP-14: conflicting claim_ref versus claim_id is denied", () => {
+  const decision = resolveSourceLensAuthority({
+    claim_ref: "APF-SEE-001@1.2",
+    claim_id: "APF-CON-001",
+    claim_version: "1.1",
+    context: CONTEXT_INITIAL_INQUIRY,
+  });
+  assert.equal(decision.authorized, false);
+  assert.equal(
+    decision.reason_code,
+    SOURCE_LENS_REASON.CONFLICTING_CLAIM_REPRESENTATION,
+  );
+  assert.equal(decision.external_reference_authority, null);
+  assert.equal(decision.external_reference_authority_ref, null);
+});
+
+test("INV-AP-14: conflicting claim_ref versus claim_version is denied", () => {
+  const decision = resolveSourceLensAuthority({
+    claim_ref: "APF-SEE-001@1.2",
+    claim_id: "APF-SEE-001",
+    claim_version: "1.1",
+    context: CONTEXT_INITIAL_INQUIRY,
+  });
+  assert.equal(decision.authorized, false);
+  assert.equal(
+    decision.reason_code,
+    SOURCE_LENS_REASON.CONFLICTING_CLAIM_REPRESENTATION,
+  );
+  assert.equal(decision.external_reference_authority, null);
+  assert.equal(decision.external_reference_authority_ref, null);
+});
+
+test("INV-AP-14: matching duplicate claim_ref and claim parts remain allowed", () => {
+  const decision = resolveSourceLensAuthority({
+    claim_ref: "APF-SEE-001@1.2",
+    claim_id: "APF-SEE-001",
+    claim_version: "1.2",
+    context: CONTEXT_INITIAL_INQUIRY,
+  });
+  assert.equal(decision.authorized, true);
+  assert.equal(decision.reason_code, null);
+  assert.equal(decision.claim_ref, "APF-SEE-001@1.2");
+  assert.equal(decision.external_reference_authority, "versioned_ap_claim");
+  assert.equal(decision.external_reference_authority_ref, "APF-SEE-001@1.2");
+});
+
 test("INV-AP-14: no silent claim substitution on denied requests", () => {
   const denied = resolveSourceLensAuthority({
     claim_ref: "APF-INC-001@1.1",
