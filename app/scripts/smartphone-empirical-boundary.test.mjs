@@ -128,6 +128,8 @@ test("SP-PATH-CLIMATE-001 emits conditional pressure-to-outcome pathway with pre
     );
     assert.equal(decision.pathway.status, "APPROVED");
     assert.equal(decision.pathway.package_provenance, PACKAGE_PROVENANCE);
+    assert.equal(CLIMATE_UNIT, "kg CO2e");
+    assert.equal(decision.pathway.unit, "kg CO2e");
     assert.equal(decision.pathway.unit, CLIMATE_UNIT);
     assert.equal(decision.pathway.metric, CLIMATE_METRIC);
     assert.equal(decision.pathway.quantitative_value, null);
@@ -433,4 +435,118 @@ test("conflicting injected authority under climate claim identity fails closed",
     decision.reason_code,
     CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
   );
+});
+
+test("altered claim statement/domains/scopes/confidence/status/conditions/sources fail exact-authority check", () => {
+  const alteredClaims = [
+    { statement: "Altered climate statement under accepted identity." },
+    { evidence_domain: ["climate"] },
+    { evidence_scope: ["product_class"] },
+    { confidence: "moderate" },
+    { status: "PROVISIONAL" },
+    {
+      conditions: [
+        "scenario produces GHG emissions",
+        "no individual victim or ecosystem attribution",
+        "extra invented condition",
+      ],
+    },
+    { conditions: ["no individual victim or ecosystem attribution", "scenario produces GHG emissions"] },
+    { source_ids: ["S1", "S8"] },
+    { source_ids: ["S1", "S9", "S8"] },
+    { source_ids: ["S1", "S8", "S10"] },
+    { package_commit: "ffffffffffffffffffffffffffffffffffffffff" },
+    { package_provenance: "R&E-V0-SMARTPHONE-ALTERED" },
+  ];
+
+  for (const alteration of alteredClaims) {
+    const decision = resolveClimatePathwayBoundary(
+      validClimateRequest({
+        authority_claim_record: {
+          ...ACCEPTED_CLIMATE_CLAIM,
+          ...alteration,
+        },
+      }),
+    );
+    assert.equal(decision.emitted, false, `expected deny for ${JSON.stringify(alteration)}`);
+    assert.equal(
+      decision.reason_code,
+      CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("altered source package pin/citation/scope/metadata limit and extra/substituted sources fail closed", () => {
+  const alteredSourceCases = [
+    {
+      S1: {
+        ...ACCEPTED_CLIMATE_SOURCES.S1,
+        package_commit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      },
+      S8: ACCEPTED_CLIMATE_SOURCES.S8,
+      S9: ACCEPTED_CLIMATE_SOURCES.S9,
+    },
+    {
+      S1: {
+        ...ACCEPTED_CLIMATE_SOURCES.S1,
+        citation: "Altered citation text.",
+      },
+      S8: ACCEPTED_CLIMATE_SOURCES.S8,
+      S9: ACCEPTED_CLIMATE_SOURCES.S9,
+    },
+    {
+      S1: ACCEPTED_CLIMATE_SOURCES.S1,
+      S8: {
+        ...ACCEPTED_CLIMATE_SOURCES.S8,
+        scope: "Altered source scope.",
+      },
+      S9: ACCEPTED_CLIMATE_SOURCES.S9,
+    },
+    {
+      S1: ACCEPTED_CLIMATE_SOURCES.S1,
+      S8: ACCEPTED_CLIMATE_SOURCES.S8,
+      S9: {
+        ...ACCEPTED_CLIMATE_SOURCES.S9,
+        metadata_limit: "Altered metadata limit.",
+      },
+    },
+    {
+      S1: ACCEPTED_CLIMATE_SOURCES.S1,
+      S8: ACCEPTED_CLIMATE_SOURCES.S8,
+      S9: ACCEPTED_CLIMATE_SOURCES.S9,
+      S10: {
+        source_id: "S10",
+        package_commit: CLIMATE_CLAIM_PACKAGE_COMMIT,
+        package_provenance: PACKAGE_PROVENANCE,
+        citation: "Extra substituted source.",
+        scope: "extra",
+        metadata_limit: "extra",
+      },
+    },
+    {
+      S1: ACCEPTED_CLIMATE_SOURCES.S1,
+      S8: ACCEPTED_CLIMATE_SOURCES.S8,
+      S2: {
+        source_id: "S2",
+        package_commit: CLIMATE_CLAIM_PACKAGE_COMMIT,
+        package_provenance: PACKAGE_PROVENANCE,
+        citation: "Substituted source identity.",
+        scope: "substituted",
+        metadata_limit: "substituted",
+      },
+    },
+  ];
+
+  for (const [index, authority_source_map] of alteredSourceCases.entries()) {
+    const decision = resolveClimatePathwayBoundary(
+      validClimateRequest({ authority_source_map }),
+    );
+    assert.equal(decision.emitted, false, `expected deny for altered source case ${index}`);
+    assert.equal(
+      decision.reason_code,
+      CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
 });

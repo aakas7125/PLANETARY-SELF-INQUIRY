@@ -25,7 +25,7 @@ export const CLIMATE_CLAIM_PACKAGE_COMMIT =
 export const CLIMATE_CLAIM_ID = "SP-PATH-CLIMATE-001";
 
 /** Climate indicator convention retained from the accepted empirical contract. */
-export const CLIMATE_UNIT = "kg_CO2e";
+export const CLIMATE_UNIT = "kg CO2e";
 export const CLIMATE_METRIC = "GWP100";
 
 export const ATTRIBUTION_PRESSURE_TO_OUTCOME = "pressure_to_outcome";
@@ -158,6 +158,52 @@ function isNonEmptyArray(value) {
 }
 
 /**
+ * Exact structural equality for authority records (ordered arrays; no extra keys).
+ * @param {unknown} left
+ * @param {unknown} right
+ */
+export function authorityRecordsExactEqual(left, right) {
+  if (left === right) {
+    return true;
+  }
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) {
+      return false;
+    }
+    if (left.length !== right.length) {
+      return false;
+    }
+    for (let i = 0; i < left.length; i += 1) {
+      if (!authorityRecordsExactEqual(left[i], right[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (
+    left === null ||
+    right === null ||
+    typeof left !== "object" ||
+    typeof right !== "object"
+  ) {
+    return false;
+  }
+  const leftKeys = Object.keys(/** @type {Record<string, unknown>} */ (left)).sort();
+  const rightKeys = Object.keys(/** @type {Record<string, unknown>} */ (right)).sort();
+  if (!authorityRecordsExactEqual(leftKeys, rightKeys)) {
+    return false;
+  }
+  const leftRecord = /** @type {Record<string, unknown>} */ (left);
+  const rightRecord = /** @type {Record<string, unknown>} */ (right);
+  for (const key of leftKeys) {
+    if (!authorityRecordsExactEqual(leftRecord[key], rightRecord[key])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Parse `CLAIM_ID@package_commit` without inventing parts.
  * @param {unknown} claimRef
  * @returns {{ claim_id: string | null, claim_version: string | null }}
@@ -253,11 +299,40 @@ export function validateClimateClaimAuthorityRecord(record) {
 
 /**
  * Validate source records required by the climate claim.
+ * Structure must be complete, source_ids must match the accepted ordered set,
+ * every map entry must be an accepted climate source with exact field equality,
+ * and extra/substituted sources fail closed.
+ *
  * @param {ReadonlyArray<string>} sourceIds
  * @param {Readonly<Record<string, unknown>>} sourceMap
  * @returns {{ ok: true, sources: ReadonlyArray<Readonly<Record<string, unknown>>> } | { ok: false, reason_code: string }}
  */
 export function validateClimateSourceRecords(sourceIds, sourceMap) {
+  if (!authorityRecordsExactEqual(sourceIds, ACCEPTED_CLIMATE_CLAIM.source_ids)) {
+    return {
+      ok: false,
+      reason_code: CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    };
+  }
+
+  const mapKeys = Object.keys(sourceMap);
+  for (const key of mapKeys) {
+    if (!Object.prototype.hasOwnProperty.call(ACCEPTED_CLIMATE_SOURCES, key)) {
+      return {
+        ok: false,
+        reason_code: CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+      };
+    }
+  }
+  for (const sourceId of ACCEPTED_CLIMATE_CLAIM.source_ids) {
+    if (!Object.prototype.hasOwnProperty.call(sourceMap, sourceId)) {
+      return {
+        ok: false,
+        reason_code: CLIMATE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      };
+    }
+  }
+
   /** @type {Array<Readonly<Record<string, unknown>>>} */
   const sources = [];
   for (const sourceId of sourceIds) {
@@ -288,7 +363,14 @@ export function validateClimateSourceRecords(sourceIds, sourceMap) {
         reason_code: CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
       };
     }
-    sources.push(Object.freeze({ ...s }));
+    const accepted = ACCEPTED_CLIMATE_SOURCES[sourceId];
+    if (!authorityRecordsExactEqual(s, accepted)) {
+      return {
+        ok: false,
+        reason_code: CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+      };
+    }
+    sources.push(accepted);
   }
   return { ok: true, sources: Object.freeze(sources) };
 }
@@ -476,14 +558,9 @@ export function resolveClimatePathwayBoundary(input = {}) {
     return deny(claimValidation.reason_code);
   }
 
-  const typedClaim = /** @type {Record<string, unknown>} */ (claimRecord);
-  if (
-    typedClaim.claim_id !== CLIMATE_CLAIM_ID ||
-    typedClaim.package_commit !== CLIMATE_CLAIM_PACKAGE_COMMIT ||
-    typedClaim.package_provenance !== PACKAGE_PROVENANCE ||
-    typedClaim.attribution_status !== ATTRIBUTION_PRESSURE_TO_OUTCOME
-  ) {
-    // Injected/conflicting authority must not emit under this claim identity.
+  // Production authority must be exactly the frozen registry-backed claim record.
+  // Altered statement/domains/scopes/confidence/status/conditions/source set/pins fail closed.
+  if (!authorityRecordsExactEqual(claimRecord, ACCEPTED_CLIMATE_CLAIM)) {
     return deny(CLIMATE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT);
   }
 
@@ -493,7 +570,7 @@ export function resolveClimatePathwayBoundary(input = {}) {
       : input.authority_source_map;
 
   const sourceValidation = validateClimateSourceRecords(
-    /** @type {string[]} */ (typedClaim.source_ids),
+    ACCEPTED_CLIMATE_CLAIM.source_ids,
     sourceMap,
   );
   if (!sourceValidation.ok) {
@@ -512,14 +589,10 @@ export function resolveClimatePathwayBoundary(input = {}) {
     claim_ref: `${CLIMATE_CLAIM_ID}@${CLIMATE_CLAIM_PACKAGE_COMMIT}`,
     package_provenance: PACKAGE_PROVENANCE,
     package_commit: CLIMATE_CLAIM_PACKAGE_COMMIT,
-    statement: typedClaim.statement,
-    evidence_domain: Object.freeze([
-      .../** @type {string[]} */ (typedClaim.evidence_domain),
-    ]),
-    evidence_scope: Object.freeze([
-      .../** @type {string[]} */ (typedClaim.evidence_scope),
-    ]),
-    confidence: typedClaim.confidence,
+    statement: ACCEPTED_CLIMATE_CLAIM.statement,
+    evidence_domain: Object.freeze([...ACCEPTED_CLIMATE_CLAIM.evidence_domain]),
+    evidence_scope: Object.freeze([...ACCEPTED_CLIMATE_CLAIM.evidence_scope]),
+    confidence: ACCEPTED_CLIMATE_CLAIM.confidence,
     attribution_status: ATTRIBUTION_PRESSURE_TO_OUTCOME,
     attribution_limits: Object.freeze([
       "pressure_to_outcome_only",
@@ -529,10 +602,8 @@ export function resolveClimatePathwayBoundary(input = {}) {
       "no_unified_environmental_safety_protect_four_or_moral_score",
       "conditional_pathway_is_not_causal_proof",
     ]),
-    conditions: Object.freeze([
-      .../** @type {string[]} */ (typedClaim.conditions),
-    ]),
-    status: typedClaim.status,
+    conditions: Object.freeze([...ACCEPTED_CLIMATE_CLAIM.conditions]),
+    status: ACCEPTED_CLIMATE_CLAIM.status,
     // No quantitative value on this pathway record — preserve absence, do not invent zero.
     quantitative_value: null,
     value_range: null,
@@ -540,12 +611,8 @@ export function resolveClimatePathwayBoundary(input = {}) {
     metric: CLIMATE_METRIC,
     model_specific_or_fallback_status: null,
     // Major assumptions surface = accepted claim conditions only (no invented prose).
-    major_assumptions: Object.freeze([
-      .../** @type {string[]} */ (typedClaim.conditions),
-    ]),
-    source_ids: Object.freeze([
-      .../** @type {string[]} */ (typedClaim.source_ids),
-    ]),
+    major_assumptions: Object.freeze([...ACCEPTED_CLIMATE_CLAIM.conditions]),
+    source_ids: Object.freeze([...ACCEPTED_CLIMATE_CLAIM.source_ids]),
     sources: sourceValidation.sources,
   });
 
