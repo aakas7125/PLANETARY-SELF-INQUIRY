@@ -23,6 +23,7 @@ import {
   INITIAL_INQUIRY_SOURCE_LENS_ALLOWLIST,
   POST_EVIDENCE_SOURCE_LENS_ALLOWLIST,
   SOURCE_LENS_REASON,
+  buildPostEvidenceSourceLensRecords,
   createPinnedHistoricalSourceLensRecord,
   isInitialInquirySourceLensAllowed,
   isPostEvidenceSourceLensAllowed,
@@ -457,13 +458,50 @@ test("INV-AP-20: every emitted Source Lens/history record pins claim_id, claim_v
 });
 
 test("INV-AP-20: incomplete, conflicting, or substituted pins are rejected", () => {
-  const incomplete = createPinnedHistoricalSourceLensRecord({
+  const incompleteClaimVersion = createPinnedHistoricalSourceLensRecord({
     claim_id: "AP-OTH-001",
+    corpus_version: CORPUS_VERSION,
     context: CONTEXT_POST_EVIDENCE,
   });
-  assert.equal(incomplete.accepted, false);
-  assert.equal(incomplete.reason_code, SOURCE_LENS_REASON.MISSING_VERSION);
-  assert.equal(incomplete.record, null);
+  assert.equal(incompleteClaimVersion.accepted, false);
+  assert.equal(
+    incompleteClaimVersion.reason_code,
+    SOURCE_LENS_REASON.MISSING_VERSION,
+  );
+  assert.equal(incompleteClaimVersion.record, null);
+
+  const omittedCorpus = createPinnedHistoricalSourceLensRecord({
+    claim_ref: "AP-OTH-001@1.1",
+    context: CONTEXT_POST_EVIDENCE,
+  });
+  assert.equal(omittedCorpus.accepted, false);
+  assert.equal(
+    omittedCorpus.reason_code,
+    SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
+  );
+  assert.equal(omittedCorpus.record, null);
+
+  const nullCorpus = createPinnedHistoricalSourceLensRecord({
+    claim_ref: "AP-OTH-001@1.1",
+    corpus_version: null,
+    context: CONTEXT_POST_EVIDENCE,
+  });
+  assert.equal(nullCorpus.accepted, false);
+  assert.equal(
+    nullCorpus.reason_code,
+    SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
+  );
+
+  const emptyCorpus = createPinnedHistoricalSourceLensRecord({
+    claim_ref: "AP-OTH-001@1.1",
+    corpus_version: "",
+    context: CONTEXT_POST_EVIDENCE,
+  });
+  assert.equal(emptyCorpus.accepted, false);
+  assert.equal(
+    emptyCorpus.reason_code,
+    SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
+  );
 
   const wrongVersion = createPinnedHistoricalSourceLensRecord({
     claim_ref: "AP-OTH-001@1.0",
@@ -493,6 +531,80 @@ test("INV-AP-20: incomplete, conflicting, or substituted pins are rejected", () 
   assert.equal(
     substitutedInitial.reason_code,
     SOURCE_LENS_REASON.INITIAL_INQUIRY_ONLY_NOT_POST_EVIDENCE,
+  );
+});
+
+test("INV-AP-20: post-evidence Source Lens/history emission requires validated qualifying consequence refs", () => {
+  const absent = buildPostEvidenceSourceLensRecords({});
+  assert.equal(absent.accepted, false);
+  assert.equal(
+    absent.reason_code,
+    SOURCE_LENS_REASON.MISSING_QUALIFYING_CONSEQUENCE_REFS,
+  );
+  assert.equal(absent.source_lens_records.length, 0);
+  assert.equal(absent.historical_reflection_record, null);
+
+  const empty = buildPostEvidenceSourceLensRecords({
+    qualifying_consequence_refs: [],
+  });
+  assert.equal(empty.accepted, false);
+  assert.equal(
+    empty.reason_code,
+    SOURCE_LENS_REASON.EMPTY_QUALIFYING_CONSEQUENCE_REFS,
+  );
+  assert.equal(empty.source_lens_records.length, 0);
+  assert.equal(empty.historical_reflection_record, null);
+
+  const malformed = buildPostEvidenceSourceLensRecords({
+    qualifying_consequence_refs: [
+      { consequence_ref_id: "emp-malformed", displayed: "yes" },
+      null,
+      "not-an-object",
+    ],
+  });
+  assert.equal(malformed.accepted, false);
+  assert.equal(
+    malformed.reason_code,
+    SOURCE_LENS_REASON.MALFORMED_QUALIFYING_CONSEQUENCE_REFS,
+  );
+  assert.equal(malformed.source_lens_records.length, 0);
+  assert.equal(malformed.historical_reflection_record, null);
+
+  const nonqualifying = buildPostEvidenceSourceLensRecords({
+    qualifying_consequence_refs: [
+      qualifyingConsequence({
+        displayed: false,
+      }),
+      qualifyingConsequence({
+        independently_supported: false,
+        support_status: SUPPORT_STATUS_UNSUPPORTED,
+      }),
+      qualifyingConsequence({
+        extent: EXTENT_IMMEDIATE_CIRCLE_ONLY,
+      }),
+      qualifyingConsequence({
+        support_status: SUPPORT_STATUS_UNKNOWN,
+      }),
+    ],
+  });
+  assert.equal(nonqualifying.accepted, false);
+  assert.equal(
+    nonqualifying.reason_code,
+    SOURCE_LENS_REASON.NONQUALIFYING_CONSEQUENCE_REFS,
+  );
+  assert.equal(nonqualifying.source_lens_records.length, 0);
+  assert.equal(nonqualifying.historical_reflection_record, null);
+
+  const qualifying = buildPostEvidenceSourceLensRecords({
+    qualifying_consequence_refs: [qualifyingConsequence()],
+  });
+  assert.equal(qualifying.accepted, true);
+  assert.equal(qualifying.reason_code, null);
+  assert.equal(qualifying.source_lens_records.length, 2);
+  assert.ok(qualifying.historical_reflection_record);
+  assert.deepEqual(
+    qualifying.historical_reflection_record.qualifying_consequence_ref_ids,
+    ["emp-consequence-beyond-circle-001"],
   );
 });
 

@@ -163,6 +163,11 @@ export const SOURCE_LENS_REASON = Object.freeze({
   INCOMPLETE_PROVENANCE_PIN: "incomplete_provenance_pin",
   CONFLICTING_CORPUS_PIN: "conflicting_corpus_pin",
   CLAIM_PIN_SUBSTITUTION_REJECTED: "claim_pin_substitution_rejected",
+  MISSING_QUALIFYING_CONSEQUENCE_REFS: "missing_qualifying_consequence_refs",
+  EMPTY_QUALIFYING_CONSEQUENCE_REFS: "empty_qualifying_consequence_refs",
+  MALFORMED_QUALIFYING_CONSEQUENCE_REFS:
+    "malformed_qualifying_consequence_refs",
+  NONQUALIFYING_CONSEQUENCE_REFS: "nonqualifying_consequence_refs",
 });
 
 /** @param {unknown} value @returns {value is string} */
@@ -484,20 +489,27 @@ export function createPinnedHistoricalSourceLensRecord(input = {}) {
     });
   }
 
-  // Caller may omit corpus_version (defaults to frozen pin) but must not
-  // supply a conflicting or silently substituted corpus identity.
+  // Caller must supply the exact corpus pin. Missing/null/empty is incomplete;
+  // a different non-empty corpus is conflicting. Never silently default.
   if (
-    input.corpus_version !== undefined &&
-    input.corpus_version !== null &&
-    input.corpus_version !== CORPUS_VERSION
+    input.corpus_version === undefined ||
+    input.corpus_version === null ||
+    input.corpus_version === ""
   ) {
-    if (!isNonEmptyString(input.corpus_version)) {
-      return Object.freeze({
-        accepted: false,
-        reason_code: SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
-        record: null,
-      });
-    }
+    return Object.freeze({
+      accepted: false,
+      reason_code: SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
+      record: null,
+    });
+  }
+  if (!isNonEmptyString(input.corpus_version)) {
+    return Object.freeze({
+      accepted: false,
+      reason_code: SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
+      record: null,
+    });
+  }
+  if (input.corpus_version !== CORPUS_VERSION) {
     return Object.freeze({
       accepted: false,
       reason_code: SOURCE_LENS_REASON.CONFLICTING_CORPUS_PIN,
@@ -592,14 +604,124 @@ export function createLicensingSafeSourceLensPublicFields() {
 }
 
 /**
+ * Whether a value is an already-parsed qualifying consequence reference.
+ * Mirrors the post-evidence otherness gate without inventing empirical meaning:
+ * displayed + independently supported + supported + beyond immediate circle.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isAlreadyParsedQualifyingConsequenceRef(value) {
+  if (value === null || value === undefined) {
+    return false;
+  }
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const ref = /** @type {Record<string, unknown>} */ (value);
+  if (!isNonEmptyString(ref.consequence_ref_id)) {
+    return false;
+  }
+  // Explicit booleans only — truthy objects/strings do not qualify.
+  if (ref.displayed !== true) {
+    return false;
+  }
+  if (ref.independently_supported !== true) {
+    return false;
+  }
+  if (ref.support_status !== "supported") {
+    return false;
+  }
+  if (ref.extent !== "beyond_immediate_circle") {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Emit immutable post-evidence Source Lens records + one historical reflection
- * pin bundle for the activated otherness inquiry.
+ * pin bundle only after at least one validated qualifying consequence reference
+ * is supplied. Empty, absent, malformed, or nonqualifying inputs emit nothing.
  *
  * @param {{
- *   qualifying_consequence_refs?: readonly { consequence_ref_id?: string }[],
+ *   qualifying_consequence_refs?: readonly unknown[],
  * }} [input]
+ * @returns {{
+ *   accepted: boolean,
+ *   reason_code: string | null,
+ *   source_lens_records: readonly PinnedHistoricalSourceLensRecord[],
+ *   historical_reflection_record: object | null,
+ * }}
  */
 export function buildPostEvidenceSourceLensRecords(input = {}) {
+  const deny = (/** @type {string} */ reasonCode) =>
+    Object.freeze({
+      accepted: false,
+      reason_code: reasonCode,
+      source_lens_records: Object.freeze(
+        /** @type {PinnedHistoricalSourceLensRecord[]} */ ([]),
+      ),
+      historical_reflection_record: null,
+    });
+
+  const refs = input.qualifying_consequence_refs;
+  if (refs === undefined || refs === null) {
+    return deny(SOURCE_LENS_REASON.MISSING_QUALIFYING_CONSEQUENCE_REFS);
+  }
+  if (!Array.isArray(refs)) {
+    return deny(SOURCE_LENS_REASON.MALFORMED_QUALIFYING_CONSEQUENCE_REFS);
+  }
+  if (refs.length === 0) {
+    return deny(SOURCE_LENS_REASON.EMPTY_QUALIFYING_CONSEQUENCE_REFS);
+  }
+
+  /** @type {string[]} */
+  const consequenceRefIds = [];
+  let sawMalformed = false;
+  let sawNonqualifying = false;
+
+  for (const ref of refs) {
+    if (
+      ref === null ||
+      ref === undefined ||
+      typeof ref !== "object" ||
+      Array.isArray(ref)
+    ) {
+      sawMalformed = true;
+      continue;
+    }
+    const candidate = /** @type {Record<string, unknown>} */ (ref);
+    if (!isNonEmptyString(candidate.consequence_ref_id)) {
+      sawMalformed = true;
+      continue;
+    }
+    if (
+      typeof candidate.displayed !== "boolean" ||
+      typeof candidate.independently_supported !== "boolean" ||
+      typeof candidate.support_status !== "string" ||
+      typeof candidate.extent !== "string"
+    ) {
+      // Truthy/non-boolean fields are malformed, not silently normalized.
+      sawMalformed = true;
+      continue;
+    }
+    if (!isAlreadyParsedQualifyingConsequenceRef(candidate)) {
+      sawNonqualifying = true;
+      continue;
+    }
+    consequenceRefIds.push(candidate.consequence_ref_id);
+  }
+
+  if (consequenceRefIds.length === 0) {
+    if (sawMalformed) {
+      return deny(SOURCE_LENS_REASON.MALFORMED_QUALIFYING_CONSEQUENCE_REFS);
+    }
+    if (sawNonqualifying) {
+      return deny(SOURCE_LENS_REASON.NONQUALIFYING_CONSEQUENCE_REFS);
+    }
+    return deny(SOURCE_LENS_REASON.EMPTY_QUALIFYING_CONSEQUENCE_REFS);
+  }
+
   /** @type {PinnedHistoricalSourceLensRecord[]} */
   const sourceLensRecords = [];
 
@@ -616,19 +738,6 @@ export function buildPostEvidenceSourceLensRecords(input = {}) {
     }
     sourceLensRecords.push(pinned.record);
   }
-
-  const consequenceRefIds = Object.freeze(
-    (Array.isArray(input.qualifying_consequence_refs)
-      ? input.qualifying_consequence_refs
-      : []
-    )
-      .map((ref) =>
-        ref && typeof ref === "object" && isNonEmptyString(ref.consequence_ref_id)
-          ? ref.consequence_ref_id
-          : null,
-      )
-      .filter((id) => id !== null),
-  );
 
   const historicalReflectionRecord = Object.freeze({
     record_kind: "historical_otherness_reflection",
@@ -648,10 +757,12 @@ export function buildPostEvidenceSourceLensRecords(input = {}) {
       ),
     ),
     source_lens_records: Object.freeze([...sourceLensRecords]),
-    qualifying_consequence_ref_ids: consequenceRefIds,
+    qualifying_consequence_ref_ids: Object.freeze([...consequenceRefIds]),
   });
 
   return Object.freeze({
+    accepted: true,
+    reason_code: null,
     source_lens_records: Object.freeze([...sourceLensRecords]),
     historical_reflection_record: historicalReflectionRecord,
   });

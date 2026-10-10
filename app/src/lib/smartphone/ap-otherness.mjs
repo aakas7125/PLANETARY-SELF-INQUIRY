@@ -371,6 +371,13 @@ export function buildOthernessInquiry(input = {}) {
   const lensBundle = buildPostEvidenceSourceLensRecords({
     qualifying_consequence_refs: qualifying,
   });
+  if (!lensBundle.accepted || !lensBundle.historical_reflection_record) {
+    // Qualifying refs already passed the evidence gate; failure here is an
+    // internal pin/emission defect, not a silent non-activation.
+    throw new Error(
+      `Post-evidence Source Lens emission failed after qualifying gate: ${lensBundle.reason_code}`,
+    );
+  }
 
   const inquiry = Object.freeze({
     exact_question_text: OTHERNESS_QUESTION_TEXT,
