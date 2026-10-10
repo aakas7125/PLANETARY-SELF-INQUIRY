@@ -242,7 +242,15 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     "INV-AP-02",
     "INV-AP-03",
     "INV-AP-04",
+    "INV-AP-05",
+    "INV-AP-06",
+    "INV-AP-07",
+    "INV-AP-08",
+    "INV-AP-09",
+    "INV-AP-10",
+    "INV-AP-11",
     "INV-AP-12",
+    "INV-AP-13",
     "INV-AP-16",
   ];
   const coveredApIds = mapping
@@ -261,14 +269,6 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
 
   assert.deepEqual(coveredApIds, expectedCoveredApIds);
   assert.deepEqual(remainingApInvariantIds, [
-    "INV-AP-05",
-    "INV-AP-06",
-    "INV-AP-07",
-    "INV-AP-08",
-    "INV-AP-09",
-    "INV-AP-10",
-    "INV-AP-11",
-    "INV-AP-13",
     "INV-AP-14",
     "INV-AP-15",
     "INV-AP-17",
@@ -295,7 +295,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
 });
 
 test.todo(
-  "implement remaining AP interaction behavior (INV-AP-05–INV-AP-11, INV-AP-13–INV-AP-15, INV-AP-17–INV-AP-20: branch selection, constrained reflection, Source Lens, otherness)",
+  "implement remaining AP Source Lens/provenance and evidence-gated otherness behavior (INV-AP-14, INV-AP-15, INV-AP-17–INV-AP-20)",
 );
 test.todo(
   "implement the mapped empirical boundary suite (SP-PATH-CLIMATE-001 through SP-PATH-WATER-001)",

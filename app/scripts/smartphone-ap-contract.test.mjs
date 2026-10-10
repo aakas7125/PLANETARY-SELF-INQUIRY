@@ -20,6 +20,12 @@ import {
   resolveDerivedObservation,
   resolveSelfReportedShift,
 } from "../src/lib/smartphone/ap-inquiry.mjs";
+import {
+  AUTHORIZED_REFLECTION_OPERATIONS,
+  BRANCH_PRECEDENCE,
+  buildApBranchReflection,
+  findProhibitedReflectionLanguage,
+} from "../src/lib/smartphone/ap-branch-reflection.mjs";
 
 const AUTHORIZED_QUESTION_IDS = [
   "APQ1_FUNCTION",
@@ -35,9 +41,26 @@ const AUTHORIZED_INVARIANT_IDS = [
   "INV-AP-02",
   "INV-AP-03",
   "INV-AP-04",
+  "INV-AP-05",
+  "INV-AP-06",
+  "INV-AP-07",
+  "INV-AP-08",
+  "INV-AP-09",
+  "INV-AP-10",
+  "INV-AP-11",
   "INV-AP-12",
+  "INV-AP-13",
   "INV-AP-16",
 ];
+
+/** @param {Record<string, object>} overrides */
+function sessionFrom(overrides) {
+  return buildApInquirySession(overrides);
+}
+
+function reflectionText(session) {
+  return session.reflection.segments.map((segment) => segment.rendered_text).join("\n");
+}
 
 const EXACT_QUESTION_TEXT = Object.freeze({
   APQ1_FUNCTION:
@@ -488,4 +511,674 @@ test("session assembly preserves order and raw answers across all six questions"
   }
   assert.deepEqual(AP_INQUIRY_SEQUENCE.map((q) => q.question_id), AUTHORIZED_QUESTION_IDS);
   assert.ok(AUTHORIZED_INVARIANT_IDS.includes("INV-AP-01"));
+});
+
+test("INV-AP-05: exposure chronology may select exposure_or_novelty but never becomes causality", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "No specific limitation beyond what I already have.",
+      proposed_observation: {
+        proposed_value: "no_specific_limitation_stated",
+        supporting_exact_span: "No specific limitation",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "I expect snappier everyday performance.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "snappier everyday performance",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer:
+        "I first wanted it after seeing a review video last month; the desire appeared after that exposure.",
+      proposed_observation: {
+        proposed_value: "desire_appeared_after_exposure",
+        supporting_exact_span: "after seeing a review video last month",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Wanting would be unchanged if nobody knew.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "unchanged if nobody knew",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Keeping the current phone is fine practically.",
+      proposed_observation: {
+        proposed_value: "no_significant_difficulty_stated",
+        supporting_exact_span: "fine practically",
+      },
+    },
+    APQ6_RESEE: {
+      exact_user_answer: "Buying new still seems appropriate.",
+      proposed_observation: {
+        proposed_value: "buy_new",
+        supporting_exact_span: "Buying new still seems appropriate",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "exposure_or_novelty");
+  assert.equal(session.branch_flags.exposure_or_novelty, true);
+  const text = reflectionText(session);
+  assert.match(text, /appeared around after seeing a review video last month/);
+  assert.match(text, /What do you make of that sequence/);
+  assert.equal(/caused|conditioned|manipulat|not really (yours|theirs)/i.test(text), false);
+  assert.deepEqual(findProhibitedReflectionLanguage(session.reflection), []);
+});
+
+test("INV-AP-06: visibility change may select visibility_or_identity but never diagnoses status/vanity", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Nothing concrete is missing.",
+      proposed_observation: {
+        proposed_value: "no_specific_limitation_stated",
+        supporting_exact_span: "Nothing concrete is missing",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "I expect slightly faster apps.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "slightly faster apps",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "I wanted an upgrade before any ads.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "before any ads",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer:
+        "If nobody else ever knew which phone I owned, wanting would become somewhat weaker.",
+      proposed_observation: {
+        proposed_value: "somewhat_weaker",
+        supporting_exact_span: "somewhat weaker",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "No significant difficulty keeping it.",
+      proposed_observation: {
+        proposed_value: "no_significant_difficulty_stated",
+        supporting_exact_span: "No significant difficulty",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "visibility_or_identity");
+  assert.equal(session.branch_flags.visibility_or_identity, true);
+  assert.equal(session.branch_flags.apparent_contradiction, false);
+  const text = reflectionText(session);
+  assert.match(text, /changes some of its appeal/);
+  assert.equal(
+    /status-seeking|validation-seeking|vanity|appropriation|identity dependence|depends on the phone for identity/i.test(
+      text,
+    ),
+    false,
+  );
+  assert.deepEqual(findProhibitedReflectionLanguage(session.reflection), []);
+});
+
+test("INV-AP-07: practical non-purchase difficulty is not renamed fear", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Battery dies before lunch on field days.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: "Battery dies before lunch",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "I expect longer battery life only.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "longer battery life only",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated any product exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "predated any product exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Wanting would be unchanged if private.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "unchanged if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer:
+        "The difficulty is mainly practical: carrying a charger everywhere.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "mainly practical: carrying a charger",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "concrete_need");
+  const text = reflectionText(session);
+  assert.equal(/\bfear\b/i.test(text), false);
+  assert.equal(session.answer_records[4].derived_observations[0].value, "practical_only_stated");
+  assert.notEqual(session.answer_records[4].derived_observations[0].value, "fear");
+});
+
+test("INV-AP-08: primary branch precedence matches the accepted six-branch order", () => {
+  assert.deepEqual(BRANCH_PRECEDENCE, [
+    "apparent_contradiction",
+    "mixed",
+    "insufficient_observation",
+    "exposure_or_novelty",
+    "visibility_or_identity",
+    "concrete_need",
+  ]);
+
+  // Contradiction outranks mixed when both flags are supported.
+  const contradictionOverMixed = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Cannot tether reliably for work.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: "Cannot tether reliably",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "Besides function, nothing else would change for me.",
+      proposed_observation: {
+        proposed_value: "no_change_beyond_function_stated",
+        supporting_exact_span: "nothing else would change",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "Desire predated exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer:
+        "If ownership were private, desire would become substantially weaker.",
+      proposed_observation: {
+        proposed_value: "substantially_weaker",
+        supporting_exact_span: "substantially weaker",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Practical charger hassle only.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "Practical charger hassle",
+      },
+    },
+  });
+  assert.equal(contradictionOverMixed.branch_flags.apparent_contradiction, true);
+  assert.equal(contradictionOverMixed.branch_flags.mixed, true);
+  assert.equal(contradictionOverMixed.presentation_branch, "apparent_contradiction");
+
+  // Mixed outranks exposure when concrete limitation coexists with exposure.
+  const mixedOverExposure = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Cannot run offline maps.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: "Cannot run offline maps",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "Only better maps matter.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "Only better maps matter",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire intensified after a store demo.",
+      proposed_observation: {
+        proposed_value: "desire_intensified_after_exposure",
+        supporting_exact_span: "after a store demo",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Unchanged if private.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "Unchanged if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Practical map gap only.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "Practical map gap",
+      },
+    },
+  });
+  assert.equal(mixedOverExposure.branch_flags.mixed, true);
+  assert.equal(mixedOverExposure.branch_flags.exposure_or_novelty, false);
+  assert.equal(mixedOverExposure.presentation_branch, "mixed");
+  assert.ok(
+    mixedOverExposure.retained_for_juxtaposition.some(
+      (item) => item.observation_type === "exposure_chronology",
+    ),
+  );
+
+  // Insufficient outranks exposure when three families are unclear.
+  const insufficientOverExposure = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "I don't know.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "I don't know",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "Unsure.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "Unsure",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire appeared after a billboard.",
+      proposed_observation: {
+        proposed_value: "desire_appeared_after_exposure",
+        supporting_exact_span: "after a billboard",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Not sure.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "Not sure",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Hard to say.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "Hard to say",
+      },
+    },
+  });
+  assert.equal(insufficientOverExposure.branch_flags.insufficient_observation, true);
+  assert.equal(insufficientOverExposure.branch_flags.exposure_or_novelty, true);
+  assert.equal(
+    insufficientOverExposure.presentation_branch,
+    "insufficient_observation",
+  );
+
+  // Visibility outranks concrete_need when visibility changes without mixed.
+  const visibilityOverConcrete = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Nothing concrete is missing for tasks.",
+      proposed_observation: {
+        proposed_value: "no_specific_limitation_stated",
+        supporting_exact_span: "Nothing concrete is missing",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "Faster apps only.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "Faster apps only",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "No relevant exposure identified.",
+      proposed_observation: {
+        proposed_value: "no_relevant_exposure_identified",
+        supporting_exact_span: "No relevant exposure identified",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Wanting would be somewhat weaker if private.",
+      proposed_observation: {
+        proposed_value: "somewhat_weaker",
+        supporting_exact_span: "somewhat weaker if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "No significant difficulty.",
+      proposed_observation: {
+        proposed_value: "no_significant_difficulty_stated",
+        supporting_exact_span: "No significant difficulty",
+      },
+    },
+  });
+  assert.equal(visibilityOverConcrete.presentation_branch, "visibility_or_identity");
+  assert.deepEqual(visibilityOverConcrete.branch_precedence, BRANCH_PRECEDENCE);
+});
+
+test("INV-AP-09: contradiction requires explicit conflict and prompts neutral inquiry", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Camera is adequate already.",
+      proposed_observation: {
+        proposed_value: "no_specific_limitation_stated",
+        supporting_exact_span: "Camera is adequate already",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "The choice is entirely functional for me.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "entirely functional for me",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "Desire predated exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer:
+        "If nobody knew, wanting would become substantially weaker.",
+      proposed_observation: {
+        proposed_value: "substantially_weaker",
+        supporting_exact_span: "substantially weaker",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "No significant difficulty.",
+      proposed_observation: {
+        proposed_value: "no_significant_difficulty_stated",
+        supporting_exact_span: "No significant difficulty",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "apparent_contradiction");
+  const text = reflectionText(session);
+  assert.match(text, /How do those two observations fit together for you/);
+  assert.equal(
+    /rationali[sz]ation|denial|hypocrisy|lying|hidden motive|true (motive|answer)/i.test(
+      text,
+    ),
+    false,
+  );
+
+  // Negative: ordinary coexistence is mixed, not contradiction.
+  const coexistence = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Cannot tether reliably.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: "Cannot tether reliably",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "I expect to feel more confident in meetings.",
+      proposed_observation: {
+        proposed_value: "nonfunctional_change_stated",
+        supporting_exact_span: "feel more confident in meetings",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "Desire predated exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Unchanged if private.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "Unchanged if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Practical only.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "Practical only",
+      },
+    },
+  });
+  assert.equal(coexistence.presentation_branch, "mixed");
+  assert.equal(coexistence.branch_flags.apparent_contradiction, false);
+});
+
+test("INV-AP-10: mixed motives remain legitimate and do not invalidate purchase", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Cannot tether reliably for client calls.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: "Cannot tether reliably",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "I also expect to feel more confident in meetings.",
+      proposed_observation: {
+        proposed_value: "nonfunctional_change_stated",
+        supporting_exact_span: "feel more confident in meetings",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "Desire predated exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Unchanged if private.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "Unchanged if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Practical tether gap only.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "Practical tether gap",
+      },
+    },
+    APQ6_RESEE: {
+      exact_user_answer: "Buying new still seems appropriate.",
+      proposed_observation: {
+        proposed_value: "buy_new",
+        supporting_exact_span: "Buying new still seems appropriate",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "mixed");
+  assert.match(reflectionText(session), /Is there more than one thing being sought here/);
+  assert.equal(session.provisional_choice, "buy_new");
+  assert.equal(session.inquiry_failed, false);
+  assert.equal(
+    /invalidate|excuse|cheaper|must select|one motive is real|false motive/i.test(
+      reflectionText(session),
+    ),
+    false,
+  );
+  assert.deepEqual(session.reflection.provisional_choices, PROVISIONAL_CHOICES);
+  assert.equal(session.reflection.provisional_choices.includes("buy_new"), true);
+});
+
+test("INV-AP-11: concrete-need output is limited and makes no AP approval claim", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Cannot run the navigation app offline for field work.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: "Cannot run the navigation app offline",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "Only offline navigation would change.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "Only offline navigation would change",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "Desire predated exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Unchanged if private.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "Unchanged if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Practical navigation gap only.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "Practical navigation gap",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "concrete_need");
+  const text = reflectionText(session);
+  assert.match(text, /did not identify much additional attraction/);
+  assert.equal(
+    /non-egoic|genuine need|no conditioning|AP approves|AP approval/i.test(text),
+    false,
+  );
+});
+
+test("INV-AP-13: reflection uses only authorized operations with span traceability; no SOURCE_LENS", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Cannot tether reliably.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: "Cannot tether reliably",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "I expect to feel more confident in meetings.",
+      proposed_observation: {
+        proposed_value: "nonfunctional_change_stated",
+        supporting_exact_span: "feel more confident in meetings",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "Desire predated exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Unchanged if private.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "Unchanged if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Practical only.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "Practical only",
+      },
+    },
+  });
+
+  const ops = session.reflection.operations;
+  assert.equal(ops.includes("RESTATEMENT"), true);
+  assert.equal(ops.includes("QUESTION"), true);
+  assert.equal(ops.includes("OPEN_CHOICE"), true);
+  assert.equal(ops.includes("SOURCE_LENS"), false);
+  assert.equal(session.reflection.source_lens_emitted, false);
+  for (const operation of ops) {
+    assert.equal(AUTHORIZED_REFLECTION_OPERATIONS.includes(operation), true);
+  }
+  assert.equal(ops[ops.length - 1], "OPEN_CHOICE");
+  assert.equal(
+    session.reflection.open_choice_prompt,
+    "Having seen your answers together, what now seems appropriate?",
+  );
+
+  for (const segment of session.reflection.segments) {
+    if (segment.basis_type === "user_answer") {
+      assert.ok(segment.basis_ids.length > 0);
+      for (const basis of segment.basis_ids) {
+        assert.equal(typeof basis.question_id, "string");
+        assert.equal(typeof basis.supporting_exact_span, "string");
+        const record = session.answer_records.find(
+          (item) => item.question_id === basis.question_id,
+        );
+        assert.ok(record);
+        assert.equal(record.exact_user_answer.includes(basis.supporting_exact_span), true);
+      }
+    }
+  }
+
+  assert.equal(/therefore|which proves|deep down|true motive/i.test(reflectionText(session)), false);
+  assert.deepEqual(findProhibitedReflectionLanguage(session.reflection), []);
+
+  // Direct module path remains domain-driven (no case_id dependence).
+  const direct = buildApBranchReflection({
+    answer_records: session.answer_records,
+    provisional_choices: PROVISIONAL_CHOICES,
+  });
+  assert.equal(direct.primary_branch, session.presentation_branch);
+  assert.equal(direct.branches_are_diagnoses, false);
+});
+
+test("insufficient_observation does not block empirical comparison or invent motives", () => {
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "I don't know.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "I don't know",
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "Unsure.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "Unsure",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Not clear.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "Not clear",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Hard to say.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "Hard to say",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Unknown.",
+      proposed_observation: {
+        proposed_value: "unclear",
+        supporting_exact_span: "Unknown",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "insufficient_observation");
+  assert.equal(session.reflection.empirical_comparison_blocked, false);
+  assert.match(reflectionText(session), /do not need to manufacture/);
+  assert.equal(/motive|fear|conditioning|ego/i.test(reflectionText(session)), false);
 });
