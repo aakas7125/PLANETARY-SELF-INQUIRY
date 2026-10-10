@@ -226,7 +226,8 @@ const EXECUTED_SECONDARY_IDS = new Set([
  * AP inquiry foundation + branch/reflection + Source Lens authority gate +
  * evidence-gated otherness / Protect My Four / licensing / historical pin:
  * exact six-question sequence plus INV-AP-01–20.
- * Empirical-boundary suite remains a separate mapped gap.
+ * Empirical climate pathway boundary (`SP-PATH-CLIMATE-001`) is covered;
+ * remaining five SP-PATH-* IDs stay mapped gaps until later slices.
  */
 const EXECUTED_AP_IDS = new Set([
   "APQ1_FUNCTION",
@@ -256,6 +257,9 @@ const EXECUTED_AP_IDS = new Set([
   "INV-AP-19",
   "INV-AP-20",
 ]);
+
+/** Empirical claim IDs with direct executing assertions in this repository. */
+const EXECUTED_EMPIRICAL_IDS = new Set(["SP-PATH-CLIMATE-001"]);
 
 const SOURCES = {
   inputPackage:
@@ -345,6 +349,10 @@ export function buildContractRegressionMap() {
     EXECUTED_SECONDARY_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
   const apStatus = (id) =>
     EXECUTED_AP_IDS.has(id) ? EXECUTING_ASSERTION_COVERAGE : IMPLEMENTATION_GAP;
+  const empiricalStatus = (id) =>
+    EXECUTED_EMPIRICAL_IDS.has(id)
+      ? EXECUTING_ASSERTION_COVERAGE
+      : IMPLEMENTATION_GAP;
 
   return [
     ...rowsFor(inputCaseIds, "input", "positive", TARGETS.input, SOURCES.inputPackage, inputStatus),
@@ -384,6 +392,7 @@ export function buildContractRegressionMap() {
       "prohibition",
       TARGETS.empirical,
       SOURCES.empiricalContract,
+      empiricalStatus,
     ),
   ];
 }

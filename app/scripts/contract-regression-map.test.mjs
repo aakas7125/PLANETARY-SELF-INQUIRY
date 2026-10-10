@@ -275,13 +275,35 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
 
   assert.deepEqual(coveredApIds, expectedCoveredApIds);
   assert.deepEqual(remainingApInvariantIds, []);
+  const expectedCoveredEmpiricalIds = ["SP-PATH-CLIMATE-001"];
+  const coveredEmpiricalIds = mapping
+    .filter(
+      (row) =>
+        row.domain === "empirical" && row.status === EXECUTING_ASSERTION_COVERAGE,
+    )
+    .map((row) => row.id);
+  const remainingEmpiricalIds = mapping
+    .filter(
+      (row) =>
+        row.domain === "empirical" && row.status === IMPLEMENTATION_GAP,
+    )
+    .map((row) => row.id);
+  assert.deepEqual(coveredEmpiricalIds, expectedCoveredEmpiricalIds);
+  assert.deepEqual(remainingEmpiricalIds, [
+    "SP-PATH-MINING-ECO-001",
+    "SP-PATH-MINING-PEOPLE-001",
+    "SP-PATH-EWASTE-PEOPLE-001",
+    "SP-PATH-EWASTE-ECO-001",
+    "SP-PATH-WATER-001",
+  ]);
   assert.ok(
     mapping
       .filter(
         (row) =>
           !(row.domain === "input" && expectedCoveredInputIds.includes(row.id)) &&
           !(row.domain === "secondary" && expectedCoveredSecondaryIds.includes(row.id)) &&
-          !(row.domain === "ap" && expectedCoveredApIds.includes(row.id)),
+          !(row.domain === "ap" && expectedCoveredApIds.includes(row.id)) &&
+          !(row.domain === "empirical" && expectedCoveredEmpiricalIds.includes(row.id)),
       )
       .every((row) => row.status === IMPLEMENTATION_GAP),
   );
@@ -289,7 +311,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     { target: "scripts/smartphone-input-contract.test.mjs", exists: true },
     { target: "scripts/smartphone-secondary-contract.test.mjs", exists: true },
     { target: "scripts/smartphone-ap-contract.test.mjs", exists: true },
-    { target: "scripts/smartphone-empirical-boundary.test.mjs", exists: false },
+    { target: "scripts/smartphone-empirical-boundary.test.mjs", exists: true },
   ]);
 });
 
