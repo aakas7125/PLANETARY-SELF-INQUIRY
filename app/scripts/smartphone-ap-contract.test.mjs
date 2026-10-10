@@ -263,8 +263,8 @@ test("INV-AP-12: buy_new remains a legitimate unranked provisional choice", () =
       choices.indexOf("buy_new") > choices.indexOf("keep_current"),
     true,
   );
-  // Presentation order exists, but autonomy assessment does not rank success by index.
-  assert.notEqual(autonomy.provisional_choice_index, undefined);
+  // Presentation order exists; autonomy must not export an index/rank/score proxy.
+  assert.equal("provisional_choice_index" in autonomy, false);
   assert.equal(autonomy.provisional_choices_ranked, false);
 });
 

@@ -401,9 +401,6 @@ export function findProhibitedMotiveScores(value, found = []) {
  */
 export function assessInquiryAutonomy(session) {
   const motiveScores = findProhibitedMotiveScores(session);
-  const choiceIndex = PROVISIONAL_CHOICES.indexOf(
-    /** @type {typeof PROVISIONAL_CHOICES[number]} */ (session.provisional_choice),
-  );
   const experimentRequired = Boolean(session.behavioural_experiment_required);
   const inquiryFailed = Boolean(session.inquiry_failed);
   return Object.freeze({
@@ -414,6 +411,5 @@ export function assessInquiryAutonomy(session) {
     buy_new_marked_as_failure:
       session.provisional_choice === "buy_new" && inquiryFailed,
     provisional_choices_ranked: false,
-    provisional_choice_index: choiceIndex,
   });
 }
