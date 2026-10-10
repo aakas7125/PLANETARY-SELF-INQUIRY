@@ -1057,6 +1057,74 @@ test("INV-AP-11: concrete-need output is limited and makes no AP approval claim"
   );
 });
 
+test("INV-AP-13: concrete-need absence statement is project_interpretation; limitation span remains user_answer-traceable", () => {
+  const limitationSpan = "Cannot run the navigation app offline";
+  const session = sessionFrom({
+    APQ1_FUNCTION: {
+      exact_user_answer: "Cannot run the navigation app offline for field work.",
+      proposed_observation: {
+        proposed_value: "concrete_limitation_stated",
+        supporting_exact_span: limitationSpan,
+      },
+    },
+    APQ2_EXPECTATION: {
+      exact_user_answer: "Only offline navigation would change.",
+      proposed_observation: {
+        proposed_value: "functional_change_only_stated",
+        supporting_exact_span: "Only offline navigation would change",
+      },
+    },
+    APQ3_ORIGIN: {
+      exact_user_answer: "Desire predated exposure.",
+      proposed_observation: {
+        proposed_value: "desire_predated_exposure",
+        supporting_exact_span: "Desire predated exposure",
+      },
+    },
+    APQ4_VISIBILITY: {
+      exact_user_answer: "Unchanged if private.",
+      proposed_observation: {
+        proposed_value: "unchanged",
+        supporting_exact_span: "Unchanged if private",
+      },
+    },
+    APQ5_NONPURCHASE: {
+      exact_user_answer: "Practical navigation gap only.",
+      proposed_observation: {
+        proposed_value: "practical_only_stated",
+        supporting_exact_span: "Practical navigation gap",
+      },
+    },
+  });
+
+  assert.equal(session.presentation_branch, "concrete_need");
+
+  const absenceSegments = session.reflection.segments.filter((segment) =>
+    /did not identify much additional attraction/.test(segment.rendered_text),
+  );
+  assert.ok(absenceSegments.length >= 1);
+  for (const segment of absenceSegments) {
+    assert.equal(segment.basis_type, "project_interpretation");
+    assert.notEqual(segment.basis_type, "user_answer");
+  }
+
+  const limitationUserAnswerSegments = session.reflection.segments.filter(
+    (segment) =>
+      segment.basis_type === "user_answer" &&
+      segment.basis_ids.some(
+        (basis) => basis.supporting_exact_span === limitationSpan,
+      ),
+  );
+  assert.ok(limitationUserAnswerSegments.length >= 1);
+  for (const segment of limitationUserAnswerSegments) {
+    const record = session.answer_records.find(
+      (item) => item.question_id === segment.basis_ids[0].question_id,
+    );
+    assert.ok(record);
+    assert.equal(record.exact_user_answer.includes(limitationSpan), true);
+  }
+});
+
 test("INV-AP-13: reflection uses only authorized operations with span traceability; no SOURCE_LENS", () => {
   const session = sessionFrom({
     APQ1_FUNCTION: {

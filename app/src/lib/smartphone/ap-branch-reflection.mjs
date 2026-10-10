@@ -564,10 +564,12 @@ export function buildConstrainedReflection(session, computed, primaryBranch) {
     const limitation = renderSpan(
       explicitFunctional.observation.supporting_exact_span,
     );
+    // Limitation identification is span-backed user-answer evidence.
+    // The cross-answer absence claim is project interpretation (INV-AP-13).
     segments.push(
       segment(
         "RESTATEMENT",
-        `You said ${limitation}.`,
+        `You identified ${limitation} as something your current phone does not do adequately.`,
         "user_answer",
         [basisFrom(explicitFunctional)],
       ),
@@ -575,9 +577,9 @@ export function buildConstrainedReflection(session, computed, primaryBranch) {
     segments.push(
       segment(
         "QUESTION",
-        `You identified ${limitation} as something your current phone does not do adequately. In your other answers you did not identify much additional attraction around visibility, outside exposure, or non-functional change. Does replacing the device still seem appropriate for the limitation you described?`,
-        "user_answer",
-        [basisFrom(explicitFunctional)],
+        "In your other answers you did not identify much additional attraction around visibility, outside exposure, or non-functional change. Does replacing the device still seem appropriate for the limitation you described?",
+        "project_interpretation",
+        [],
       ),
     );
   } else {
