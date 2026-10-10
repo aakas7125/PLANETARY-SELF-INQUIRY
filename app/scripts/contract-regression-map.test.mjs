@@ -254,6 +254,10 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     "INV-AP-14",
     "INV-AP-15",
     "INV-AP-16",
+    "INV-AP-17",
+    "INV-AP-18",
+    "INV-AP-19",
+    "INV-AP-20",
   ];
   const coveredApIds = mapping
     .filter(
@@ -270,12 +274,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     .map((row) => row.id);
 
   assert.deepEqual(coveredApIds, expectedCoveredApIds);
-  assert.deepEqual(remainingApInvariantIds, [
-    "INV-AP-17",
-    "INV-AP-18",
-    "INV-AP-19",
-    "INV-AP-20",
-  ]);
+  assert.deepEqual(remainingApInvariantIds, []);
   assert.ok(
     mapping
       .filter(
@@ -294,9 +293,6 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   ]);
 });
 
-test.todo(
-  "implement remaining evidence-gated otherness, Protect My Four classification, licensing-safe display, and historical provenance pinning (INV-AP-17–INV-AP-20)",
-);
 test.todo(
   "implement the mapped empirical boundary suite (SP-PATH-CLIMATE-001 through SP-PATH-WATER-001)",
 );

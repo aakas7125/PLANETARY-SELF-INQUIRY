@@ -223,9 +223,10 @@ const EXECUTED_SECONDARY_IDS = new Set([
 ]);
 
 /**
- * AP inquiry foundation + branch/reflection + Source Lens authority gate:
- * exact six-question sequence plus INV-AP-01–04, 05–11, 12, 13, 14, 15, 16.
- * Remaining INV-AP-17–20 stay gapped (otherness / licensing / provenance).
+ * AP inquiry foundation + branch/reflection + Source Lens authority gate +
+ * evidence-gated otherness / Protect My Four / licensing / historical pin:
+ * exact six-question sequence plus INV-AP-01–20.
+ * Empirical-boundary suite remains a separate mapped gap.
  */
 const EXECUTED_AP_IDS = new Set([
   "APQ1_FUNCTION",
@@ -250,6 +251,10 @@ const EXECUTED_AP_IDS = new Set([
   "INV-AP-14",
   "INV-AP-15",
   "INV-AP-16",
+  "INV-AP-17",
+  "INV-AP-18",
+  "INV-AP-19",
+  "INV-AP-20",
 ]);
 
 const SOURCES = {

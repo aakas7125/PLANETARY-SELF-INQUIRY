@@ -1,21 +1,24 @@
 /**
- * Pure deterministic Source Lens authority gate / resolver.
+ * Pure deterministic Source Lens authority gate / resolver and historical pin.
  *
- * Authority: contracts/AP_INTERACTION_V0.md §9,
- * tests/ap-integrity/AP_V0_INVARIANTS.md (INV-AP-14, INV-AP-15),
+ * Authority: contracts/AP_INTERACTION_V0.md §§9, 14,
+ * tests/ap-integrity/AP_V0_INVARIANTS.md (INV-AP-14, INV-AP-15, INV-AP-20),
  * provenance/source-packages/AP-V0-INTERACTION-0.2.0.md,
- * provenance/source-packages/AP-CORPUS-V0.3.0.md §5.
+ * provenance/source-packages/AP-CORPUS-V0.3.0.md §§4, 5, 7–12.
  *
- * This module decides whether a versioned AP claim may be treated as
- * Source Lens external-reference authority for a given context.
- * It does NOT emit SOURCE_LENS into reflections, reproduce AP text,
- * pin historical provenance (INV-AP-20), or activate otherness.
+ * Initial-inquiry authority gating (INV-AP-14/15) is unchanged.
+ * Post-evidence context authorizes only AP-OTH-001@1.1 and AP-PLAN-001@1.1.
+ * Historical Source Lens / reflection records pin claim_id, claim_version,
+ * and corpus_version immutably (INV-AP-20). This module does not activate
+ * otherness inquiry wording (see ap-otherness.mjs) and does not insert
+ * SOURCE_LENS into the six-question reflection path.
  */
 
 export const CORPUS_VERSION = "AP-CORPUS-V0.3.0";
 export const INTERACTION_VERSION = "AP-V0-INTERACTION-0.2.0";
 
 export const CONTEXT_INITIAL_INQUIRY = "initial_inquiry";
+export const CONTEXT_POST_EVIDENCE = "post_evidence";
 
 /** Eligibility classes from the accepted V0 allowlist. */
 export const ELIGIBILITY_INITIAL_INQUIRY = "initial_inquiry";
@@ -78,6 +81,70 @@ export const INITIAL_INQUIRY_SOURCE_LENS_ALLOWLIST = Object.freeze(
     .map(([claimId, entry]) => `${claimId}@${entry.claim_version}`),
 );
 
+/** Exact versioned refs authorized for post-evidence Source Lens only. */
+export const POST_EVIDENCE_SOURCE_LENS_ALLOWLIST = Object.freeze(
+  Object.entries(SOURCE_LENS_CLAIM_REGISTRY)
+    .filter(([, entry]) => entry.eligibility === ELIGIBILITY_POST_EVIDENCE_ONLY)
+    .map(([claimId, entry]) => `${claimId}@${entry.claim_version}`),
+);
+
+/**
+ * Frozen licensing-safe public display fields for post-evidence claims.
+ * Narrow approved paraphrases + official links + provenance labels only.
+ * Internal support text and substantial Framework prose are excluded.
+ */
+export const POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY = Object.freeze({
+  "AP-OTH-001@1.1": Object.freeze({
+    claim_id: "AP-OTH-001",
+    claim_version: "1.1",
+    corpus_version: CORPUS_VERSION,
+    approved_paraphrase:
+      "AP links otherness to drawing a boundary around oneself such that what lies beyond it is treated as separate from one’s own interests, and develops this separation in relation to violence.",
+    official_source_links: Object.freeze([
+      Object.freeze({
+        title: "When Peace Looks Like War",
+        url: "https://acharyaprashant.org/en/articles/peace-looks-like-war-1_ddeebcc",
+        source_class: "P3",
+      }),
+    ]),
+    provenance_labels: Object.freeze([
+      "approved_claim",
+      "P3_official_transcript_support",
+      "exact_primary_video_lineage_unresolved",
+      "ai_generated_page_summary_excluded_from_claim_support",
+      "post_evidence_only",
+    ]),
+    external_reference_authority: "versioned_ap_claim",
+  }),
+  "AP-PLAN-001@1.1": Object.freeze({
+    claim_id: "AP-PLAN-001",
+    claim_version: "1.1",
+    corpus_version: CORPUS_VERSION,
+    approved_paraphrase:
+      "AP explicitly questions the assumed opposition between one’s own interests and those treated as “others,” including other people, endangered species, ecosystems and river systems.",
+    official_source_links: Object.freeze([
+      Object.freeze({
+        title:
+          "Desire vs Duty: How to choose? || Acharya Prashant, BITS Pilani, Dubai Tour (2025)",
+        url: "https://www.youtube.com/watch?v=ZVEwREWFOW4",
+        source_class: "P2",
+      }),
+      Object.freeze({
+        title: "Duty vs Desire: How to Choose or Balance?",
+        url: "https://acharyaprashant.org/en/articles/how-to-choose-balance-1_f174f53",
+        source_class: "P3",
+      }),
+    ]),
+    provenance_labels: Object.freeze([
+      "approved_high_provenance",
+      "P2_verified_official_recording",
+      "P3_official_transcript_support",
+      "post_evidence_only",
+    ]),
+    external_reference_authority: "versioned_ap_claim",
+  }),
+});
+
 /** Deterministic denial reason codes. */
 export const SOURCE_LENS_REASON = Object.freeze({
   UNKNOWN_CLAIM: "unknown_claim",
@@ -86,10 +153,16 @@ export const SOURCE_LENS_REASON = Object.freeze({
   BACKGROUND_ONLY_NOT_INITIAL_INQUIRY: "background_only_not_initial_inquiry",
   POST_EVIDENCE_ONLY_NOT_INITIAL_INQUIRY:
     "post_evidence_only_not_initial_inquiry",
+  INITIAL_INQUIRY_ONLY_NOT_POST_EVIDENCE:
+    "initial_inquiry_only_not_post_evidence",
+  BACKGROUND_ONLY_NOT_POST_EVIDENCE: "background_only_not_post_evidence",
   UNVERSIONED_FREE_TEXT_NOT_AUTHORITY: "unversioned_free_text_not_authority",
   CONFLICTING_CLAIM_REPRESENTATION: "conflicting_claim_representation",
   AI_NOT_EXTERNAL_REFERENCE_AUTHORITY: "ai_not_external_reference_authority",
   CONTEXT_NOT_SUPPORTED: "context_not_supported",
+  INCOMPLETE_PROVENANCE_PIN: "incomplete_provenance_pin",
+  CONFLICTING_CORPUS_PIN: "conflicting_corpus_pin",
+  CLAIM_PIN_SUBSTITUTION_REJECTED: "claim_pin_substitution_rejected",
 });
 
 /** @param {unknown} value @returns {value is string} */
@@ -248,12 +321,6 @@ export function resolveSourceLensAuthority(input = {}) {
     return deny(SOURCE_LENS_REASON.MISSING_VERSION);
   }
 
-  if (context !== CONTEXT_INITIAL_INQUIRY) {
-    // This slice only authorizes the initial-inquiry gate; do not infer
-    // eligibility for other contexts.
-    return deny(SOURCE_LENS_REASON.CONTEXT_NOT_SUPPORTED);
-  }
-
   const registryEntry = SOURCE_LENS_CLAIM_REGISTRY[claimId];
   if (!registryEntry) {
     return deny(SOURCE_LENS_REASON.UNKNOWN_CLAIM);
@@ -264,30 +331,62 @@ export function resolveSourceLensAuthority(input = {}) {
     return deny(SOURCE_LENS_REASON.WRONG_VERSION);
   }
 
-  if (registryEntry.eligibility === ELIGIBILITY_BACKGROUND_ONLY) {
-    return deny(SOURCE_LENS_REASON.BACKGROUND_ONLY_NOT_INITIAL_INQUIRY);
+  if (context === CONTEXT_INITIAL_INQUIRY) {
+    if (registryEntry.eligibility === ELIGIBILITY_BACKGROUND_ONLY) {
+      return deny(SOURCE_LENS_REASON.BACKGROUND_ONLY_NOT_INITIAL_INQUIRY);
+    }
+
+    if (registryEntry.eligibility === ELIGIBILITY_POST_EVIDENCE_ONLY) {
+      return deny(SOURCE_LENS_REASON.POST_EVIDENCE_ONLY_NOT_INITIAL_INQUIRY);
+    }
+
+    if (registryEntry.eligibility !== ELIGIBILITY_INITIAL_INQUIRY) {
+      return deny(SOURCE_LENS_REASON.UNKNOWN_CLAIM);
+    }
+
+    const claimRef = `${claimId}@${claimVersion}`;
+    return freezeDecision({
+      authorized: true,
+      reason_code: null,
+      context,
+      claim_id: claimId,
+      claim_version: claimVersion,
+      claim_ref: claimRef,
+      eligibility: ELIGIBILITY_INITIAL_INQUIRY,
+      external_reference_authority: "versioned_ap_claim",
+      external_reference_authority_ref: claimRef,
+    });
   }
 
-  if (registryEntry.eligibility === ELIGIBILITY_POST_EVIDENCE_ONLY) {
-    return deny(SOURCE_LENS_REASON.POST_EVIDENCE_ONLY_NOT_INITIAL_INQUIRY);
+  if (context === CONTEXT_POST_EVIDENCE) {
+    if (registryEntry.eligibility === ELIGIBILITY_BACKGROUND_ONLY) {
+      return deny(SOURCE_LENS_REASON.BACKGROUND_ONLY_NOT_POST_EVIDENCE);
+    }
+
+    if (registryEntry.eligibility === ELIGIBILITY_INITIAL_INQUIRY) {
+      return deny(SOURCE_LENS_REASON.INITIAL_INQUIRY_ONLY_NOT_POST_EVIDENCE);
+    }
+
+    if (registryEntry.eligibility !== ELIGIBILITY_POST_EVIDENCE_ONLY) {
+      return deny(SOURCE_LENS_REASON.UNKNOWN_CLAIM);
+    }
+
+    const claimRef = `${claimId}@${claimVersion}`;
+    return freezeDecision({
+      authorized: true,
+      reason_code: null,
+      context,
+      claim_id: claimId,
+      claim_version: claimVersion,
+      claim_ref: claimRef,
+      eligibility: ELIGIBILITY_POST_EVIDENCE_ONLY,
+      external_reference_authority: "versioned_ap_claim",
+      external_reference_authority_ref: claimRef,
+    });
   }
 
-  if (registryEntry.eligibility !== ELIGIBILITY_INITIAL_INQUIRY) {
-    return deny(SOURCE_LENS_REASON.UNKNOWN_CLAIM);
-  }
-
-  const claimRef = `${claimId}@${claimVersion}`;
-  return freezeDecision({
-    authorized: true,
-    reason_code: null,
-    context,
-    claim_id: claimId,
-    claim_version: claimVersion,
-    claim_ref: claimRef,
-    eligibility: ELIGIBILITY_INITIAL_INQUIRY,
-    external_reference_authority: "versioned_ap_claim",
-    external_reference_authority_ref: claimRef,
-  });
+  // Unknown contexts remain unsupported; do not infer eligibility.
+  return deny(SOURCE_LENS_REASON.CONTEXT_NOT_SUPPORTED);
 }
 
 /**
@@ -301,4 +400,259 @@ export function isInitialInquirySourceLensAllowed(claimRef) {
     return false;
   }
   return INITIAL_INQUIRY_SOURCE_LENS_ALLOWLIST.includes(claimRef);
+}
+
+/**
+ * Convenience: whether a versioned claim ref is on the post-evidence allowlist.
+ * Exact match only — no version normalization.
+ * @param {unknown} claimRef
+ * @returns {boolean}
+ */
+export function isPostEvidenceSourceLensAllowed(claimRef) {
+  if (!isNonEmptyString(claimRef)) {
+    return false;
+  }
+  return POST_EVIDENCE_SOURCE_LENS_ALLOWLIST.includes(claimRef);
+}
+
+/**
+ * @typedef {{
+ *   claim_id: string,
+ *   claim_version: string,
+ *   corpus_version: string,
+ *   claim_ref: string,
+ *   context: string,
+ *   external_reference_authority: string,
+ *   external_reference_authority_ref: string,
+ *   ai_is_external_reference_authority: boolean,
+ *   generator_is_external_reference_authority: boolean,
+ *   provenance_labels: readonly string[],
+ *   official_source_links: readonly object[],
+ *   approved_paraphrase: string | null,
+ *   support_text_internal: null,
+ * }} PinnedHistoricalSourceLensRecord
+ */
+
+/**
+ * Create an immutable historical Source Lens / reflection provenance pin.
+ * Rejects incomplete, conflicting, silently normalized, or substituted pins.
+ *
+ * Domain inputs only — production behavior does not depend on case/test IDs.
+ *
+ * @param {{
+ *   claim_id?: string | null,
+ *   claim_version?: string | null,
+ *   claim_ref?: string | null,
+ *   corpus_version?: string | null,
+ *   context?: string,
+ * }} [input]
+ * @returns {{
+ *   accepted: boolean,
+ *   reason_code: string | null,
+ *   record: PinnedHistoricalSourceLensRecord | null,
+ * }}
+ */
+export function createPinnedHistoricalSourceLensRecord(input = {}) {
+  const context = isNonEmptyString(input.context)
+    ? input.context
+    : CONTEXT_POST_EVIDENCE;
+
+  const authority = resolveSourceLensAuthority({
+    claim_id: input.claim_id,
+    claim_version: input.claim_version,
+    claim_ref: input.claim_ref,
+    context,
+  });
+
+  if (!authority.authorized) {
+    return Object.freeze({
+      accepted: false,
+      reason_code: authority.reason_code,
+      record: null,
+    });
+  }
+
+  const claimId = authority.claim_id;
+  const claimVersion = authority.claim_version;
+  const claimRef = authority.claim_ref;
+
+  if (!claimId || !claimVersion || !claimRef) {
+    return Object.freeze({
+      accepted: false,
+      reason_code: SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
+      record: null,
+    });
+  }
+
+  // Caller may omit corpus_version (defaults to frozen pin) but must not
+  // supply a conflicting or silently substituted corpus identity.
+  if (
+    input.corpus_version !== undefined &&
+    input.corpus_version !== null &&
+    input.corpus_version !== CORPUS_VERSION
+  ) {
+    if (!isNonEmptyString(input.corpus_version)) {
+      return Object.freeze({
+        accepted: false,
+        reason_code: SOURCE_LENS_REASON.INCOMPLETE_PROVENANCE_PIN,
+        record: null,
+      });
+    }
+    return Object.freeze({
+      accepted: false,
+      reason_code: SOURCE_LENS_REASON.CONFLICTING_CORPUS_PIN,
+      record: null,
+    });
+  }
+
+  /** @type {typeof POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY[keyof typeof POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY] | undefined} */
+  const display =
+    claimRef in POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY
+      ? POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY[
+          /** @type {keyof typeof POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY} */ (claimRef)
+        ]
+      : undefined;
+  if (context === CONTEXT_POST_EVIDENCE && !display) {
+    // Post-evidence historical pins require the frozen public display package.
+    return Object.freeze({
+      accepted: false,
+      reason_code: SOURCE_LENS_REASON.CLAIM_PIN_SUBSTITUTION_REJECTED,
+      record: null,
+    });
+  }
+
+  // Defensive copy: later mutation of input/display objects cannot rewrite
+  // the philosophical basis of an already-recorded reflection.
+  const provenanceLabels = Object.freeze([
+    ...(display?.provenance_labels ??
+      Object.freeze([`${authority.eligibility}_allowlist`])),
+  ]);
+  const officialSourceLinks = Object.freeze(
+    (display?.official_source_links ?? []).map(
+      (/** @type {{ title: string, url: string, source_class: string }} */ link) =>
+        Object.freeze({
+          title: link.title,
+          url: link.url,
+          source_class: link.source_class,
+        }),
+    ),
+  );
+
+  const record = Object.freeze({
+    claim_id: claimId,
+    claim_version: claimVersion,
+    corpus_version: CORPUS_VERSION,
+    claim_ref: claimRef,
+    context,
+    external_reference_authority: "versioned_ap_claim",
+    external_reference_authority_ref: claimRef,
+    ai_is_external_reference_authority: false,
+    generator_is_external_reference_authority: false,
+    provenance_labels: provenanceLabels,
+    official_source_links: officialSourceLinks,
+    approved_paraphrase: display?.approved_paraphrase ?? null,
+    // Licensing-safe: never attach internal support text.
+    support_text_internal: null,
+  });
+
+  return Object.freeze({
+    accepted: true,
+    reason_code: null,
+    record,
+  });
+}
+
+/**
+ * Licensing-safe public fields for post-evidence Source Lens display.
+ * Excludes internal support text and substantial AP Framework prose.
+ */
+export function createLicensingSafeSourceLensPublicFields() {
+  const claims = POST_EVIDENCE_SOURCE_LENS_ALLOWLIST.map((claimRef) => {
+    const display =
+      POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY[
+        /** @type {keyof typeof POST_EVIDENCE_CLAIM_PUBLIC_DISPLAY} */ (claimRef)
+      ];
+    return Object.freeze({
+      claim_id: display.claim_id,
+      claim_version: display.claim_version,
+      claim_ref: claimRef,
+      corpus_version: display.corpus_version,
+      approved_paraphrase: display.approved_paraphrase,
+      official_source_links: display.official_source_links,
+      provenance_labels: display.provenance_labels,
+      external_reference_authority: display.external_reference_authority,
+    });
+  });
+
+  return Object.freeze({
+    claim_refs: Object.freeze([...POST_EVIDENCE_SOURCE_LENS_ALLOWLIST]),
+    corpus_version: CORPUS_VERSION,
+    claims: Object.freeze(claims),
+  });
+}
+
+/**
+ * Emit immutable post-evidence Source Lens records + one historical reflection
+ * pin bundle for the activated otherness inquiry.
+ *
+ * @param {{
+ *   qualifying_consequence_refs?: readonly { consequence_ref_id?: string }[],
+ * }} [input]
+ */
+export function buildPostEvidenceSourceLensRecords(input = {}) {
+  /** @type {PinnedHistoricalSourceLensRecord[]} */
+  const sourceLensRecords = [];
+
+  for (const claimRef of POST_EVIDENCE_SOURCE_LENS_ALLOWLIST) {
+    const pinned = createPinnedHistoricalSourceLensRecord({
+      claim_ref: claimRef,
+      corpus_version: CORPUS_VERSION,
+      context: CONTEXT_POST_EVIDENCE,
+    });
+    if (!pinned.accepted || !pinned.record) {
+      throw new Error(
+        `Failed to pin required post-evidence Source Lens record for ${claimRef}: ${pinned.reason_code}`,
+      );
+    }
+    sourceLensRecords.push(pinned.record);
+  }
+
+  const consequenceRefIds = Object.freeze(
+    (Array.isArray(input.qualifying_consequence_refs)
+      ? input.qualifying_consequence_refs
+      : []
+    )
+      .map((ref) =>
+        ref && typeof ref === "object" && isNonEmptyString(ref.consequence_ref_id)
+          ? ref.consequence_ref_id
+          : null,
+      )
+      .filter((id) => id !== null),
+  );
+
+  const historicalReflectionRecord = Object.freeze({
+    record_kind: "historical_otherness_reflection",
+    attribution_status: "project_interpretation",
+    evidence_domain: "mixed",
+    corpus_version: CORPUS_VERSION,
+    interaction_version: INTERACTION_VERSION,
+    // Every supporting claim pin retained exactly as accepted at creation.
+    claim_pins: Object.freeze(
+      sourceLensRecords.map((record) =>
+        Object.freeze({
+          claim_id: record.claim_id,
+          claim_version: record.claim_version,
+          corpus_version: record.corpus_version,
+          claim_ref: record.claim_ref,
+        }),
+      ),
+    ),
+    source_lens_records: Object.freeze([...sourceLensRecords]),
+    qualifying_consequence_ref_ids: consequenceRefIds,
+  });
+
+  return Object.freeze({
+    source_lens_records: Object.freeze([...sourceLensRecords]),
+    historical_reflection_record: historicalReflectionRecord,
+  });
 }
