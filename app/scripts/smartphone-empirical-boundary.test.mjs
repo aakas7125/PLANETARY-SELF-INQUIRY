@@ -246,7 +246,6 @@ test("missing, malformed, unknown and conflicting claim identity/version are den
 
 test("pending empirical pathway IDs remain non-emitting in the climate slice", () => {
   assert.deepEqual(PENDING_EMPIRICAL_PATHWAY_IDS, [
-    "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
   ]);
@@ -264,10 +263,11 @@ test("pending empirical pathway IDs remain non-emitting in the climate slice", (
     assert.equal(decision.pathway, null);
   }
 
-  // Mining-eco / mining-people are covered by their own modules; climate does not emit them.
+  // Mining-eco / mining-people / e-waste-people are covered by their own modules; climate does not emit them.
   for (const claimId of [
     "SP-PATH-MINING-ECO-001",
     "SP-PATH-MINING-PEOPLE-001",
+    "SP-PATH-EWASTE-PEOPLE-001",
   ]) {
     const decision = resolveClimatePathwayBoundary({
       claim_id: claimId,
@@ -789,7 +789,6 @@ test("mining-eco missing, malformed, unknown and conflicting claim identity/vers
 
 test("pending empirical pathway IDs remain non-emitting in the mining-eco slice", () => {
   assert.deepEqual(MINING_ECO_PENDING_IDS, [
-    "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
   ]);
@@ -807,8 +806,12 @@ test("pending empirical pathway IDs remain non-emitting in the mining-eco slice"
     assert.equal(decision.pathway, null);
   }
 
-  // Climate / mining-people remain covered elsewhere; mining-eco does not emit them.
-  for (const claimId of [CLIMATE_CLAIM_ID, "SP-PATH-MINING-PEOPLE-001"]) {
+  // Climate / mining-people / e-waste-people remain covered elsewhere; mining-eco does not emit them.
+  for (const claimId of [
+    CLIMATE_CLAIM_ID,
+    "SP-PATH-MINING-PEOPLE-001",
+    "SP-PATH-EWASTE-PEOPLE-001",
+  ]) {
     const decision = resolveMiningEcoPathwayBoundary({
       claim_id: claimId,
       claim_version: MINING_ECO_CLAIM_PACKAGE_COMMIT,
@@ -1386,7 +1389,6 @@ test("mining-people missing, malformed, unknown and conflicting claim identity/v
 
 test("pending empirical pathway IDs remain non-emitting in the mining-people slice", () => {
   assert.deepEqual(MINING_PEOPLE_PENDING_IDS, [
-    "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
   ]);
@@ -1404,8 +1406,12 @@ test("pending empirical pathway IDs remain non-emitting in the mining-people sli
     assert.equal(decision.pathway, null);
   }
 
-  // Climate / mining-eco remain covered elsewhere; mining-people does not emit them.
-  for (const claimId of [CLIMATE_CLAIM_ID, MINING_ECO_CLAIM_ID]) {
+  // Climate / mining-eco / e-waste-people remain covered elsewhere; mining-people does not emit them.
+  for (const claimId of [
+    CLIMATE_CLAIM_ID,
+    MINING_ECO_CLAIM_ID,
+    EWASTE_PEOPLE_CLAIM_ID,
+  ]) {
     const decision = resolveMiningPeoplePathwayBoundary({
       claim_id: claimId,
       claim_version: MINING_PEOPLE_CLAIM_PACKAGE_COMMIT,
