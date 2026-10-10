@@ -186,3 +186,47 @@ While native Issue-write actions are unavailable:
 - Cursor remains prohibited from self-merging; HQ independently reviews, accepts and merges only under existing owner-control gates. No scientific, AP or product scope is expanded.
 
 Sequence: HQ READY issue → dispatch → Cursor gate/idempotency checks → existing or deterministic task branch/PR → full execution result → HQ Issue reconciliation/review/acceptance → next bounded action.
+
+
+### Cursor durable-return fallback
+
+A correction or verification cycle is not complete merely because the substantive edit is committed. Cursor must validate the final substantive implementation head required by that cycle before returning `VERIFIED_FOR_HQ_REVIEW`.
+
+When Cursor has completed an already-authorized execution cycle but the active runtime provides no authorized Issue-write or existing-PR update/comment action, Cursor may add exactly one transport-only return artifact under:
+
+`handoffs/cursor-returns/<TASK-ID>/<CYCLE>.md`
+
+This path is universally permitted for an already-authorized Cursor execution, correction, or verification cycle and does not constitute implementation scope expansion.
+
+The artifact may contain execution and validation metadata only. It must not introduce or alter scientific, empirical, AP, model, product, calculator, UI, or implementation semantics.
+
+The return artifact must identify, as applicable:
+
+- Task ID;
+- Issue and PR;
+- execution/correction/verification cycle;
+- starting main SHA;
+- prior reviewed head;
+- `VALIDATED_IMPLEMENTATION_HEAD`;
+- changed implementation files;
+- validation toolchain and commands;
+- install, test, typecheck and build results;
+- lockfile integrity;
+- required rendered/visual evidence references;
+- preserved gaps;
+- discrepancies;
+- `Self-merge: NO`;
+- executor result.
+
+If the return artifact is committed after substantive implementation validation, Cursor must report both:
+
+- `VALIDATED_IMPLEMENTATION_HEAD`;
+- `EVIDENCE_RETURN_HEAD`.
+
+The evidence-return commit must change only the permitted return artifact. When HQ independently confirms that condition, the new evidence-only SHA does not by itself require another complete application validation cycle.
+
+Cursor must reuse the existing task Issue, deterministic implementation branch and PR. Missing native PR/Issue update capability must not cause a duplicate Issue, implementation branch or PR.
+
+The owner must not be required to act as the routine message bridge between Cursor and HQ. Owner-forwarded automation output is an emergency/bootstrap fallback, not the normal control-plane return path.
+
+This is a transport/control-plane rule only. It changes no scientific, AP, empirical, product or implementation semantics.
