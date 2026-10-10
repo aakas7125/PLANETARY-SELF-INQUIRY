@@ -278,6 +278,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
   const expectedCoveredEmpiricalIds = [
     "SP-PATH-CLIMATE-001",
     "SP-PATH-MINING-ECO-001",
+    "SP-PATH-MINING-PEOPLE-001",
   ];
   const coveredEmpiricalIds = mapping
     .filter(
@@ -293,7 +294,6 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     .map((row) => row.id);
   assert.deepEqual(coveredEmpiricalIds, expectedCoveredEmpiricalIds);
   assert.deepEqual(remainingEmpiricalIds, [
-    "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",

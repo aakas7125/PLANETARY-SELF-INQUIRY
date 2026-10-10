@@ -32,6 +32,19 @@ import {
   resolveMiningEcoPathwayBoundary,
   validateMiningEcoClaimAuthorityRecord,
 } from "../src/lib/smartphone/empirical-mining-eco-boundary.mjs";
+import {
+  ACCEPTED_MINING_PEOPLE_CLAIM,
+  ACCEPTED_MINING_PEOPLE_SOURCES,
+  ATTRIBUTION_CONDITIONAL_PATHWAY,
+  MINING_PEOPLE_CLAIM_ID,
+  MINING_PEOPLE_CLAIM_PACKAGE_COMMIT,
+  MINING_PEOPLE_PATHWAY_REASON,
+  PACKAGE_PROVENANCE as MINING_PEOPLE_PACKAGE_PROVENANCE,
+  PATHWAY_KIND_QUALITATIVE_CONDITIONAL as MINING_PEOPLE_PATHWAY_KIND,
+  PENDING_EMPIRICAL_PATHWAY_IDS as MINING_PEOPLE_PENDING_IDS,
+  resolveMiningPeoplePathwayBoundary,
+  validateMiningPeopleClaimAuthorityRecord,
+} from "../src/lib/smartphone/empirical-mining-people-boundary.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = resolve(scriptsDirectory, "../..");
@@ -217,7 +230,6 @@ test("missing, malformed, unknown and conflicting claim identity/version are den
 
 test("pending empirical pathway IDs remain non-emitting in the climate slice", () => {
   assert.deepEqual(PENDING_EMPIRICAL_PATHWAY_IDS, [
-    "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
@@ -236,17 +248,19 @@ test("pending empirical pathway IDs remain non-emitting in the climate slice", (
     assert.equal(decision.pathway, null);
   }
 
-  // Mining-eco is covered by its own module; climate resolver does not emit it.
-  const miningViaClimate = resolveClimatePathwayBoundary({
-    claim_id: "SP-PATH-MINING-ECO-001",
-    claim_version: CLIMATE_CLAIM_PACKAGE_COMMIT,
-    scenario_produces_ghg_emissions: true,
-  });
-  assert.equal(miningViaClimate.emitted, false);
-  assert.equal(
-    miningViaClimate.reason_code,
-    CLIMATE_PATHWAY_REASON.UNKNOWN_CLAIM,
-  );
+  // Mining-eco / mining-people are covered by their own modules; climate does not emit them.
+  for (const claimId of [
+    "SP-PATH-MINING-ECO-001",
+    "SP-PATH-MINING-PEOPLE-001",
+  ]) {
+    const decision = resolveClimatePathwayBoundary({
+      claim_id: claimId,
+      claim_version: CLIMATE_CLAIM_PACKAGE_COMMIT,
+      scenario_produces_ghg_emissions: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(decision.reason_code, CLIMATE_PATHWAY_REASON.UNKNOWN_CLAIM);
+  }
 });
 
 test("missing required claim/source/scope/condition/attribution metadata fails closed", () => {
@@ -759,7 +773,6 @@ test("mining-eco missing, malformed, unknown and conflicting claim identity/vers
 
 test("pending empirical pathway IDs remain non-emitting in the mining-eco slice", () => {
   assert.deepEqual(MINING_ECO_PENDING_IDS, [
-    "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
@@ -778,17 +791,19 @@ test("pending empirical pathway IDs remain non-emitting in the mining-eco slice"
     assert.equal(decision.pathway, null);
   }
 
-  // Climate remains covered elsewhere; mining-eco resolver does not emit it.
-  const climateViaMining = resolveMiningEcoPathwayBoundary({
-    claim_id: CLIMATE_CLAIM_ID,
-    claim_version: MINING_ECO_CLAIM_PACKAGE_COMMIT,
-    relevant_primary_metal_extraction_occurs: true,
-  });
-  assert.equal(climateViaMining.emitted, false);
-  assert.equal(
-    climateViaMining.reason_code,
-    MINING_ECO_PATHWAY_REASON.UNKNOWN_CLAIM,
-  );
+  // Climate / mining-people remain covered elsewhere; mining-eco does not emit them.
+  for (const claimId of [CLIMATE_CLAIM_ID, "SP-PATH-MINING-PEOPLE-001"]) {
+    const decision = resolveMiningEcoPathwayBoundary({
+      claim_id: claimId,
+      claim_version: MINING_ECO_CLAIM_PACKAGE_COMMIT,
+      relevant_primary_metal_extraction_occurs: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      MINING_ECO_PATHWAY_REASON.UNKNOWN_CLAIM,
+    );
+  }
 });
 
 test("mining-eco missing required claim/source/scope/condition/attribution metadata fails closed", () => {
@@ -1169,4 +1184,629 @@ test("existing climate emission remains unchanged beside mining-eco coverage", (
   assert.equal(mining.emitted, true);
   assert.equal(mining.pathway.status, "APPROVED_QUALITATIVE");
   assert.equal(mining.pathway.unit, null);
+});
+
+function validMiningPeopleRequest(overrides = {}) {
+  return {
+    claim_id: MINING_PEOPLE_CLAIM_ID,
+    claim_version: MINING_PEOPLE_CLAIM_PACKAGE_COMMIT,
+    requested_output: MINING_PEOPLE_PATHWAY_KIND,
+    relevant_supply_chain_geography_process_established: true,
+    ...overrides,
+  };
+}
+
+test("frozen mining-people claim matches evidence/CLAIM_REGISTRY.json exactly", () => {
+  const registry = readJson("evidence/CLAIM_REGISTRY.json");
+  const fromRegistry = registry.find(
+    (row) => row.claim_id === MINING_PEOPLE_CLAIM_ID,
+  );
+  assert.ok(fromRegistry, "SP-PATH-MINING-PEOPLE-001 must exist in claim registry");
+  assert.deepEqual(
+    {
+      claim_id: fromRegistry.claim_id,
+      package_commit: fromRegistry.package_commit,
+      package_provenance: fromRegistry.package_provenance,
+      statement: fromRegistry.statement,
+      evidence_domain: fromRegistry.evidence_domain,
+      confidence: fromRegistry.confidence,
+      attribution_status: fromRegistry.attribution_status,
+      evidence_scope: fromRegistry.evidence_scope,
+      status: fromRegistry.status,
+      conditions: fromRegistry.conditions,
+      source_ids: fromRegistry.source_ids,
+    },
+    { ...ACCEPTED_MINING_PEOPLE_CLAIM },
+  );
+});
+
+test("frozen mining-people source matches evidence/SOURCE_REGISTRY.json for S10", () => {
+  const registry = readJson("evidence/SOURCE_REGISTRY.json");
+  const fromRegistry = registry.find((row) => row.source_id === "S10");
+  assert.ok(fromRegistry, "S10 must exist in source registry");
+  assert.deepEqual(
+    {
+      source_id: fromRegistry.source_id,
+      package_commit: fromRegistry.package_commit,
+      package_provenance: fromRegistry.package_provenance,
+      citation: fromRegistry.citation,
+      scope: fromRegistry.scope,
+      metadata_limit: fromRegistry.metadata_limit,
+    },
+    { ...ACCEPTED_MINING_PEOPLE_SOURCES.S10 },
+  );
+});
+
+test("SP-PATH-MINING-PEOPLE-001 emits qualitative pathway with preserved authority", () => {
+  const byParts = resolveMiningPeoplePathwayBoundary(validMiningPeopleRequest());
+  const byRef = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      claim_id: undefined,
+      claim_version: undefined,
+      claim_ref: `${MINING_PEOPLE_CLAIM_ID}@${MINING_PEOPLE_CLAIM_PACKAGE_COMMIT}`,
+    }),
+  );
+
+  for (const decision of [byParts, byRef]) {
+    assert.equal(decision.emitted, true);
+    assert.equal(decision.reason_code, null);
+    assert.equal(decision.claim_id, MINING_PEOPLE_CLAIM_ID);
+    assert.equal(decision.claim_version, MINING_PEOPLE_CLAIM_PACKAGE_COMMIT);
+    assert.equal(
+      decision.claim_ref,
+      `${MINING_PEOPLE_CLAIM_ID}@${MINING_PEOPLE_CLAIM_PACKAGE_COMMIT}`,
+    );
+    assert.ok(decision.pathway);
+    assert.equal(
+      decision.pathway.pathway_kind,
+      MINING_PEOPLE_PATHWAY_KIND,
+    );
+    assert.equal(
+      decision.pathway.statement,
+      ACCEPTED_MINING_PEOPLE_CLAIM.statement,
+    );
+    assert.deepEqual(
+      decision.pathway.evidence_domain,
+      ACCEPTED_MINING_PEOPLE_CLAIM.evidence_domain,
+    );
+    assert.deepEqual(
+      decision.pathway.evidence_scope,
+      ACCEPTED_MINING_PEOPLE_CLAIM.evidence_scope,
+    );
+    assert.equal(decision.pathway.confidence, "moderate");
+    assert.equal(
+      decision.pathway.attribution_status,
+      ATTRIBUTION_CONDITIONAL_PATHWAY,
+    );
+    assert.deepEqual(
+      decision.pathway.conditions,
+      ACCEPTED_MINING_PEOPLE_CLAIM.conditions,
+    );
+    assert.deepEqual(
+      decision.pathway.major_assumptions,
+      ACCEPTED_MINING_PEOPLE_CLAIM.conditions,
+    );
+    assert.equal(decision.pathway.status, "QUALITATIVE");
+    assert.equal(
+      decision.pathway.package_provenance,
+      MINING_PEOPLE_PACKAGE_PROVENANCE,
+    );
+    assert.equal(decision.pathway.quantitative_value, null);
+    assert.equal(decision.pathway.value_range, null);
+    assert.equal(decision.pathway.unit, null);
+    assert.equal(decision.pathway.metric, null);
+    assert.equal(decision.pathway.exposure, null);
+    assert.equal(decision.pathway.dose, null);
+    assert.equal(decision.pathway.risk, null);
+    assert.equal(decision.pathway.illness_count, null);
+    assert.equal(decision.pathway.injury_count, null);
+    assert.equal(decision.pathway.death_count, null);
+    assert.equal(decision.pathway.location, null);
+    assert.equal(decision.pathway.probability, null);
+    assert.equal(decision.pathway.model_specific_or_fallback_status, null);
+    assert.deepEqual(decision.pathway.source_ids, ["S10"]);
+    assert.equal(decision.pathway.sources.length, 1);
+    assert.equal(decision.unified_score, null);
+    assert.equal(decision.exact_individual_damage, null);
+    assert.equal(decision.exact_community_damage, null);
+    assert.equal(decision.named_target_attribution, null);
+    assert.equal(decision.device_worker_attribution, null);
+    assert.ok(
+      decision.pathway.attribution_limits.includes("conditional_pathway"),
+    );
+    assert.ok(
+      decision.pathway.attribution_limits.includes("site_specific_scope_preserved"),
+    );
+  }
+});
+
+test("mining-people missing, malformed, unknown and conflicting claim identity/version are denied", () => {
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary({
+      relevant_supply_chain_geography_process_established: true,
+    }).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_CLAIM_IDENTITY,
+  );
+
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary({
+      claim_id: MINING_PEOPLE_CLAIM_ID,
+      relevant_supply_chain_geography_process_established: true,
+    }).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_CLAIM_VERSION,
+  );
+
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ claim_id: "SP-PATH-UNKNOWN-999" }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.UNKNOWN_CLAIM,
+  );
+
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ claim_id: "not a claim" }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MALFORMED_CLAIM_IDENTITY,
+  );
+
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ claim_version: "wrong-commit" }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.WRONG_CLAIM_VERSION,
+  );
+
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({
+        claim_ref: `${MINING_PEOPLE_CLAIM_ID}@${MINING_PEOPLE_CLAIM_PACKAGE_COMMIT}`,
+        claim_id: "SP-PATH-CLIMATE-001",
+      }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.CONFLICTING_CLAIM_REPRESENTATION,
+  );
+});
+
+test("pending empirical pathway IDs remain non-emitting in the mining-people slice", () => {
+  assert.deepEqual(MINING_PEOPLE_PENDING_IDS, [
+    "SP-PATH-EWASTE-PEOPLE-001",
+    "SP-PATH-EWASTE-ECO-001",
+    "SP-PATH-WATER-001",
+  ]);
+  for (const claimId of MINING_PEOPLE_PENDING_IDS) {
+    const decision = resolveMiningPeoplePathwayBoundary({
+      claim_id: claimId,
+      claim_version: MINING_PEOPLE_CLAIM_PACKAGE_COMMIT,
+      relevant_supply_chain_geography_process_established: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.PATHWAY_NOT_IN_AUTHORIZED_SLICE,
+    );
+    assert.equal(decision.pathway, null);
+  }
+
+  // Climate / mining-eco remain covered elsewhere; mining-people does not emit them.
+  for (const claimId of [CLIMATE_CLAIM_ID, MINING_ECO_CLAIM_ID]) {
+    const decision = resolveMiningPeoplePathwayBoundary({
+      claim_id: claimId,
+      claim_version: MINING_PEOPLE_CLAIM_PACKAGE_COMMIT,
+      relevant_supply_chain_geography_process_established: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.UNKNOWN_CLAIM,
+    );
+  }
+});
+
+test("mining-people missing required claim/source/scope/condition/attribution metadata fails closed", () => {
+  const missingStatement = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_MINING_PEOPLE_CLAIM,
+        statement: "",
+      },
+    }),
+  );
+  assert.equal(missingStatement.emitted, false);
+  assert.equal(
+    missingStatement.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_CLAIM_METADATA,
+  );
+
+  const missingScope = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_MINING_PEOPLE_CLAIM,
+        evidence_scope: [],
+      },
+    }),
+  );
+  assert.equal(
+    missingScope.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SCOPE,
+  );
+
+  const missingConditions = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_MINING_PEOPLE_CLAIM,
+        conditions: [],
+      },
+    }),
+  );
+  assert.equal(
+    missingConditions.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_CONDITIONS,
+  );
+
+  const missingAttribution = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      authority_claim_record: {
+        ...ACCEPTED_MINING_PEOPLE_CLAIM,
+        attribution_status: "",
+      },
+    }),
+  );
+  assert.equal(
+    missingAttribution.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_ATTRIBUTION,
+  );
+
+  const missingSource = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      authority_source_map: {},
+    }),
+  );
+  assert.equal(
+    missingSource.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+  );
+
+  assert.equal(validateMiningPeopleClaimAuthorityRecord(null).ok, false);
+});
+
+test("device/worker/community outcome attribution to one phone is denied", () => {
+  for (const marker of [
+    { request_device_to_worker_attribution: true },
+    { request_device_to_community_attribution: true },
+    { request_worker_community_outcome_to_one_phone: true },
+  ]) {
+    const decision = resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.DEVICE_WORKER_ATTRIBUTION_PROHIBITED,
+    );
+    assert.equal(decision.device_worker_attribution, null);
+  }
+});
+
+test("named worker/community/person/place/site/event attribution to one phone is denied", () => {
+  for (const marker of [
+    { named_worker: "Worker A" },
+    { named_community: "Community B" },
+    { named_person: "Person C" },
+    { named_place: "Place D" },
+    { named_site: "Mine Site E" },
+    { named_event: "2024 incident" },
+  ]) {
+    const decision = resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.NAMED_TARGET_ATTRIBUTION_PROHIBITED,
+    );
+    assert.equal(decision.named_target_attribution, null);
+  }
+});
+
+test("illness/injury/death counts, exposure/dose/risk/probability and exact damage are denied", () => {
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_illness_injury_or_death_counts: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.ILLNESS_INJURY_OR_DEATH_COUNTS_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_exposure: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.EXPOSURE_DOSE_RISK_OR_PROBABILITY_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_dose: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.EXPOSURE_DOSE_RISK_OR_PROBABILITY_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_risk: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.EXPOSURE_DOSE_RISK_OR_PROBABILITY_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_probability: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.EXPOSURE_DOSE_RISK_OR_PROBABILITY_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_exact_individual_damage: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.EXACT_INDIVIDUAL_OR_COMMUNITY_DAMAGE_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_exact_community_damage: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.EXACT_INDIVIDUAL_OR_COMMUNITY_DAMAGE_PROHIBITED,
+  );
+});
+
+test("mining-people unified scores, causal-proof and quantitative/location outputs are denied", () => {
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_unified_score: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.UNIFIED_SCORE_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_causal_proof: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.UNSUPPORTED_CAUSAL_PROOF_WORDING,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_numerical_burden: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.QUANTITATIVE_OUTPUT_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ request_location: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.QUANTITATIVE_OUTPUT_PROHIBITED,
+  );
+});
+
+test("mining-people unknown coercion denied; unmet or generic-inferred geography/process stays non-emitting", () => {
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ coerce_unknown_to_zero: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.UNKNOWN_COERCION_PROHIBITED,
+  );
+  assert.equal(
+    resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ coerce_unknown_to_false: true }),
+    ).reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.UNKNOWN_COERCION_PROHIBITED,
+  );
+
+  const unknownCondition = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      relevant_supply_chain_geography_process_established: null,
+    }),
+  );
+  assert.equal(unknownCondition.emitted, false);
+  assert.equal(
+    unknownCondition.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+  assert.equal(unknownCondition.quantitative_value, null);
+
+  const falseCondition = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      relevant_supply_chain_geography_process_established: false,
+    }),
+  );
+  assert.equal(falseCondition.emitted, false);
+  assert.equal(
+    falseCondition.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+
+  const genericInferred = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      supply_chain_geography_process_generic_inferred: true,
+    }),
+  );
+  assert.equal(genericInferred.emitted, false);
+  assert.equal(
+    genericInferred.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.GENERIC_INFERRED_GEOGRAPHY_PROCESS_PROHIBITED,
+  );
+});
+
+test("mining-people case/test metadata is not production authority", () => {
+  const byCaseOnly = resolveMiningPeoplePathwayBoundary({
+    case_id: "SP-PATH-MINING-PEOPLE-001",
+    relevant_supply_chain_geography_process_established: true,
+  });
+  assert.equal(byCaseOnly.emitted, false);
+  assert.equal(
+    byCaseOnly.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const byAssertionOnly = resolveMiningPeoplePathwayBoundary({
+    assertion_id: "A-MINING-PEOPLE-001",
+    relevant_supply_chain_geography_process_established: true,
+  });
+  assert.equal(
+    byAssertionOnly.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const forced = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({ use_case_id_as_claim_authority: true }),
+  );
+  assert.equal(
+    forced.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const incidental = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({ case_id: "fixture-name-only" }),
+  );
+  assert.equal(incidental.emitted, true);
+  assert.equal(incidental.reason_code, null);
+});
+
+test("mining-people unsupported requested outputs do not emit", () => {
+  const decision = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest({
+      requested_output: "unified_environmental_harm_score",
+    }),
+  );
+  assert.equal(decision.emitted, false);
+  assert.equal(
+    decision.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.UNSUPPORTED_REQUESTED_OUTPUT,
+  );
+});
+
+test("altered mining-people claim authority fields fail exact-authority check", () => {
+  const alteredClaims = [
+    { statement: "Altered mining-people statement under accepted identity." },
+    { evidence_domain: ["materials"] },
+    { evidence_scope: ["systematic_review"] },
+    { confidence: "high" },
+    { status: "APPROVED" },
+    { attribution_status: "not_attributable_to_specific_device" },
+    {
+      conditions: [
+        "relevant supply-chain geography/process",
+        "extra invented condition",
+      ],
+    },
+    { conditions: ["unrelated condition"] },
+    { source_ids: ["S1"] },
+    { source_ids: ["S10", "S1"] },
+    { package_commit: "ffffffffffffffffffffffffffffffffffffffff" },
+    { package_provenance: "R&E-V0-SMARTPHONE-ALTERED" },
+  ];
+
+  for (const alteration of alteredClaims) {
+    const decision = resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({
+        authority_claim_record: {
+          ...ACCEPTED_MINING_PEOPLE_CLAIM,
+          ...alteration,
+        },
+      }),
+    );
+    assert.equal(
+      decision.emitted,
+      false,
+      `expected deny for ${JSON.stringify(alteration)}`,
+    );
+    assert.equal(
+      decision.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("altered mining-people source fields and extra/substituted sources fail closed", () => {
+  const alteredSourceCases = [
+    {
+      S10: {
+        ...ACCEPTED_MINING_PEOPLE_SOURCES.S10,
+        package_commit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      },
+    },
+    {
+      S10: {
+        ...ACCEPTED_MINING_PEOPLE_SOURCES.S10,
+        citation: "Altered citation text.",
+      },
+    },
+    {
+      S10: {
+        ...ACCEPTED_MINING_PEOPLE_SOURCES.S10,
+        scope: "Altered source scope.",
+      },
+    },
+    {
+      S10: {
+        ...ACCEPTED_MINING_PEOPLE_SOURCES.S10,
+        metadata_limit: "Altered metadata limit.",
+      },
+    },
+    {
+      S10: ACCEPTED_MINING_PEOPLE_SOURCES.S10,
+      S1: {
+        source_id: "S1",
+        package_commit: MINING_PEOPLE_CLAIM_PACKAGE_COMMIT,
+        package_provenance: MINING_PEOPLE_PACKAGE_PROVENANCE,
+        citation: "Extra substituted source.",
+        scope: "extra",
+        metadata_limit: "extra",
+      },
+    },
+    {
+      S1: {
+        source_id: "S1",
+        package_commit: MINING_PEOPLE_CLAIM_PACKAGE_COMMIT,
+        package_provenance: MINING_PEOPLE_PACKAGE_PROVENANCE,
+        citation: "Substituted source identity.",
+        scope: "substituted",
+        metadata_limit: "substituted",
+      },
+    },
+  ];
+
+  for (const [index, authority_source_map] of alteredSourceCases.entries()) {
+    const decision = resolveMiningPeoplePathwayBoundary(
+      validMiningPeopleRequest({ authority_source_map }),
+    );
+    assert.equal(
+      decision.emitted,
+      false,
+      `expected deny for altered source case ${index}`,
+    );
+    assert.equal(
+      decision.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("existing climate and mining-eco emission remain unchanged beside mining-people coverage", () => {
+  const climate = resolveClimatePathwayBoundary({
+    claim_id: CLIMATE_CLAIM_ID,
+    claim_version: CLIMATE_CLAIM_PACKAGE_COMMIT,
+    scenario_produces_ghg_emissions: true,
+  });
+  assert.equal(climate.emitted, true);
+  assert.equal(climate.pathway.unit, CLIMATE_UNIT);
+  assert.equal(climate.pathway.status, "APPROVED");
+
+  const miningEco = resolveMiningEcoPathwayBoundary(validMiningEcoRequest());
+  assert.equal(miningEco.emitted, true);
+  assert.equal(miningEco.pathway.status, "APPROVED_QUALITATIVE");
+  assert.equal(miningEco.pathway.unit, null);
+
+  const miningPeople = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest(),
+  );
+  assert.equal(miningPeople.emitted, true);
+  assert.equal(miningPeople.pathway.status, "QUALITATIVE");
+  assert.equal(miningPeople.pathway.unit, null);
+  assert.equal(miningPeople.pathway.confidence, "moderate");
 });
