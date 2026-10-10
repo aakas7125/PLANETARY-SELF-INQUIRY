@@ -44,6 +44,7 @@ import {
   PENDING_EMPIRICAL_PATHWAY_IDS as MINING_PEOPLE_PENDING_IDS,
   resolveMiningPeoplePathwayBoundary,
   validateMiningPeopleClaimAuthorityRecord,
+  validateMiningPeopleSourceRecords,
 } from "../src/lib/smartphone/empirical-mining-people-boundary.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
@@ -1468,6 +1469,55 @@ test("mining-people missing required claim/source/scope/condition/attribution me
   );
 
   assert.equal(validateMiningPeopleClaimAuthorityRecord(null).ok, false);
+});
+
+test("mining-people malformed non-object source maps fail closed without throwing", () => {
+  // Explicitly supplied malformed maps (null/array/non-object). Omitted/undefined
+  // authority_source_map remains the accepted default at the resolve boundary.
+  const malformedMaps = [null, [], ["S10"], "S10", 0, false];
+
+  for (const [index, authority_source_map] of malformedMaps.entries()) {
+    let decision;
+    assert.doesNotThrow(() => {
+      decision = resolveMiningPeoplePathwayBoundary(
+        validMiningPeopleRequest({ authority_source_map }),
+      );
+    }, `resolve must not throw for malformed source map case ${index}`);
+    assert.equal(decision.emitted, false, `case ${index}`);
+    assert.equal(
+      decision.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+    assert.equal(decision.pathway, null, `case ${index}`);
+
+    let validation;
+    assert.doesNotThrow(() => {
+      validation = validateMiningPeopleSourceRecords(
+        ACCEPTED_MINING_PEOPLE_CLAIM.source_ids,
+        authority_source_map,
+      );
+    }, `validate must not throw for malformed source map case ${index}`);
+    assert.equal(validation.ok, false, `case ${index}`);
+    assert.equal(
+      validation.reason_code,
+      MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+  }
+
+  let undefinedValidation;
+  assert.doesNotThrow(() => {
+    undefinedValidation = validateMiningPeopleSourceRecords(
+      ACCEPTED_MINING_PEOPLE_CLAIM.source_ids,
+      undefined,
+    );
+  }, "validate must not throw for undefined source map");
+  assert.equal(undefinedValidation.ok, false);
+  assert.equal(
+    undefinedValidation.reason_code,
+    MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+  );
 });
 
 test("device/worker/community outcome attribution to one phone is denied", () => {

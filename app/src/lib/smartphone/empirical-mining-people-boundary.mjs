@@ -223,7 +223,7 @@ export function validateMiningPeopleClaimAuthorityRecord(record) {
  * and extra/substituted sources fail closed.
  *
  * @param {ReadonlyArray<string>} sourceIds
- * @param {Readonly<Record<string, unknown>>} sourceMap
+ * @param {unknown} sourceMap
  * @returns {{ ok: true, sources: ReadonlyArray<Readonly<Record<string, unknown>>> } | { ok: false, reason_code: string }}
  */
 export function validateMiningPeopleSourceRecords(sourceIds, sourceMap) {
@@ -236,7 +236,23 @@ export function validateMiningPeopleSourceRecords(sourceIds, sourceMap) {
     };
   }
 
-  const mapKeys = Object.keys(sourceMap);
+  // Fail closed for malformed source authority before Object.keys.
+  // null, arrays, and other non-plain-object maps are not accepted records.
+  if (
+    sourceMap === null ||
+    sourceMap === undefined ||
+    typeof sourceMap !== "object" ||
+    Array.isArray(sourceMap)
+  ) {
+    return {
+      ok: false,
+      reason_code: MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+    };
+  }
+
+  const recordMap = /** @type {Readonly<Record<string, unknown>>} */ (sourceMap);
+
+  const mapKeys = Object.keys(recordMap);
   for (const key of mapKeys) {
     if (!Object.prototype.hasOwnProperty.call(ACCEPTED_MINING_PEOPLE_SOURCES, key)) {
       return {
@@ -246,7 +262,7 @@ export function validateMiningPeopleSourceRecords(sourceIds, sourceMap) {
     }
   }
   for (const sourceId of ACCEPTED_MINING_PEOPLE_CLAIM.source_ids) {
-    if (!Object.prototype.hasOwnProperty.call(sourceMap, sourceId)) {
+    if (!Object.prototype.hasOwnProperty.call(recordMap, sourceId)) {
       return {
         ok: false,
         reason_code: MINING_PEOPLE_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
@@ -257,7 +273,7 @@ export function validateMiningPeopleSourceRecords(sourceIds, sourceMap) {
   /** @type {Array<Readonly<Record<string, unknown>>>} */
   const sources = [];
   for (const sourceId of sourceIds) {
-    const source = sourceMap[sourceId];
+    const source = recordMap[sourceId];
     if (!source || typeof source !== "object") {
       return {
         ok: false,
