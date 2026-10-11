@@ -92,6 +92,18 @@ export const FACT_NOT_SURE_LABEL = "Not sure";
 export const FACT_NOT_SURE_NOTE =
   "Not sure is the answer being used. Typed years stay as typed and are not turned into zero.";
 
+export const USED_SERVICE_LABEL =
+  "How many years of adequate service are expected for this used or second-hand candidate?";
+
+export const USED_SERVICE_HELPER =
+  "This is only this used or second-hand candidate. It is not the shared horizon, and it is not the refurbished candidate. Nothing is filled in for you.";
+
+export const REFURBISHED_SERVICE_LABEL =
+  "How many years of adequate service are expected for this refurbished candidate?";
+
+export const REFURBISHED_SERVICE_HELPER =
+  "This is only this refurbished candidate. It is not the shared horizon, and it is not the used or second-hand candidate. Nothing is filled in for you.";
+
 /**
  * Ordinary labels for repair facts. Only battery, display, and major-board
  * are accepted evaluator repair types. The other two choices stay unmapped.
@@ -152,6 +164,10 @@ const SCOPE_LABELS = Object.freeze({
  *   repairCategoryId: RepairFactCategoryId | null,
  *   postRepairServiceRaw: string,
  *   postRepairServiceNotSure: boolean,
+ *   usedServiceRaw: string,
+ *   usedServiceNotSure: boolean,
+ *   refurbishedServiceRaw: string,
+ *   refurbishedServiceNotSure: boolean,
  * }} ComparisonState
  */
 
@@ -160,6 +176,8 @@ const SCOPE_LABELS = Object.freeze({
  *   remainingService?: ExplicitServiceValue,
  *   repairCategoryId?: RepairFactCategoryId | null,
  *   postRepairService?: ExplicitServiceValue,
+ *   usedService?: ExplicitServiceValue,
+ *   refurbishedService?: ExplicitServiceValue,
  * } | null} ComparisonFactInput
  */
 
@@ -171,6 +189,10 @@ const SCOPE_LABELS = Object.freeze({
  *   | { type: "set_repair_category", categoryId: string }
  *   | { type: "set_post_repair_service", text: string }
  *   | { type: "mark_post_repair_not_sure" }
+ *   | { type: "set_used_service", text: string }
+ *   | { type: "mark_used_not_sure" }
+ *   | { type: "set_refurbished_service", text: string }
+ *   | { type: "mark_refurbished_not_sure" }
  *   | { type: "reset" }} ComparisonAction
  */
 
@@ -219,6 +241,22 @@ function repairFactsActive(state) {
 
 /**
  * @param {ComparisonState} state
+ * @returns {boolean}
+ */
+function usedServiceActive(state) {
+  return state.selectedIds.includes("used_secondhand");
+}
+
+/**
+ * @param {ComparisonState} state
+ * @returns {boolean}
+ */
+function refurbishedServiceActive(state) {
+  return state.selectedIds.includes("refurbished");
+}
+
+/**
+ * @param {ComparisonState} state
  * @param {ComparisonPathwayId[]} selectedIds
  * @returns {ComparisonState}
  */
@@ -235,6 +273,14 @@ function stateForSelection(state, selectedIds) {
     next.repairCategoryId = null;
     next.postRepairServiceRaw = "";
     next.postRepairServiceNotSure = false;
+  }
+  if (!usedServiceActive(next)) {
+    next.usedServiceRaw = "";
+    next.usedServiceNotSure = false;
+  }
+  if (!refurbishedServiceActive(next)) {
+    next.refurbishedServiceRaw = "";
+    next.refurbishedServiceNotSure = false;
   }
   return next;
 }
@@ -324,6 +370,10 @@ export function createComparisonState() {
     repairCategoryId: null,
     postRepairServiceRaw: "",
     postRepairServiceNotSure: false,
+    usedServiceRaw: "",
+    usedServiceNotSure: false,
+    refurbishedServiceRaw: "",
+    refurbishedServiceNotSure: false,
   };
 }
 
@@ -385,6 +435,40 @@ export function reduceComparison(state, action) {
         ...state,
         selectedIds: [...state.selectedIds],
         postRepairServiceNotSure: state.postRepairServiceNotSure !== true,
+      };
+    }
+    case "set_used_service": {
+      if (!usedServiceActive(state) || typeof action.text !== "string") return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        usedServiceRaw: action.text,
+        usedServiceNotSure: false,
+      };
+    }
+    case "mark_used_not_sure": {
+      if (!usedServiceActive(state)) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        usedServiceNotSure: state.usedServiceNotSure !== true,
+      };
+    }
+    case "set_refurbished_service": {
+      if (!refurbishedServiceActive(state) || typeof action.text !== "string") return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        refurbishedServiceRaw: action.text,
+        refurbishedServiceNotSure: false,
+      };
+    }
+    case "mark_refurbished_not_sure": {
+      if (!refurbishedServiceActive(state)) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        refurbishedServiceNotSure: state.refurbishedServiceNotSure !== true,
       };
     }
     case "reset":
@@ -475,9 +559,19 @@ function applyRepairFacts(input, facts) {
  */
 export function buildPathwayEvaluatorInput(pathwayId, answers, horizonYears, facts = null) {
   if (pathwayId === "used_secondhand" || pathwayId === "refurbished") {
+    const value = pathwayId === "used_secondhand" ? facts?.usedService : facts?.refurbishedService;
+    /** @type {Record<string, unknown>} */
+    const replacement = { pathway_user_selection: pathwayId };
+    // The composed evaluator reads replacement.pathway, not the selection
+    // field, when deciding a used short-service sequence. Both hold the same
+    // explicit selection. No other evidence is added.
+    if (typeof value === "number" || value === UNKNOWN) {
+      replacement.pathway = pathwayId;
+      replacement.expected_adequate_service = { expected_years: value };
+    }
     return {
       comparison: { common_service_horizon_years: horizonYears },
-      replacement: { pathway_user_selection: pathwayId },
+      replacement,
     };
   }
 
@@ -732,8 +826,60 @@ function newRemainingLines(status, decision) {
  *   remainingStatus: ServiceFactStatus,
  *   repairCategoryId: RepairFactCategoryId | null,
  *   postRepairStatus: ServiceFactStatus,
+ *   usedStatus: ServiceFactStatus,
+ *   usedYears: ExplicitServiceValue,
+ *   refurbishedStatus: ServiceFactStatus,
+ *   refurbishedYears: ExplicitServiceValue,
  * }} CardFactContext
  */
+
+/**
+ * Restate an explicit candidate-service fact and only the coverage the
+ * secondary evaluator actually returned. A missing sequence is not invented.
+ *
+ * @param {ServiceFactStatus} status
+ * @param {Record<string, unknown>} decision
+ * @param {ExplicitServiceValue} explicitYears
+ * @returns {string[]}
+ */
+function secondaryServiceLines(status, decision, explicitYears) {
+  /** @type {string[]} */
+  const lines = [];
+  if (status === "not_sure") {
+    lines.push(
+      "Expected adequate service for this candidate is not sure. It was not replaced with zero or a default.",
+    );
+  } else if (status === "invalid" || status === "rejected") {
+    lines.push(
+      "The expected service for this candidate cannot be used. It was not replaced with zero or a default.",
+    );
+  } else if (status === "accepted") {
+    const years =
+      typeof decision.covered_service_years === "number" ? decision.covered_service_years : explicitYears;
+    if (typeof years === "number") {
+      lines.push(`Expected adequate service for this candidate is ${years} years.`);
+    }
+    if (decision.service_sequence_required === true) {
+      lines.push(
+        "A complete service sequence is required. The next event was not supplied and was not invented.",
+      );
+      if (typeof decision.uncovered_service_years === "number") {
+        lines.push(`Service still uncovered on the shared horizon is ${decision.uncovered_service_years} years.`);
+      }
+    } else if (
+      decision.equivalent_service_established === true &&
+      typeof decision.adequate_service_coverage_years === "number"
+    ) {
+      lines.push(`Equivalent service is established for ${decision.adequate_service_coverage_years} years.`);
+    } else {
+      lines.push("Equivalent service over the shared horizon is not established.");
+    }
+  } else {
+    lines.push("Expected adequate service for this candidate was not supplied.");
+  }
+  lines.push("Expected adequate service was not copied from the shared horizon.");
+  return lines;
+}
 
 /**
  * @param {ComparisonPathwayId} pathwayId
@@ -820,13 +966,9 @@ function presentCard(pathwayId, label, decision, facts) {
   } else if (pathwayId === "used_secondhand") {
     lines.push("This is a used or second-hand phone. It is not treated as a refurbished phone.");
     if (namedCapability) lines.push(namedCapability);
-    lines.push(
-      "Expected adequate service, shipping, and preparation were not supplied. They were not given an amount.",
-    );
+    lines.push(...secondaryServiceLines(facts.usedStatus, decision, facts.usedYears));
+    lines.push("Shipping and preparation were not supplied. They were not given an amount.");
     lines.push("No refurbishment process is established.");
-    lines.push(
-      "Expected adequate service was not copied from the shared horizon.",
-    );
     lines.push(...secondaryBoundaryLines(decision));
   } else {
     lines.push(
@@ -864,7 +1006,7 @@ function presentCard(pathwayId, label, decision, facts) {
     lines.push(
       "No refurbishment process is established. A seller label was not supplied and would not by itself prove refurbishment.",
     );
-    lines.push("Expected adequate service was not supplied and was not copied from the shared horizon.");
+    lines.push(...secondaryServiceLines(facts.refurbishedStatus, decision, facts.refurbishedYears));
     lines.push(...secondaryBoundaryLines(decision));
   }
 
@@ -912,6 +1054,8 @@ export function describeComparison(state, context = {}) {
     remainingService: explicitServiceValue(state.remainingServiceRaw, state.remainingServiceNotSure),
     repairCategoryId: state.repairCategoryId,
     postRepairService: explicitServiceValue(state.postRepairServiceRaw, state.postRepairServiceNotSure),
+    usedService: explicitServiceValue(state.usedServiceRaw, state.usedServiceNotSure),
+    refurbishedService: explicitServiceValue(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
   };
 
   /** @type {ReturnType<typeof buildPathwayEvaluatorInput>[]} */
@@ -929,6 +1073,10 @@ export function describeComparison(state, context = {}) {
           remainingStatus: remainingPresentationStatus(state, decision),
           repairCategoryId: state.repairCategoryId,
           postRepairStatus: textServiceStatus(state.postRepairServiceRaw, state.postRepairServiceNotSure),
+          usedStatus: textServiceStatus(state.usedServiceRaw, state.usedServiceNotSure),
+          usedYears: explicitServiceValue(state.usedServiceRaw, state.usedServiceNotSure),
+          refurbishedStatus: textServiceStatus(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
+          refurbishedYears: explicitServiceValue(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
         }),
       );
     }
@@ -993,6 +1141,28 @@ export function describeComparison(state, context = {}) {
       serviceRaw: state.postRepairServiceRaw,
       serviceNotSure: state.postRepairServiceNotSure === true,
       parsedServiceYears: explicitServiceValue(state.postRepairServiceRaw, state.postRepairServiceNotSure),
+    },
+    usedServiceField: {
+      visible: state.selectedIds.includes("used_secondhand"),
+      label: publicLine(USED_SERVICE_LABEL),
+      helper: publicLine(USED_SERVICE_HELPER),
+      notSureLabel: publicLine(FACT_NOT_SURE_LABEL),
+      notSureControl: publicLine("Not sure about service for the used or second-hand candidate"),
+      notSureNote: state.usedServiceNotSure === true ? publicLine(FACT_NOT_SURE_NOTE) : null,
+      raw: state.usedServiceRaw,
+      notSure: state.usedServiceNotSure === true,
+      parsedYears: explicitServiceValue(state.usedServiceRaw, state.usedServiceNotSure),
+    },
+    refurbishedServiceField: {
+      visible: state.selectedIds.includes("refurbished"),
+      label: publicLine(REFURBISHED_SERVICE_LABEL),
+      helper: publicLine(REFURBISHED_SERVICE_HELPER),
+      notSureLabel: publicLine(FACT_NOT_SURE_LABEL),
+      notSureControl: publicLine("Not sure about service for the refurbished candidate"),
+      notSureNote: state.refurbishedServiceNotSure === true ? publicLine(FACT_NOT_SURE_NOTE) : null,
+      raw: state.refurbishedServiceRaw,
+      notSure: state.refurbishedServiceNotSure === true,
+      parsedYears: explicitServiceValue(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
     },
     pathways: COMPARISON_PATHWAYS.map((pathway) => ({
       id: pathway.id,
