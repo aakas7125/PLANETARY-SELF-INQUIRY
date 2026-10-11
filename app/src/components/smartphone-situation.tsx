@@ -1,6 +1,14 @@
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SmartphoneInquiry } from "@/components/smartphone-inquiry";
 import { cn } from "@/lib/utils";
+import {
+  INQUIRY_CHROME,
+  canEnterInquiry,
+  createInquiryState,
+  inquiryStateAfterSituationAction,
+  reduceInquiry,
+} from "@/lib/smartphone/ap-inquiry-ux.mjs";
 import {
   SITUATION_CHROME,
   createSituationState,
@@ -9,14 +17,35 @@ import {
 } from "@/lib/smartphone/situation-ux.mjs";
 
 export function SmartphoneSituation() {
-  const [state, dispatch] = useReducer(reduceSituation, createSituationState());
+  const [state, dispatchSituation] = useReducer(reduceSituation, createSituationState());
+  const [inquiry, dispatchInquiry] = useReducer(reduceInquiry, createInquiryState());
+  const [step, setStep] = useState<"situation" | "inquiry">("situation");
   const view = describeSituation(state);
   const resultRef = useRef<HTMLElement>(null);
 
+  function onSituation(action: Parameters<typeof dispatchSituation>[0]) {
+    const nextInquiry = inquiryStateAfterSituationAction(action.type, inquiry);
+    if (nextInquiry !== inquiry) {
+      dispatchInquiry({ type: "reset" });
+      setStep("situation");
+    }
+    dispatchSituation(action);
+  }
+
   useEffect(() => {
-    if (!state.submitted) return;
+    if (step !== "situation" || !state.submitted) return;
     resultRef.current?.scrollIntoView({ block: "nearest" });
-  }, [state.submitted]);
+  }, [state.submitted, step]);
+
+  if (step === "inquiry") {
+    return (
+      <SmartphoneInquiry
+        state={inquiry}
+        dispatch={dispatchInquiry}
+        onBackToSituation={() => setStep("situation")}
+      />
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
@@ -54,7 +83,7 @@ export function SmartphoneSituation() {
         onSubmit={(event) => {
           event.preventDefault();
           if (!view.canSubmit) return;
-          dispatch({ type: "submit" });
+          onSituation({ type: "submit" });
         }}
         onFocus={(event) => {
           if (!(event.target instanceof HTMLElement)) return;
@@ -98,7 +127,7 @@ export function SmartphoneSituation() {
                         value={choiceId}
                         checked={choice.checked}
                         onChange={() =>
-                          dispatch({ type: "select", field: question.id, value: choice.value })
+                          onSituation({ type: "select", field: question.id, value: choice.value })
                         }
                         className="size-4 shrink-0 accent-pine"
                       />
@@ -124,7 +153,7 @@ export function SmartphoneSituation() {
               type="button"
               variant="outline"
               className="scroll-mt-32"
-              onClick={() => dispatch({ type: "edit" })}
+              onClick={() => onSituation({ type: "edit" })}
             >
               {SITUATION_CHROME.edit}
             </Button>
@@ -133,7 +162,7 @@ export function SmartphoneSituation() {
             type="button"
             variant="outline"
             className="scroll-mt-32"
-            onClick={() => dispatch({ type: "reset" })}
+            onClick={() => onSituation({ type: "reset" })}
           >
             {SITUATION_CHROME.reset}
           </Button>
@@ -160,6 +189,17 @@ export function SmartphoneSituation() {
           </ul>
           <p className="mt-3 text-sm leading-relaxed text-foreground">{view.result.keepAsIs}</p>
           <p className="mt-3 text-sm leading-relaxed text-foreground">{view.result.boundary}</p>
+          <div className="mt-4">
+            <Button
+              type="button"
+              onClick={() => {
+                if (!canEnterInquiry(view.result)) return;
+                setStep("inquiry");
+              }}
+            >
+              {INQUIRY_CHROME.continueFromSituation}
+            </Button>
+          </div>
         </section>
       ) : null}
     </main>
