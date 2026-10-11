@@ -7,6 +7,7 @@ import {
   describeInquiry,
   reduceInquiry,
 } from "@/lib/smartphone/ap-inquiry-ux.mjs";
+import { COMPARISON_CHROME } from "@/lib/smartphone/comparison-ux.mjs";
 
 type InquiryState = ReturnType<typeof createInquiryState>;
 type InquiryAction = Parameters<typeof reduceInquiry>[1];
@@ -21,10 +22,12 @@ export function SmartphoneInquiry({
   state,
   dispatch,
   onBackToSituation,
+  onContinueToComparison,
 }: {
   state: InquiryState;
   dispatch: (action: InquiryAction) => void;
   onBackToSituation: () => void;
+  onContinueToComparison?: () => void;
 }) {
   const view = describeInquiry(state);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -176,6 +179,17 @@ export function SmartphoneInquiry({
             </div>
           ) : null}
           <p className="mt-6 text-sm leading-relaxed text-foreground">{view.boundary}</p>
+          {view.reviewComplete && onContinueToComparison ? (
+            <div className="mt-6">
+              <Button
+                type="button"
+                className="h-auto min-h-11 whitespace-normal px-4 py-2 text-center"
+                onClick={onContinueToComparison}
+              >
+                {COMPARISON_CHROME.continueFromInquiry}
+              </Button>
+            </div>
+          ) : null}
           <div className="mt-6 flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => dispatch({ type: "back" })}>
               {INQUIRY_CHROME.back}
