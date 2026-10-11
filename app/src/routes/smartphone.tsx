@@ -10,7 +10,7 @@ export const Route = createFileRoute("/smartphone")({
       {
         name: "description",
         content:
-          "A situation step for the phone you already have. It records three adequacy facts and does not recommend a purchase.",
+          "A situation step, then six inquiry questions, for the phone you already have. It does not recommend a purchase.",
       },
     ],
   }),
