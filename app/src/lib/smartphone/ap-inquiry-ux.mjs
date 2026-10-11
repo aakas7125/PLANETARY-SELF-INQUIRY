@@ -30,13 +30,52 @@ export const INQUIRY_INCOMPLETE_NOTE =
   "An answer is missing. Nothing has been filled in for you.";
 
 export const INQUIRY_CHOICE_NOTE =
-  "These choices are shown in presentation order. That order is not a ranking. buy_new is an ordinary choice, not a failed inquiry.";
+  "These choices are shown in presentation order. That order is not a ranking. Buying a new phone is an ordinary choice, not a failed inquiry.";
 
 export const INQUIRY_SHIFT_NOTE =
   "Optional. Only a choice you make here is recorded.";
 
 export const INQUIRY_ANSWER_HELPER =
   "A blank answer cannot continue. I\u2019m not sure counts as your answer. It is not turned into no or zero.";
+
+/**
+ * Visitor-facing labels for the accepted provisional choices.
+ * Keys remain the canonical enum values used by state and the domain builder.
+ */
+export const PROVISIONAL_CHOICE_LABELS = Object.freeze({
+  keep_current: "Keep the current phone",
+  repair_current: "Repair the current phone",
+  consider_used_or_refurbished: "Consider a used or refurbished phone",
+  buy_new: "Buy a new phone",
+  investigate_further: "Investigate further",
+  unclear: "Unclear",
+});
+
+/**
+ * Visitor-facing labels for the accepted self-reported shift values.
+ * Keys remain the canonical enum values.
+ */
+export const SHIFT_LABELS = Object.freeze({
+  changed: "Changed",
+  unchanged: "Unchanged",
+  uncertain: "Uncertain",
+  unclear: "Unclear",
+});
+
+const INTERNAL_ENUM_TOKEN = /[a-z0-9]+_[a-z0-9_]+/;
+
+/**
+ * @param {Readonly<Record<string, string>>} labels
+ * @param {string} value
+ * @returns {string}
+ */
+function ordinaryLabel(labels, value) {
+  const label = Object.prototype.hasOwnProperty.call(labels, value) ? labels[value] : undefined;
+  if (typeof label !== "string" || label.trim().length === 0 || INTERNAL_ENUM_TOKEN.test(label)) {
+    throw new Error("Missing ordinary-language label");
+  }
+  return label;
+}
 
 export const INQUIRY_CHROME = Object.freeze({
   eyebrow: "Phone inquiry",
@@ -315,12 +354,12 @@ export function describeInquiry(state) {
     state.phase === "review" || active?.question_id === "APQ6_RESEE";
   const choices = getProvisionalChoices().map((choice) => ({
     value: choice,
-    label: choice,
+    label: ordinaryLabel(PROVISIONAL_CHOICE_LABELS, choice),
     selected: state.provisionalSelection === choice,
   }));
   const shifts = SELF_REPORTED_SHIFT_VALUES.map((shift) => ({
     value: shift,
-    label: shift,
+    label: ordinaryLabel(SHIFT_LABELS, shift),
     selected: state.shiftSelection === shift,
   }));
 

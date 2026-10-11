@@ -7,6 +7,8 @@ import {
   EXPLICIT_UNCERTAINTY_ANSWER,
   INQUIRY_BOUNDARY,
   INQUIRY_CHOICE_NOTE,
+  PROVISIONAL_CHOICE_LABELS,
+  SHIFT_LABELS,
   buildInquiryDomainSession,
   canEnterInquiry,
   createInquiryState,
@@ -231,13 +233,84 @@ describe("smartphone AP inquiry UX", () => {
     assert.equal("score" in buy, false);
     assert.equal(view.domain.inquiryFailed, false);
     assert.match(INQUIRY_CHOICE_NOTE, /not a ranking/);
-    assert.match(INQUIRY_CHOICE_NOTE, /buy_new is an ordinary choice/);
+    assert.match(INQUIRY_CHOICE_NOTE, /Buying a new phone is an ordinary choice/);
+    assert.doesNotMatch(INQUIRY_CHOICE_NOTE, /[a-z0-9]+_[a-z0-9_]+/);
     const autonomy = assessInquiryAutonomy(buildInquiryDomainSession(state));
     assert.equal(autonomy.buy_new_is_approved_choice, true);
     assert.equal(autonomy.buy_new_marked_as_failure, false);
     assert.equal(autonomy.provisional_choices_ranked, false);
     assert.equal(view.domain.motiveScoresPresent, false);
     assert.deepEqual(findProhibitedMotiveScores(buildInquiryDomainSession(state)), []);
+  });
+
+  it("keeps canonical Q6 values while visitor labels and copy hide internal tokens", () => {
+    const snakeCaseToken = /[a-z0-9]+_[a-z0-9_]+/;
+    assert.deepEqual(Object.keys(PROVISIONAL_CHOICE_LABELS), [...PROVISIONAL_CHOICES]);
+    assert.deepEqual(Object.keys(SHIFT_LABELS), [...SELF_REPORTED_SHIFT_VALUES]);
+
+    let state = reduceInquiry(createInquiryState(), {
+      type: "edit_question",
+      questionId: "APQ6_RESEE",
+    });
+    state = reduceInquiry(state, {
+      type: "set_choice",
+      value: "consider_used_or_refurbished",
+    });
+    state = reduceInquiry(state, { type: "set_shift", value: "unchanged" });
+    const view = describeInquiry(state);
+
+    assert.deepEqual(
+      view.choices.map((choice) => choice.value),
+      [...getProvisionalChoices()],
+    );
+    assert.deepEqual(
+      view.shifts.map((shift) => shift.value),
+      [...SELF_REPORTED_SHIFT_VALUES],
+    );
+    assert.equal(view.provisionalSelection, "consider_used_or_refurbished");
+    assert.equal(view.shiftSelection, "unchanged");
+    assert.equal(buildInquiryDomainSession(state).self_reported_shift, "unchanged");
+
+    const selectedChoice = view.choices.find((choice) => choice.selected);
+    const selectedShift = view.shifts.find((shift) => shift.selected);
+    assert.equal(selectedChoice?.value, "consider_used_or_refurbished");
+    assert.equal(selectedChoice?.label, "Consider a used or refurbished phone");
+    assert.equal(selectedShift?.value, "unchanged");
+    assert.equal(selectedShift?.label, "Unchanged");
+
+    const buy = view.choices.find((choice) => choice.value === "buy_new");
+    assert.equal(buy?.label, "Buy a new phone");
+    assert.equal(buy?.selected, false);
+    assert.equal(view.domain.inquiryFailed, false);
+
+    const visible = [
+      view.opening,
+      view.boundary,
+      view.laterNote,
+      view.choiceNote,
+      view.shiftNote,
+      view.answerHelper,
+      view.progressLabel,
+      ...view.choices.map((choice) => choice.label),
+      ...view.shifts.map((shift) => shift.label),
+      ...view.stages.flatMap((stage) => [stage.label, stage.note]),
+      ...Object.values(PROVISIONAL_CHOICE_LABELS),
+      ...Object.values(SHIFT_LABELS),
+    ].join("\n");
+    assert.doesNotMatch(visible, snakeCaseToken);
+    for (const choice of view.choices) {
+      assert.notEqual(choice.label, choice.value);
+      assert.equal(choice.label.includes("_"), false);
+    }
+    for (const shift of view.shifts) {
+      assert.notEqual(shift.label, shift.value);
+      assert.equal(shift.label.includes("_"), false);
+    }
+
+    const component = readApp("src/components/smartphone-inquiry.tsx");
+    assert.match(component, /\{choice\.label\}/);
+    assert.match(component, /\{shift\.label\}/);
+    assert.doesNotMatch(component, />\{choice\.value\}<|>\{shift\.value\}</);
   });
 
   it("accepts only explicit canonical shift values", () => {
