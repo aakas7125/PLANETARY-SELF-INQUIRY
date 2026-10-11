@@ -405,16 +405,25 @@ function freezeDecision(fields) {
 
 /**
  * @param {unknown} fate
+ * @param {readonly string[]} fates
  * @returns {boolean}
  */
 function isListedFate(fate, fates) {
   return isNonEmptyString(fate) && fates.includes(fate);
 }
 
+/**
+ * @param {unknown} fate
+ * @returns {boolean}
+ */
 function isNonEstablishingFate(fate) {
   return isListedFate(fate, NON_ESTABLISHING_OLD_DEVICE_FATES);
 }
 
+/**
+ * @param {unknown} fate
+ * @returns {boolean}
+ */
 function isContradictoryOldDeviceFate(fate) {
   return isListedFate(fate, CONTRADICTORY_OLD_DEVICE_FATES);
 }
