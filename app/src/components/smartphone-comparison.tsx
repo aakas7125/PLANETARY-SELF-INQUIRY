@@ -115,6 +115,119 @@ export function SmartphoneComparison({
           <p className="mt-2 text-sm leading-relaxed text-foreground">{view.horizonHelper}</p>
         </div>
 
+        {view.remainingServiceField.visible ? (
+          <div className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+            <label className="block min-w-0" htmlFor="remaining-service">
+              <span className="font-display text-lg text-foreground">
+                {view.remainingServiceField.label}
+              </span>
+              <input
+                id="remaining-service"
+                inputMode="decimal"
+                autoComplete="off"
+                value={state.remainingServiceRaw}
+                onChange={(event) =>
+                  dispatch({ type: "set_remaining_service", text: event.target.value })
+                }
+                aria-describedby="remaining-service-helper"
+                aria-invalid={
+                  state.remainingServiceRaw.trim().length > 0 &&
+                  state.remainingServiceNotSure !== true &&
+                  typeof view.remainingServiceField.parsedYears !== "number"
+                }
+                className="mt-3 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              />
+            </label>
+            <p id="remaining-service-helper" className="mt-2 text-sm leading-relaxed text-foreground">
+              {view.remainingServiceField.helper}
+            </p>
+            {view.remainingServiceField.notSureNote ? (
+              <p className="mt-2 text-sm leading-relaxed text-foreground">
+                {view.remainingServiceField.notSureNote}
+              </p>
+            ) : null}
+            <div className="mt-3">
+              <Button
+                type="button"
+                variant={state.remainingServiceNotSure ? "secondary" : "outline"}
+                aria-pressed={state.remainingServiceNotSure}
+                aria-label={view.remainingServiceField.notSureControl}
+                className="h-auto min-h-11 whitespace-normal text-left"
+                onClick={() => dispatch({ type: "mark_remaining_not_sure" })}
+              >
+                {view.remainingServiceField.notSureLabel}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {view.repairField.visible ? (
+          <fieldset className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+            <legend id="repair-category-legend" className="font-display text-lg text-foreground">
+              {view.repairField.legend}
+            </legend>
+            <p id="repair-category-helper" className="mt-2 text-sm leading-relaxed text-foreground">
+              {view.repairField.helper}
+            </p>
+            <div
+              className="mt-3 flex flex-wrap gap-2"
+              role="group"
+              aria-labelledby="repair-category-legend"
+              aria-describedby="repair-category-helper"
+            >
+              {view.repairField.categories.map((category) => (
+                <Button
+                  key={category.label}
+                  type="button"
+                  variant={category.selected ? "secondary" : "outline"}
+                  aria-pressed={category.selected}
+                  className="h-auto min-h-11 whitespace-normal px-3 text-left"
+                  onClick={() => dispatch({ type: "set_repair_category", categoryId: category.id })}
+                >
+                  {category.label}
+                </Button>
+              ))}
+            </div>
+            <label className="mt-4 block min-w-0" htmlFor="post-repair-service">
+              <span className="font-display text-lg text-foreground">{view.repairField.serviceLabel}</span>
+              <input
+                id="post-repair-service"
+                inputMode="decimal"
+                autoComplete="off"
+                value={state.postRepairServiceRaw}
+                onChange={(event) =>
+                  dispatch({ type: "set_post_repair_service", text: event.target.value })
+                }
+                aria-describedby="post-repair-service-helper"
+                aria-invalid={
+                  state.postRepairServiceRaw.trim().length > 0 &&
+                  state.postRepairServiceNotSure !== true &&
+                  typeof view.repairField.parsedServiceYears !== "number"
+                }
+                className="mt-3 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              />
+            </label>
+            <p id="post-repair-service-helper" className="mt-2 text-sm leading-relaxed text-foreground">
+              {view.repairField.serviceHelper}
+            </p>
+            {view.repairField.notSureNote ? (
+              <p className="mt-2 text-sm leading-relaxed text-foreground">{view.repairField.notSureNote}</p>
+            ) : null}
+            <div className="mt-3">
+              <Button
+                type="button"
+                variant={state.postRepairServiceNotSure ? "secondary" : "outline"}
+                aria-pressed={state.postRepairServiceNotSure}
+                aria-label={view.repairField.notSureControl}
+                className="h-auto min-h-11 whitespace-normal text-left"
+                onClick={() => dispatch({ type: "mark_post_repair_not_sure" })}
+              >
+                {view.repairField.notSureLabel}
+              </Button>
+            </div>
+          </fieldset>
+        ) : null}
+
         {view.pendingNote ? (
           <p className="text-sm leading-relaxed text-foreground">{view.pendingNote}</p>
         ) : null}
