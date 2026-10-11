@@ -39,9 +39,9 @@ export const PATHWAY_KIND_QUALITATIVE_CONDITIONAL =
  * Pathway IDs kept pending by HQ for later empirical slices.
  * `SP-PATH-MINING-PEOPLE-001` is covered by the mining-people boundary module.
  * `SP-PATH-EWASTE-PEOPLE-001` is covered by the e-waste-people boundary module.
+ * `SP-PATH-EWASTE-ECO-001` is covered by the e-waste-ecosystem boundary module.
  */
 export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([
-  "SP-PATH-EWASTE-ECO-001",
   "SP-PATH-WATER-001",
 ]);
 

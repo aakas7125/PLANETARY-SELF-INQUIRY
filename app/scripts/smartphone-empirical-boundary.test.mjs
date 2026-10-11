@@ -63,6 +63,23 @@ import {
   validateEwastePeopleClaimAuthorityRecord,
   validateEwastePeopleSourceRecords,
 } from "../src/lib/smartphone/empirical-ewaste-people-boundary.mjs";
+import {
+  ACCEPTED_EWASTE_ECO_CLAIM,
+  ACCEPTED_EWASTE_ECO_SOURCES,
+  ATTRIBUTION_CONDITIONAL_PATHWAY as EWASTE_ECO_ATTRIBUTION,
+  CONTRADICTORY_OLD_DEVICE_FATES as EWASTE_ECO_CONTRADICTORY_FATES,
+  EWASTE_ECO_CLAIM_ID,
+  EWASTE_ECO_CLAIM_PACKAGE_COMMIT,
+  EWASTE_ECO_PATHWAY_REASON,
+  NON_ESTABLISHING_OLD_DEVICE_FATES as EWASTE_ECO_NON_ESTABLISHING_FATES,
+  PACKAGE_PROVENANCE as EWASTE_ECO_PACKAGE_PROVENANCE,
+  PATHWAY_KIND_QUALITATIVE_CONDITIONAL as EWASTE_ECO_PATHWAY_KIND,
+  PENDING_EMPIRICAL_PATHWAY_IDS as EWASTE_ECO_PENDING_IDS,
+  UNCERTAIN_OLD_DEVICE_FATES as EWASTE_ECO_UNCERTAIN_FATES,
+  resolveEwasteEcoPathwayBoundary,
+  validateEwasteEcoClaimAuthorityRecord,
+  validateEwasteEcoSourceRecords,
+} from "../src/lib/smartphone/empirical-ewaste-eco-boundary.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = resolve(scriptsDirectory, "../..");
@@ -248,7 +265,6 @@ test("missing, malformed, unknown and conflicting claim identity/version are den
 
 test("pending empirical pathway IDs remain non-emitting in the climate slice", () => {
   assert.deepEqual(PENDING_EMPIRICAL_PATHWAY_IDS, [
-    "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
   ]);
   for (const claimId of PENDING_EMPIRICAL_PATHWAY_IDS) {
@@ -265,11 +281,12 @@ test("pending empirical pathway IDs remain non-emitting in the climate slice", (
     assert.equal(decision.pathway, null);
   }
 
-  // Mining-eco / mining-people / e-waste-people are covered by their own modules; climate does not emit them.
+  // Mining-eco / mining-people / e-waste-people / e-waste-eco are covered by their own modules; climate does not emit them.
   for (const claimId of [
     "SP-PATH-MINING-ECO-001",
     "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
+    "SP-PATH-EWASTE-ECO-001",
   ]) {
     const decision = resolveClimatePathwayBoundary({
       claim_id: claimId,
@@ -791,7 +808,6 @@ test("mining-eco missing, malformed, unknown and conflicting claim identity/vers
 
 test("pending empirical pathway IDs remain non-emitting in the mining-eco slice", () => {
   assert.deepEqual(MINING_ECO_PENDING_IDS, [
-    "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
   ]);
   for (const claimId of MINING_ECO_PENDING_IDS) {
@@ -808,11 +824,12 @@ test("pending empirical pathway IDs remain non-emitting in the mining-eco slice"
     assert.equal(decision.pathway, null);
   }
 
-  // Climate / mining-people / e-waste-people remain covered elsewhere; mining-eco does not emit them.
+  // Climate / mining-people / e-waste-people / e-waste-eco remain covered elsewhere; mining-eco does not emit them.
   for (const claimId of [
     CLIMATE_CLAIM_ID,
     "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
+    EWASTE_ECO_CLAIM_ID,
   ]) {
     const decision = resolveMiningEcoPathwayBoundary({
       claim_id: claimId,
@@ -1391,7 +1408,6 @@ test("mining-people missing, malformed, unknown and conflicting claim identity/v
 
 test("pending empirical pathway IDs remain non-emitting in the mining-people slice", () => {
   assert.deepEqual(MINING_PEOPLE_PENDING_IDS, [
-    "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
   ]);
   for (const claimId of MINING_PEOPLE_PENDING_IDS) {
@@ -1408,11 +1424,12 @@ test("pending empirical pathway IDs remain non-emitting in the mining-people sli
     assert.equal(decision.pathway, null);
   }
 
-  // Climate / mining-eco / e-waste-people remain covered elsewhere; mining-people does not emit them.
+  // Climate / mining-eco / e-waste-people / e-waste-eco remain covered elsewhere; mining-people does not emit them.
   for (const claimId of [
     CLIMATE_CLAIM_ID,
     MINING_ECO_CLAIM_ID,
     EWASTE_PEOPLE_CLAIM_ID,
+    EWASTE_ECO_CLAIM_ID,
   ]) {
     const decision = resolveMiningPeoplePathwayBoundary({
       claim_id: claimId,
@@ -2074,7 +2091,6 @@ test("e-waste-people missing, malformed, unknown and conflicting claim identity/
 
 test("pending empirical pathway IDs remain non-emitting in the e-waste-people slice", () => {
   assert.deepEqual(EWASTE_PEOPLE_PENDING_IDS, [
-    "SP-PATH-EWASTE-ECO-001",
     "SP-PATH-WATER-001",
   ]);
   for (const claimId of EWASTE_PEOPLE_PENDING_IDS) {
@@ -2095,6 +2111,7 @@ test("pending empirical pathway IDs remain non-emitting in the e-waste-people sl
     CLIMATE_CLAIM_ID,
     MINING_ECO_CLAIM_ID,
     MINING_PEOPLE_CLAIM_ID,
+    EWASTE_ECO_CLAIM_ID,
   ]) {
     const decision = resolveEwastePeoplePathwayBoundary({
       claim_id: claimId,
@@ -2767,4 +2784,960 @@ test("existing climate, mining-eco and mining-people emission remain unchanged b
   assert.equal(ewastePeople.pathway.confidence, "high");
   assert.equal(ewastePeople.pathway.unit, null);
   assert.deepEqual(ewastePeople.pathway.source_ids, ["S11"]);
+});
+
+function validEwasteEcoRequest(overrides = {}) {
+  return {
+    claim_id: EWASTE_ECO_CLAIM_ID,
+    claim_version: EWASTE_ECO_CLAIM_PACKAGE_COMMIT,
+    requested_output: EWASTE_ECO_PATHWAY_KIND,
+    unsound_site_handling_established: true,
+    ...overrides,
+  };
+}
+
+test("frozen e-waste-ecosystem claim matches evidence/CLAIM_REGISTRY.json exactly", () => {
+  const registry = readJson("evidence/CLAIM_REGISTRY.json");
+  const fromRegistry = registry.find(
+    (row) => row.claim_id === EWASTE_ECO_CLAIM_ID,
+  );
+  assert.ok(fromRegistry, "SP-PATH-EWASTE-ECO-001 must exist in claim registry");
+  assert.deepEqual(
+    {
+      claim_id: fromRegistry.claim_id,
+      package_commit: fromRegistry.package_commit,
+      package_provenance: fromRegistry.package_provenance,
+      statement: fromRegistry.statement,
+      evidence_domain: fromRegistry.evidence_domain,
+      confidence: fromRegistry.confidence,
+      attribution_status: fromRegistry.attribution_status,
+      evidence_scope: fromRegistry.evidence_scope,
+      status: fromRegistry.status,
+      conditions: fromRegistry.conditions,
+      source_ids: fromRegistry.source_ids,
+    },
+    { ...ACCEPTED_EWASTE_ECO_CLAIM },
+  );
+});
+
+test("frozen e-waste-ecosystem source matches evidence/SOURCE_REGISTRY.json for S12", () => {
+  const registry = readJson("evidence/SOURCE_REGISTRY.json");
+  const fromRegistry = registry.find((row) => row.source_id === "S12");
+  assert.ok(fromRegistry, "S12 must exist in source registry");
+  assert.deepEqual(
+    {
+      source_id: fromRegistry.source_id,
+      package_commit: fromRegistry.package_commit,
+      package_provenance: fromRegistry.package_provenance,
+      citation: fromRegistry.citation,
+      scope: fromRegistry.scope,
+      metadata_limit: fromRegistry.metadata_limit,
+    },
+    { ...ACCEPTED_EWASTE_ECO_SOURCES.S12 },
+  );
+  assert.equal(fromRegistry.scope, "59 studies / 8,286 measurements.");
+});
+
+test("SP-PATH-EWASTE-ECO-001 emits conditional pathway with preserved authority", () => {
+  const byParts = resolveEwasteEcoPathwayBoundary(validEwasteEcoRequest());
+  const byRef = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      claim_id: undefined,
+      claim_version: undefined,
+      claim_ref: `${EWASTE_ECO_CLAIM_ID}@${EWASTE_ECO_CLAIM_PACKAGE_COMMIT}`,
+    }),
+  );
+
+  for (const decision of [byParts, byRef]) {
+    assert.equal(decision.emitted, true);
+    assert.equal(decision.reason_code, null);
+    assert.equal(decision.claim_id, EWASTE_ECO_CLAIM_ID);
+    assert.equal(decision.claim_version, EWASTE_ECO_CLAIM_PACKAGE_COMMIT);
+    assert.equal(
+      decision.claim_ref,
+      `${EWASTE_ECO_CLAIM_ID}@${EWASTE_ECO_CLAIM_PACKAGE_COMMIT}`,
+    );
+    assert.ok(decision.pathway);
+    assert.equal(decision.pathway.pathway_kind, EWASTE_ECO_PATHWAY_KIND);
+    assert.equal(
+      decision.pathway.statement,
+      ACCEPTED_EWASTE_ECO_CLAIM.statement,
+    );
+    assert.deepEqual(
+      decision.pathway.evidence_domain,
+      ACCEPTED_EWASTE_ECO_CLAIM.evidence_domain,
+    );
+    assert.deepEqual(
+      decision.pathway.evidence_scope,
+      ACCEPTED_EWASTE_ECO_CLAIM.evidence_scope,
+    );
+    assert.equal(decision.pathway.confidence, "high");
+    assert.equal(decision.pathway.attribution_status, EWASTE_ECO_ATTRIBUTION);
+    assert.deepEqual(
+      decision.pathway.conditions,
+      ACCEPTED_EWASTE_ECO_CLAIM.conditions,
+    );
+    assert.deepEqual(
+      decision.pathway.major_assumptions,
+      ACCEPTED_EWASTE_ECO_CLAIM.conditions,
+    );
+    assert.equal(decision.pathway.status, "APPROVED");
+    assert.equal(
+      decision.pathway.package_provenance,
+      EWASTE_ECO_PACKAGE_PROVENANCE,
+    );
+    assert.equal(decision.pathway.quantitative_value, null);
+    assert.equal(decision.pathway.value_range, null);
+    assert.equal(decision.pathway.unit, null);
+    assert.equal(decision.pathway.metric, null);
+    assert.equal(decision.pathway.metal_identity, null);
+    assert.equal(decision.pathway.metal_concentration, null);
+    assert.equal(decision.pathway.contamination_magnitude, null);
+    assert.equal(decision.pathway.affected_area, null);
+    assert.equal(decision.pathway.study_count, null);
+    assert.equal(decision.pathway.measurement_count, null);
+    assert.equal(decision.pathway.biodiversity_area, null);
+    assert.equal(decision.pathway.species_loss_quantity, null);
+    assert.equal(decision.pathway.location, null);
+    assert.equal(decision.pathway.probability, null);
+    assert.equal(decision.pathway.collection_rate, null);
+    assert.equal(decision.pathway.model_specific_or_fallback_status, null);
+    assert.deepEqual(decision.pathway.source_ids, ["S12"]);
+    assert.equal(decision.pathway.sources.length, 1);
+    assert.equal(
+      decision.pathway.sources[0].citation,
+      ACCEPTED_EWASTE_ECO_SOURCES.S12.citation,
+    );
+    assert.equal(
+      decision.pathway.sources[0].scope,
+      "59 studies / 8,286 measurements.",
+    );
+    assert.equal(
+      decision.pathway.sources[0].metadata_limit,
+      ACCEPTED_EWASTE_ECO_SOURCES.S12.metadata_limit,
+    );
+    assert.equal(decision.metal_identity, null);
+    assert.equal(decision.metal_concentration, null);
+    assert.equal(decision.study_count, null);
+    assert.equal(decision.measurement_count, null);
+    assert.equal(decision.biodiversity_area, null);
+    assert.equal(decision.species_loss_quantity, null);
+    assert.equal(decision.collection_rate, null);
+    assert.equal(decision.unified_score, null);
+    assert.equal(decision.exact_ecological_damage, null);
+    assert.equal(decision.named_target_attribution, null);
+    assert.equal(decision.device_site_attribution, null);
+    assert.equal(decision.quantitative_value, null);
+    assert.equal(decision.location, null);
+    assert.equal(decision.probability, null);
+    assert.equal(decision.pathway.study_count, null);
+    assert.ok(decision.pathway.attribution_limits.includes("conditional_pathway"));
+    assert.ok(
+      decision.pathway.attribution_limits.includes(
+        "systematic_review_scope_preserved",
+      ),
+    );
+    assert.equal(typeof decision.pathway.study_count, "object");
+    assert.equal(decision.pathway.study_count, null);
+  }
+});
+
+test("e-waste-ecosystem missing, malformed, unknown and conflicting claim identity/version are denied", () => {
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary({
+      unsound_site_handling_established: true,
+    }).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_CLAIM_IDENTITY,
+  );
+
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary({
+      claim_id: EWASTE_ECO_CLAIM_ID,
+      unsound_site_handling_established: true,
+    }).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_CLAIM_VERSION,
+  );
+
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ claim_id: "SP-PATH-UNKNOWN-999" }),
+    ).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.UNKNOWN_CLAIM,
+  );
+
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ claim_id: "not a claim" }),
+    ).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MALFORMED_CLAIM_IDENTITY,
+  );
+
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ claim_version: "wrong-commit" }),
+    ).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.WRONG_CLAIM_VERSION,
+  );
+
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({
+        claim_ref: `${EWASTE_ECO_CLAIM_ID}@${EWASTE_ECO_CLAIM_PACKAGE_COMMIT}`,
+        claim_id: "SP-PATH-CLIMATE-001",
+      }),
+    ).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.CONFLICTING_CLAIM_REPRESENTATION,
+  );
+});
+
+test("pending empirical pathway IDs remain non-emitting in the e-waste-ecosystem slice", () => {
+  assert.deepEqual(EWASTE_ECO_PENDING_IDS, ["SP-PATH-WATER-001"]);
+  for (const claimId of EWASTE_ECO_PENDING_IDS) {
+    const decision = resolveEwasteEcoPathwayBoundary({
+      claim_id: claimId,
+      claim_version: EWASTE_ECO_CLAIM_PACKAGE_COMMIT,
+      unsound_site_handling_established: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.PATHWAY_NOT_IN_AUTHORIZED_SLICE,
+    );
+    assert.equal(decision.pathway, null);
+  }
+
+  for (const claimId of [
+    CLIMATE_CLAIM_ID,
+    MINING_ECO_CLAIM_ID,
+    MINING_PEOPLE_CLAIM_ID,
+    EWASTE_PEOPLE_CLAIM_ID,
+  ]) {
+    const decision = resolveEwasteEcoPathwayBoundary({
+      claim_id: claimId,
+      claim_version: EWASTE_ECO_CLAIM_PACKAGE_COMMIT,
+      unsound_site_handling_established: true,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(decision.reason_code, EWASTE_ECO_PATHWAY_REASON.UNKNOWN_CLAIM);
+  }
+});
+
+test("e-waste-ecosystem missing required claim/source/scope/condition/attribution metadata fails closed", () => {
+  const missingStatement = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_ECO_CLAIM,
+        statement: "",
+      },
+    }),
+  );
+  assert.equal(missingStatement.emitted, false);
+  assert.equal(
+    missingStatement.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_CLAIM_METADATA,
+  );
+
+  const missingScope = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_ECO_CLAIM,
+        evidence_scope: [],
+      },
+    }),
+  );
+  assert.equal(
+    missingScope.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_SCOPE,
+  );
+
+  const missingConditions = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_ECO_CLAIM,
+        conditions: [],
+      },
+    }),
+  );
+  assert.equal(
+    missingConditions.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_CONDITIONS,
+  );
+
+  const missingAttribution = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      authority_claim_record: {
+        ...ACCEPTED_EWASTE_ECO_CLAIM,
+        attribution_status: "",
+      },
+    }),
+  );
+  assert.equal(
+    missingAttribution.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_ATTRIBUTION,
+  );
+
+  const missingSource = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      authority_source_map: {},
+    }),
+  );
+  assert.equal(
+    missingSource.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+  );
+
+  assert.equal(validateEwasteEcoClaimAuthorityRecord(null).ok, false);
+});
+
+test("e-waste-ecosystem malformed non-object source maps fail closed without throwing", () => {
+  const malformedMaps = [null, [], ["S12"], "S12", 0, false];
+
+  for (const [index, authority_source_map] of malformedMaps.entries()) {
+    let decision;
+    assert.doesNotThrow(() => {
+      decision = resolveEwasteEcoPathwayBoundary(
+        validEwasteEcoRequest({ authority_source_map }),
+      );
+    }, `resolve must not throw for malformed source map case ${index}`);
+    assert.equal(decision.emitted, false, `case ${index}`);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+    assert.equal(decision.pathway, null, `case ${index}`);
+
+    let validation;
+    assert.doesNotThrow(() => {
+      validation = validateEwasteEcoSourceRecords(
+        ACCEPTED_EWASTE_ECO_CLAIM.source_ids,
+        authority_source_map,
+      );
+    }, `validate must not throw for malformed source map case ${index}`);
+    assert.equal(validation.ok, false, `case ${index}`);
+    assert.equal(
+      validation.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+  }
+
+  let undefinedValidation;
+  assert.doesNotThrow(() => {
+    undefinedValidation = validateEwasteEcoSourceRecords(
+      ACCEPTED_EWASTE_ECO_CLAIM.source_ids,
+      undefined,
+    );
+  }, "validate must not throw for undefined source map");
+  assert.equal(undefinedValidation.ok, false);
+  assert.equal(
+    undefinedValidation.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+  );
+});
+
+test("one-device-to-site/soil/water/sediment/ecosystem attribution is denied", () => {
+  for (const marker of [
+    { request_one_device_to_site_attribution: true },
+    { request_one_device_to_soil_attribution: true },
+    { request_one_device_to_water_attribution: true },
+    { request_one_device_to_sediment_attribution: true },
+    { request_one_device_to_ecosystem_attribution: true },
+  ]) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.DEVICE_SITE_MEDIUM_OR_ECOSYSTEM_ATTRIBUTION_PROHIBITED,
+    );
+    assert.equal(decision.device_site_attribution, null);
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("named site, place, water body, ecosystem, species or event attribution is denied", () => {
+  for (const marker of [
+    { named_site: "Site A" },
+    { named_place: "Place B" },
+    { named_water_body: "River C" },
+    { named_ecosystem: "Wetland D" },
+    { named_species: "Species E" },
+    { named_event: "2019 contamination event" },
+  ]) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.NAMED_TARGET_ATTRIBUTION_PROHIBITED,
+    );
+    assert.equal(decision.named_target_attribution, null);
+  }
+});
+
+test("metal, concentration and source-scope measurement quantities are denied", () => {
+  for (const marker of [
+    { request_metal_identity: true },
+    { request_metal_concentration: true },
+    { request_contamination_magnitude: true },
+    { request_measurement_quantity: true },
+    { request_copy_source_scope_counts: true },
+    { source_scope_study_count: 59 },
+    { source_scope_measurement_count: 8286 },
+    { source_scope_study_count: "59 studies" },
+    { source_scope_measurement_count: "8,286 measurements" },
+  ]) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest(marker),
+    );
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.METAL_CONCENTRATION_OR_MEASUREMENT_QUANTITY_PROHIBITED,
+      JSON.stringify(marker),
+    );
+    assert.equal(decision.metal_identity, null);
+    assert.equal(decision.metal_concentration, null);
+    assert.equal(decision.study_count, null);
+    assert.equal(decision.measurement_count, null);
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("biodiversity area and species-loss quantities are denied", () => {
+  for (const marker of [
+    { request_biodiversity_area: true },
+    { request_species_loss_quantity: true },
+  ]) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.BIODIVERSITY_AREA_OR_SPECIES_LOSS_PROHIBITED,
+    );
+    assert.equal(decision.biodiversity_area, null);
+    assert.equal(decision.species_loss_quantity, null);
+  }
+});
+
+test("exact individual ecological damage is denied", () => {
+  const decision = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      request_exact_individual_ecological_damage: true,
+    }),
+  );
+  assert.equal(decision.emitted, false);
+  assert.equal(
+    decision.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.EXACT_INDIVIDUAL_ECOLOGICAL_DAMAGE_PROHIBITED,
+  );
+  assert.equal(decision.exact_ecological_damage, null);
+});
+
+test("e-waste-ecosystem unified scores, causal-proof and quantitative/location outputs are denied", () => {
+  for (const marker of [
+    { request_unified_score: true },
+    { request_unified_environmental_score: true },
+    { request_unified_safety_score: true },
+    { request_protect_four_score: true },
+    { request_unified_moral_score: true },
+  ]) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest(marker),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.UNIFIED_SCORE_PROHIBITED,
+    );
+    assert.equal(decision.unified_score, null);
+  }
+
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ request_causal_proof: true }),
+    ).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.UNSUPPORTED_CAUSAL_PROOF_WORDING,
+  );
+
+  for (const marker of [
+    { request_numerical_burden: true },
+    { request_location: true },
+    { request_probability: true },
+    { request_quantitative_output: true },
+    { request_global_collection_rate_as_individual_route: true },
+    { request_global_collection_rate_as_probability: true },
+    { global_ewaste_collection_rate_context: 0.223 },
+  ]) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest(marker),
+    );
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.QUANTITATIVE_PROBABILITY_OR_LOCATION_OUTPUT_PROHIBITED,
+      JSON.stringify(marker),
+    );
+    assert.equal(decision.quantitative_value, null);
+    assert.equal(decision.location, null);
+    assert.equal(decision.probability, null);
+    assert.equal(decision.collection_rate, null);
+  }
+});
+
+test("e-waste-ecosystem missing, false, unknown or inferred unsound-site handling does not emit", () => {
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ coerce_unknown_to_zero: true }),
+    ).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.UNKNOWN_COERCION_PROHIBITED,
+  );
+  assert.equal(
+    resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ coerce_unknown_to_false: true }),
+    ).reason_code,
+    EWASTE_ECO_PATHWAY_REASON.UNKNOWN_COERCION_PROHIBITED,
+  );
+
+  const omitted = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      unsound_site_handling_established: undefined,
+    }),
+  );
+  assert.equal(omitted.emitted, false);
+  assert.equal(
+    omitted.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+  assert.equal(omitted.quantitative_value, null);
+  assert.equal(omitted.study_count, null);
+
+  const unknownCondition = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      unsound_site_handling_established: null,
+    }),
+  );
+  assert.equal(unknownCondition.emitted, false);
+  assert.equal(
+    unknownCondition.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+
+  const falseCondition = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      unsound_site_handling_established: false,
+    }),
+  );
+  assert.equal(falseCondition.emitted, false);
+  assert.equal(
+    falseCondition.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.CONDITION_NOT_SATISFIED,
+  );
+
+  const inferred = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      unsound_site_handling_inferred: true,
+    }),
+  );
+  assert.equal(inferred.emitted, false);
+  assert.equal(
+    inferred.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.INFERRED_UNSOUND_SITE_HANDLING_PROHIBITED,
+  );
+});
+
+test("fate, disposal, collection-rate and source-scope context do not establish unsound site handling", () => {
+  assert.deepEqual(EWASTE_ECO_NON_ESTABLISHING_FATES, [
+    "continue_use",
+    "sell_or_gift_for_reuse",
+    "trade_in_unknown_next_use",
+    "store_in_drawer",
+    "formal_recycling",
+    "discard_general_waste",
+    "unknown",
+  ]);
+
+  for (const old_device_fate of EWASTE_ECO_NON_ESTABLISHING_FATES) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({
+        unsound_site_handling_established: undefined,
+        old_device_fate,
+      }),
+    );
+    assert.equal(decision.emitted, false, old_device_fate);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.FATE_CONTEXT_OR_SOURCE_SCOPE_DOES_NOT_ESTABLISH_UNSOUND_SITE_HANDLING,
+      old_device_fate,
+    );
+    assert.equal(decision.pathway, null, old_device_fate);
+  }
+
+  const collectionContext = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      unsound_site_handling_established: false,
+      global_ewaste_collection_rate_context: true,
+    }),
+  );
+  assert.equal(collectionContext.emitted, false);
+  assert.equal(
+    collectionContext.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.FATE_CONTEXT_OR_SOURCE_SCOPE_DOES_NOT_ESTABLISH_UNSOUND_SITE_HANDLING,
+  );
+  assert.equal(collectionContext.collection_rate, null);
+  assert.equal(collectionContext.probability, null);
+
+  const sourceScopeContext = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      unsound_site_handling_established: null,
+      source_scope_count_context: true,
+    }),
+  );
+  assert.equal(sourceScopeContext.emitted, false);
+  assert.equal(
+    sourceScopeContext.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.FATE_CONTEXT_OR_SOURCE_SCOPE_DOES_NOT_ESTABLISH_UNSOUND_SITE_HANDLING,
+  );
+  assert.equal(sourceScopeContext.study_count, null);
+  assert.equal(sourceScopeContext.measurement_count, null);
+
+  const explicitWithContextOnly = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      global_ewaste_collection_rate_context: true,
+      source_scope_count_context: true,
+    }),
+  );
+  assert.equal(explicitWithContextOnly.emitted, true);
+  assert.equal(explicitWithContextOnly.pathway.collection_rate, null);
+  assert.equal(explicitWithContextOnly.pathway.probability, null);
+  assert.equal(explicitWithContextOnly.pathway.study_count, null);
+  assert.equal(explicitWithContextOnly.pathway.measurement_count, null);
+  assert.equal(explicitWithContextOnly.pathway.metal_identity, null);
+  assert.equal(explicitWithContextOnly.pathway.metal_concentration, null);
+  assert.equal(
+    explicitWithContextOnly.pathway.sources[0].scope,
+    "59 studies / 8,286 measurements.",
+  );
+});
+
+test("affirmative non-e-waste and formal-route old-device fates contradict e-waste-ecosystem emission", () => {
+  assert.deepEqual(EWASTE_ECO_CONTRADICTORY_FATES, [
+    "continue_use",
+    "sell_or_gift_for_reuse",
+    "store_in_drawer",
+    "formal_recycling",
+  ]);
+
+  for (const old_device_fate of EWASTE_ECO_CONTRADICTORY_FATES) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ old_device_fate }),
+    );
+    assert.equal(decision.emitted, false, old_device_fate);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.CONTRADICTORY_OLD_DEVICE_FATE,
+      old_device_fate,
+    );
+    assert.equal(decision.pathway, null, old_device_fate);
+    assert.equal(decision.probability, null, old_device_fate);
+    assert.equal(decision.location, null, old_device_fate);
+
+    const absentCondition = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({
+        unsound_site_handling_established: false,
+        old_device_fate,
+      }),
+    );
+    assert.equal(absentCondition.emitted, false, old_device_fate);
+    assert.equal(
+      absentCondition.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.FATE_CONTEXT_OR_SOURCE_SCOPE_DOES_NOT_ESTABLISH_UNSOUND_SITE_HANDLING,
+      old_device_fate,
+    );
+  }
+});
+
+test("uncertain old-device fates do not become an unsound-site route", () => {
+  assert.deepEqual(EWASTE_ECO_UNCERTAIN_FATES, [
+    "trade_in_unknown_next_use",
+    "discard_general_waste",
+    "unknown",
+  ]);
+
+  for (const old_device_fate of EWASTE_ECO_UNCERTAIN_FATES) {
+    const absentCondition = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({
+        unsound_site_handling_established: null,
+        old_device_fate,
+      }),
+    );
+    assert.equal(absentCondition.emitted, false, old_device_fate);
+    assert.equal(
+      absentCondition.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.FATE_CONTEXT_OR_SOURCE_SCOPE_DOES_NOT_ESTABLISH_UNSOUND_SITE_HANDLING,
+      old_device_fate,
+    );
+    assert.equal(absentCondition.pathway, null, old_device_fate);
+
+    const explicit = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ old_device_fate }),
+    );
+    assert.equal(explicit.emitted, true, old_device_fate);
+    assert.equal(explicit.reason_code, null, old_device_fate);
+    assert.equal(Object.hasOwn(explicit.pathway, "old_device_fate"), false);
+    assert.equal(Object.hasOwn(explicit.pathway, "route"), false);
+    assert.equal(Object.hasOwn(explicit.pathway, "destination"), false);
+    assert.equal(explicit.pathway.probability, null, old_device_fate);
+    assert.equal(explicit.pathway.location, null, old_device_fate);
+    assert.equal(explicit.pathway.collection_rate, null, old_device_fate);
+    assert.equal(
+      JSON.stringify(explicit.pathway).includes(old_device_fate),
+      false,
+      old_device_fate,
+    );
+  }
+});
+
+test("e-waste-ecosystem case/test metadata is not production authority", () => {
+  const byCaseOnly = resolveEwasteEcoPathwayBoundary({
+    case_id: "SP-PATH-EWASTE-ECO-001",
+    unsound_site_handling_established: true,
+  });
+  assert.equal(byCaseOnly.emitted, false);
+  assert.equal(
+    byCaseOnly.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const byAssertionOnly = resolveEwasteEcoPathwayBoundary({
+    assertion_id: "A-EWASTE-ECO-001",
+    unsound_site_handling_established: true,
+  });
+  assert.equal(
+    byAssertionOnly.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const forced = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({ use_case_id_as_claim_authority: true }),
+  );
+  assert.equal(
+    forced.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const incidental = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({ case_id: "fixture-name-only" }),
+  );
+  assert.equal(incidental.emitted, true);
+  assert.equal(incidental.reason_code, null);
+
+  const withoutCaseId = resolveEwasteEcoPathwayBoundary(validEwasteEcoRequest());
+  assert.equal(withoutCaseId.emitted, incidental.emitted);
+  assert.equal(withoutCaseId.pathway.statement, incidental.pathway.statement);
+  assert.deepEqual(withoutCaseId.pathway.source_ids, incidental.pathway.source_ids);
+});
+
+test("e-waste-ecosystem unsupported requested outputs do not emit", () => {
+  const decision = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({
+      requested_output: "unified_environmental_harm_score",
+    }),
+  );
+  assert.equal(decision.emitted, false);
+  assert.equal(
+    decision.reason_code,
+    EWASTE_ECO_PATHWAY_REASON.UNSUPPORTED_REQUESTED_OUTPUT,
+  );
+});
+
+test("altered, reordered, extra or substituted e-waste-ecosystem claim authority fails closed", () => {
+  const alteredClaims = [
+    { statement: "Altered e-waste-ecosystem statement under accepted identity." },
+    { evidence_domain: ["ecosystems", "water", "waste"] },
+    { evidence_domain: ["waste", "ecosystems"] },
+    { evidence_scope: ["site_specific"] },
+    { confidence: "moderate" },
+    { status: "QUALITATIVE" },
+    { attribution_status: "not_attributable_to_specific_device" },
+    {
+      conditions: [
+        "unsound site handling occurs",
+        "extra invented condition",
+      ],
+    },
+    { conditions: ["unrelated condition"] },
+    { source_ids: ["S11"] },
+    { source_ids: ["S12", "S11"] },
+    { package_commit: "ffffffffffffffffffffffffffffffffffffffff" },
+    { package_provenance: "R&E-V0-SMARTPHONE-ALTERED" },
+    { extra_field: "not in the accepted record" },
+  ];
+
+  for (const alteration of alteredClaims) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({
+        authority_claim_record: {
+          ...ACCEPTED_EWASTE_ECO_CLAIM,
+          ...alteration,
+        },
+      }),
+    );
+    assert.equal(
+      decision.emitted,
+      false,
+      `expected deny for ${JSON.stringify(alteration)}`,
+    );
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("altered, reordered, extra or substituted e-waste-ecosystem source authority fails closed", () => {
+  const alteredSourceCases = [
+    {
+      S12: {
+        ...ACCEPTED_EWASTE_ECO_SOURCES.S12,
+        package_commit: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      },
+    },
+    {
+      S12: {
+        ...ACCEPTED_EWASTE_ECO_SOURCES.S12,
+        citation: "Altered citation text.",
+      },
+    },
+    {
+      S12: {
+        ...ACCEPTED_EWASTE_ECO_SOURCES.S12,
+        scope: "59 studies.",
+      },
+    },
+    {
+      S12: {
+        ...ACCEPTED_EWASTE_ECO_SOURCES.S12,
+        scope: "8,286 measurements.",
+      },
+    },
+    {
+      S12: {
+        ...ACCEPTED_EWASTE_ECO_SOURCES.S12,
+        metadata_limit: "Altered metadata limit.",
+      },
+    },
+    {
+      S12: {
+        scope: ACCEPTED_EWASTE_ECO_SOURCES.S12.scope,
+        citation: ACCEPTED_EWASTE_ECO_SOURCES.S12.citation,
+        source_id: "S12",
+        metadata_limit: ACCEPTED_EWASTE_ECO_SOURCES.S12.metadata_limit,
+        package_provenance: EWASTE_ECO_PACKAGE_PROVENANCE,
+        package_commit: EWASTE_ECO_CLAIM_PACKAGE_COMMIT,
+        study_count: 59,
+      },
+    },
+    {
+      S12: ACCEPTED_EWASTE_ECO_SOURCES.S12,
+      S11: {
+        source_id: "S11",
+        package_commit: EWASTE_ECO_CLAIM_PACKAGE_COMMIT,
+        package_provenance: EWASTE_ECO_PACKAGE_PROVENANCE,
+        citation: "Extra substituted source.",
+        scope: "extra",
+        metadata_limit: "extra",
+      },
+    },
+    {
+      S11: {
+        source_id: "S11",
+        package_commit: EWASTE_ECO_CLAIM_PACKAGE_COMMIT,
+        package_provenance: EWASTE_ECO_PACKAGE_PROVENANCE,
+        citation: "Substituted source identity.",
+        scope: "substituted",
+        metadata_limit: "substituted",
+      },
+    },
+  ];
+
+  for (const [index, authority_source_map] of alteredSourceCases.entries()) {
+    const decision = resolveEwasteEcoPathwayBoundary(
+      validEwasteEcoRequest({ authority_source_map }),
+    );
+    assert.equal(
+      decision.emitted,
+      false,
+      `expected deny for altered source case ${index}`,
+    );
+    assert.equal(
+      decision.reason_code,
+      EWASTE_ECO_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+
+  const reorderedKeysOnly = {
+    S12: {
+      metadata_limit: ACCEPTED_EWASTE_ECO_SOURCES.S12.metadata_limit,
+      scope: ACCEPTED_EWASTE_ECO_SOURCES.S12.scope,
+      citation: ACCEPTED_EWASTE_ECO_SOURCES.S12.citation,
+      package_provenance: ACCEPTED_EWASTE_ECO_SOURCES.S12.package_provenance,
+      package_commit: ACCEPTED_EWASTE_ECO_SOURCES.S12.package_commit,
+      source_id: "S12",
+    },
+  };
+  const keyOrderPreserved = resolveEwasteEcoPathwayBoundary(
+    validEwasteEcoRequest({ authority_source_map: reorderedKeysOnly }),
+  );
+  assert.equal(keyOrderPreserved.emitted, true);
+  assert.equal(keyOrderPreserved.reason_code, null);
+  assert.equal(
+    keyOrderPreserved.pathway.sources[0].scope,
+    "59 studies / 8,286 measurements.",
+  );
+});
+
+test("existing empirical pathways remain unchanged beside e-waste-ecosystem coverage", () => {
+  const climate = resolveClimatePathwayBoundary({
+    claim_id: CLIMATE_CLAIM_ID,
+    claim_version: CLIMATE_CLAIM_PACKAGE_COMMIT,
+    scenario_produces_ghg_emissions: true,
+  });
+  assert.equal(climate.emitted, true);
+  assert.equal(climate.pathway.unit, CLIMATE_UNIT);
+  assert.equal(climate.pathway.status, "APPROVED");
+
+  const miningEco = resolveMiningEcoPathwayBoundary(validMiningEcoRequest());
+  assert.equal(miningEco.emitted, true);
+  assert.equal(miningEco.pathway.status, "APPROVED_QUALITATIVE");
+  assert.equal(miningEco.pathway.unit, null);
+
+  const miningPeople = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest(),
+  );
+  assert.equal(miningPeople.emitted, true);
+  assert.equal(miningPeople.pathway.status, "QUALITATIVE");
+  assert.equal(miningPeople.pathway.confidence, "moderate");
+
+  const ewastePeople = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest(),
+  );
+  assert.equal(ewastePeople.emitted, true);
+  assert.equal(ewastePeople.pathway.status, "APPROVED");
+  assert.deepEqual(ewastePeople.pathway.source_ids, ["S11"]);
+
+  const ewasteEco = resolveEwasteEcoPathwayBoundary(validEwasteEcoRequest());
+  assert.equal(ewasteEco.emitted, true);
+  assert.equal(ewasteEco.pathway.status, "APPROVED");
+  assert.equal(ewasteEco.pathway.confidence, "high");
+  assert.equal(ewasteEco.pathway.unit, null);
+  assert.deepEqual(ewasteEco.pathway.source_ids, ["S12"]);
+  assert.deepEqual(ewasteEco.pathway.evidence_scope, ["systematic_review"]);
 });
