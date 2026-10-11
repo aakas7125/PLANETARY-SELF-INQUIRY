@@ -52,8 +52,10 @@ import {
   ATTRIBUTION_CONDITIONAL_PATHWAY as EWASTE_PEOPLE_ATTRIBUTION,
   EWASTE_PEOPLE_CLAIM_ID,
   EWASTE_PEOPLE_CLAIM_PACKAGE_COMMIT,
+  CONTRADICTORY_OLD_DEVICE_FATES,
   EWASTE_PEOPLE_PATHWAY_REASON,
   NON_ESTABLISHING_OLD_DEVICE_FATES,
+  UNCERTAIN_OLD_DEVICE_FATES,
   PACKAGE_PROVENANCE as EWASTE_PEOPLE_PACKAGE_PROVENANCE,
   PATHWAY_KIND_QUALITATIVE_CONDITIONAL as EWASTE_PEOPLE_PATHWAY_KIND,
   PENDING_EMPIRICAL_PATHWAY_IDS as EWASTE_PEOPLE_PENDING_IDS,
@@ -2487,27 +2489,6 @@ test("disposal, fate and collection-rate context do not establish unsafe or info
   assert.equal(collectionContext.collection_rate, null);
   assert.equal(collectionContext.probability, null);
 
-  const formalWithExplicitCondition = resolveEwastePeoplePathwayBoundary(
-    validEwastePeopleRequest({ old_device_fate: "formal_recycling" }),
-  );
-  assert.equal(formalWithExplicitCondition.emitted, false);
-  assert.equal(
-    formalWithExplicitCondition.reason_code,
-    EWASTE_PEOPLE_PATHWAY_REASON.FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING,
-  );
-
-  const explicitDespiteOtherFate = resolveEwastePeoplePathwayBoundary(
-    validEwastePeopleRequest({ old_device_fate: "continue_use" }),
-  );
-  assert.equal(explicitDespiteOtherFate.emitted, true);
-  assert.equal(explicitDespiteOtherFate.reason_code, null);
-  assert.equal(
-    JSON.stringify(explicitDespiteOtherFate.pathway).includes("continue_use"),
-    false,
-  );
-  assert.equal(explicitDespiteOtherFate.pathway.location, null);
-  assert.equal(explicitDespiteOtherFate.pathway.probability, null);
-
   const explicitWithContextOnly = resolveEwastePeoplePathwayBoundary(
     validEwastePeopleRequest({
       global_ewaste_collection_rate_context: true,
@@ -2517,6 +2498,85 @@ test("disposal, fate and collection-rate context do not establish unsafe or info
   assert.equal(explicitWithContextOnly.pathway.collection_rate, null);
   assert.equal(explicitWithContextOnly.pathway.probability, null);
   assert.equal(explicitWithContextOnly.collection_rate, null);
+});
+
+test("affirmative non-processing old-device fates contradict e-waste-people emission", () => {
+  assert.deepEqual(CONTRADICTORY_OLD_DEVICE_FATES, [
+    "continue_use",
+    "sell_or_gift_for_reuse",
+    "store_in_drawer",
+    "formal_recycling",
+  ]);
+
+  for (const old_device_fate of CONTRADICTORY_OLD_DEVICE_FATES) {
+    const decision = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ old_device_fate }),
+    );
+    assert.equal(decision.emitted, false, old_device_fate);
+    assert.equal(
+      decision.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.CONTRADICTORY_OLD_DEVICE_FATE,
+      old_device_fate,
+    );
+    assert.equal(decision.pathway, null, old_device_fate);
+    assert.equal(decision.probability, null, old_device_fate);
+    assert.equal(decision.location, null, old_device_fate);
+    assert.equal(decision.exposure, null, old_device_fate);
+
+    const absentCondition = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({
+        unsafe_or_informal_handling_established: false,
+        old_device_fate,
+      }),
+    );
+    assert.equal(absentCondition.emitted, false, old_device_fate);
+    assert.equal(
+      absentCondition.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING,
+      old_device_fate,
+    );
+  }
+});
+
+test("uncertain old-device fates do not become an e-waste-processing route", () => {
+  assert.deepEqual(UNCERTAIN_OLD_DEVICE_FATES, [
+    "trade_in_unknown_next_use",
+    "discard_general_waste",
+    "unknown",
+  ]);
+
+  for (const old_device_fate of UNCERTAIN_OLD_DEVICE_FATES) {
+    const absentCondition = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({
+        unsafe_or_informal_handling_established: null,
+        old_device_fate,
+      }),
+    );
+    assert.equal(absentCondition.emitted, false, old_device_fate);
+    assert.equal(
+      absentCondition.reason_code,
+      EWASTE_PEOPLE_PATHWAY_REASON.FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING,
+      old_device_fate,
+    );
+    assert.equal(absentCondition.pathway, null, old_device_fate);
+
+    const explicit = resolveEwastePeoplePathwayBoundary(
+      validEwastePeopleRequest({ old_device_fate }),
+    );
+    assert.equal(explicit.emitted, true, old_device_fate);
+    assert.equal(explicit.reason_code, null, old_device_fate);
+    assert.equal(Object.hasOwn(explicit.pathway, "old_device_fate"), false);
+    assert.equal(Object.hasOwn(explicit.pathway, "route"), false);
+    assert.equal(Object.hasOwn(explicit.pathway, "destination"), false);
+    assert.equal(explicit.pathway.probability, null, old_device_fate);
+    assert.equal(explicit.pathway.location, null, old_device_fate);
+    assert.equal(explicit.pathway.collection_rate, null, old_device_fate);
+    assert.equal(
+      JSON.stringify(explicit.pathway).includes(old_device_fate),
+      false,
+      old_device_fate,
+    );
+  }
 });
 
 test("e-waste-people case/test metadata is not production authority", () => {

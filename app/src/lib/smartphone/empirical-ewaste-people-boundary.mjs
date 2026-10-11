@@ -37,8 +37,7 @@ export const PATHWAY_KIND_QUALITATIVE_CONDITIONAL =
 
 /**
  * Contract old-device fate values. None of these establishes unsafe or
- * informal handling. `formal_recycling` also must not be displayed as this
- * pathway's fate.
+ * informal handling.
  */
 export const NON_ESTABLISHING_OLD_DEVICE_FATES = Object.freeze([
   "continue_use",
@@ -46,6 +45,35 @@ export const NON_ESTABLISHING_OLD_DEVICE_FATES = Object.freeze([
   "trade_in_unknown_next_use",
   "store_in_drawer",
   "formal_recycling",
+  "discard_general_waste",
+  "unknown",
+]);
+
+/**
+ * Same-record fates that affirm the device is not in unsafe or informal
+ * e-waste processing. Source package: `continue_use` and
+ * `sell_or_gift_for_reuse` set `e_waste_now = 0`; `store_in_drawer` sets
+ * `e_waste_now = false`. `formal_recycling` is a distinct formal route and
+ * is not this pathway. An explicit unsafe/informal-handling flag must not
+ * override these values.
+ */
+export const CONTRADICTORY_OLD_DEVICE_FATES = Object.freeze([
+  "continue_use",
+  "sell_or_gift_for_reuse",
+  "store_in_drawer",
+  "formal_recycling",
+]);
+
+/**
+ * Uncertain same-record fates. Source package: trade-in next use remains
+ * uncertain (`e_waste_now = unknown`); general discard may show a conditional
+ * pathway but must not be assigned an informal destination or probability
+ * without route evidence; unknown fate must not be assumed into recycling,
+ * dumping, reuse, or storage. These values do not establish the condition
+ * and are never copied into the pathway as a route.
+ */
+export const UNCERTAIN_OLD_DEVICE_FATES = Object.freeze([
+  "trade_in_unknown_next_use",
   "discard_general_waste",
   "unknown",
 ]);
@@ -133,6 +161,7 @@ export const EWASTE_PEOPLE_PATHWAY_REASON = Object.freeze({
     "inferred_unsafe_or_informal_handling_prohibited",
   FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING:
     "fate_or_context_does_not_establish_unsafe_or_informal_handling",
+  CONTRADICTORY_OLD_DEVICE_FATE: "contradictory_old_device_fate",
   NAMED_TARGET_ATTRIBUTION_PROHIBITED: "named_target_attribution_prohibited",
   DEVICE_PERSON_OR_COMMUNITY_ATTRIBUTION_PROHIBITED:
     "device_person_or_community_attribution_prohibited",
@@ -378,11 +407,16 @@ function freezeDecision(fields) {
  * @param {unknown} fate
  * @returns {boolean}
  */
+function isListedFate(fate, fates) {
+  return isNonEmptyString(fate) && fates.includes(fate);
+}
+
 function isNonEstablishingFate(fate) {
-  return (
-    isNonEmptyString(fate) &&
-    NON_ESTABLISHING_OLD_DEVICE_FATES.includes(fate)
-  );
+  return isListedFate(fate, NON_ESTABLISHING_OLD_DEVICE_FATES);
+}
+
+function isContradictoryOldDeviceFate(fate) {
+  return isListedFate(fate, CONTRADICTORY_OLD_DEVICE_FATES);
 }
 
 /**
@@ -391,7 +425,9 @@ function isNonEstablishingFate(fate) {
  * Domain inputs only. Production behavior does not depend on case/test
  * identifiers as authority. Unsafe or informal handling emits only when that
  * condition is explicitly established. Fate, disposal, and global collection-
- * rate context do not establish it.
+ * rate context do not establish it. Affirmative non-processing fates
+ * contradict emission for the same device record. Uncertain fates are not
+ * turned into a processing route.
  *
  * @param {{
  *   claim_id?: string | null,
@@ -656,13 +692,6 @@ export function resolveEwastePeoplePathwayBoundary(input = {}) {
     );
   }
 
-  // Formal recycling must not be displayed as this pathway's fate.
-  if (input.old_device_fate === "formal_recycling") {
-    return deny(
-      EWASTE_PEOPLE_PATHWAY_REASON.FATE_OR_CONTEXT_DOES_NOT_ESTABLISH_UNSAFE_OR_INFORMAL_HANDLING,
-    );
-  }
-
   const fateOrContextSupplied =
     isNonEstablishingFate(input.old_device_fate) ||
     isNonEmptyString(input.old_device_fate) ||
@@ -678,6 +707,17 @@ export function resolveEwastePeoplePathwayBoundary(input = {}) {
     }
     return deny(EWASTE_PEOPLE_PATHWAY_REASON.CONDITION_NOT_SATISFIED);
   }
+
+  // Fail closed: an explicit handling flag must not override a same-record
+  // fate that affirmatively means this device is not in unsafe or informal
+  // e-waste processing.
+  if (isContradictoryOldDeviceFate(input.old_device_fate)) {
+    return deny(EWASTE_PEOPLE_PATHWAY_REASON.CONTRADICTORY_OLD_DEVICE_FATE);
+  }
+
+  // Uncertain fates stay unresolved. Emission below, when authority otherwise
+  // passes, is the accepted conditional pathway only. The fate is not copied
+  // as a route, destination, or probability.
 
   const pathway = Object.freeze({
     pathway_kind: PATHWAY_KIND_QUALITATIVE_CONDITIONAL,
