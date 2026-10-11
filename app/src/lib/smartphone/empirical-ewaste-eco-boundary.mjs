@@ -80,6 +80,7 @@ export const UNCERTAIN_OLD_DEVICE_FATES = Object.freeze([
 /**
  * Pathway IDs kept pending by HQ for later empirical slices.
  * None remain. Water is covered by the water boundary module.
+ * @type {readonly string[]}
  */
 export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([]);
 

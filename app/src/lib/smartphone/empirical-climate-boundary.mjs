@@ -36,6 +36,7 @@ export const PATHWAY_KIND_CONDITIONAL_PRESSURE_TO_OUTCOME =
  * Pathway IDs kept pending by HQ for later empirical slices.
  * None remain. Mining-eco, mining-people, e-waste-people, e-waste-eco, and
  * water are covered by their own boundary modules.
+ * @type {readonly string[]}
  */
 export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([]);
 

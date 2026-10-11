@@ -81,6 +81,7 @@ export const UNCERTAIN_OLD_DEVICE_FATES = Object.freeze([
 /**
  * Pathway IDs kept pending by HQ for later empirical slices.
  * None remain. E-waste-eco and water are covered by their own boundary modules.
+ * @type {readonly string[]}
  */
 export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([]);
 

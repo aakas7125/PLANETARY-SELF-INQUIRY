@@ -40,6 +40,7 @@ export const PATHWAY_KIND_QUALITATIVE = "qualitative_pathway";
 /**
  * No empirical pathway ID remains pending. Earlier pathway IDs are covered
  * by their own boundary modules and are not emitted here.
+ * @type {readonly string[]}
  */
 export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([]);
 
