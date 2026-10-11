@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 const sectionLinks = [
@@ -10,6 +11,7 @@ const sectionLinks = [
 
 export function SiteNav() {
   const [scrolled, setScrolled] = useState(false);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -58,6 +60,16 @@ export function SiteNav() {
             className="rounded-md px-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground sm:px-3 sm:text-sm"
           >
             Journey
+          </a>
+          <a
+            href="/smartphone"
+            aria-current={pathname === "/smartphone" ? "page" : undefined}
+            className={cn(
+              "rounded-md px-1.5 py-2 text-xs transition-colors hover:text-foreground sm:px-3 sm:text-sm",
+              pathname === "/smartphone" ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            Phone inquiry
           </a>
         </nav>
       </div>
