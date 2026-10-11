@@ -77,10 +77,11 @@ export const UNCERTAIN_OLD_DEVICE_FATES = Object.freeze([
   "unknown",
 ]);
 
-/** Pathway IDs kept pending by HQ for later empirical slices. */
-export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([
-  "SP-PATH-WATER-001",
-]);
+/**
+ * Pathway IDs kept pending by HQ for later empirical slices.
+ * None remain. Water is covered by the water boundary module.
+ */
+export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([]);
 
 /**
  * Frozen accepted claim record — exact field values from

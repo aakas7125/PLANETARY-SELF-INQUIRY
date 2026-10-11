@@ -24,7 +24,7 @@ a complete smartphone-behavior certification.
 | Input model | `T01`–`T35`, their listed `A-T-*` assertions, `RC01`–`RC10`, all ten `A-GLOBAL-*` assertions, the sixteen-source `A-LOGIC-*` family, and all twenty `PI-001`–`PI-020` prohibitions execute. | `R&E-V0-SMARTPHONE-INPUT-TESTS-1.0.0.json`, `USER_INPUT_MODEL_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-input-contract.test.mjs` | Positive, prohibitions, release gates | `covered_by_executing_assertion` for T01–T35 case assertions, RC01–RC10, all ten executed `A-GLOBAL-*` assertions, all sixteen executed `A-LOGIC-*` assertions, and all twenty `PI-001`–`PI-020` |
 | Secondary pathways | `SEC-01`–`SEC-12`, every source `A-SEC-*` case assertion, and `A-SEC-GLOBAL-01`–`A-SEC-GLOBAL-08` | `R&E-V0-SMARTPHONE-SECONDARY-PATHWAY-TESTS-1.0.0.md`, `SECONDARY_PATHWAYS_V0.md`, `REGRESSION_INVARIANTS_V0.md` | `app/scripts/smartphone-secondary-contract.test.mjs` | Positive and prohibited behavior | `covered_by_executing_assertion` for `SEC-01`–`SEC-12`, their 41 case assertions, and all eight `A-SEC-GLOBAL-*` identifiers |
 | AP inquiry | `APQ1_FUNCTION`–`APQ6_RESEE`; `INV-AP-01`–`INV-AP-20` | `tests/ap-integrity/AP_V0_INVARIANTS.md`, `AP_INTERACTION_V0.md` | `app/scripts/smartphone-ap-contract.test.mjs` | Positive and prohibited behavior | `requires_smartphone_implementation` |
-| Empirical claim boundary | `SP-PATH-CLIMATE-001`, `SP-PATH-MINING-ECO-001`, `SP-PATH-MINING-PEOPLE-001`, `SP-PATH-EWASTE-PEOPLE-001`, `SP-PATH-EWASTE-ECO-001`, `SP-PATH-WATER-001` | `EMPIRICAL_SMARTPHONE_V0.md` | `app/scripts/smartphone-empirical-boundary.test.mjs` | Prohibited unsupported impact/displacement claims | `requires_smartphone_implementation` |
+| Empirical claim boundary | `SP-PATH-CLIMATE-001`, `SP-PATH-MINING-ECO-001`, `SP-PATH-MINING-PEOPLE-001`, `SP-PATH-EWASTE-PEOPLE-001`, `SP-PATH-EWASTE-ECO-001`, `SP-PATH-WATER-001` | `EMPIRICAL_SMARTPHONE_V0.md` | `app/scripts/smartphone-empirical-boundary.test.mjs` | Prohibited unsupported impact/displacement claims | `covered_by_executing_assertion` for `SP-PATH-CLIMATE-001`, `SP-PATH-MINING-ECO-001`, `SP-PATH-MINING-PEOPLE-001`, `SP-PATH-EWASTE-PEOPLE-001`, `SP-PATH-EWASTE-ECO-001`, and `SP-PATH-WATER-001` |
 
 The registry reads the immutable test packages and the accepted AP-invariant
 record to enumerate the individual IDs. This keeps the mapping exact without
@@ -47,8 +47,10 @@ copying, normalizing, or silently maintaining a second package serialization.
   certification.
 - The mapping-integrity tests distinguish those executing assertions from every
   remaining implementation gap.
-- Two explicit `todo` entries remain in the application test output for the
-  AP interaction/integrity and empirical-boundary suites.
+- The empirical-boundary suite `todo` is discharged. All six mapped empirical
+  claim IDs have direct executing coverage in
+  `smartphone-empirical-boundary.test.mjs`. Input, secondary, and AP mapping
+  rows are unchanged by that discharge.
 - A later implementation task must change only the registry rows backed by its
   executing assertions from `requires_smartphone_implementation`.
 

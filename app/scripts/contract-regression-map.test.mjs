@@ -281,6 +281,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
+    "SP-PATH-WATER-001",
   ];
   const coveredEmpiricalIds = mapping
     .filter(
@@ -295,9 +296,7 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     )
     .map((row) => row.id);
   assert.deepEqual(coveredEmpiricalIds, expectedCoveredEmpiricalIds);
-  assert.deepEqual(remainingEmpiricalIds, [
-    "SP-PATH-WATER-001",
-  ]);
+  assert.deepEqual(remainingEmpiricalIds, []);
   assert.ok(
     mapping
       .filter(
@@ -316,7 +315,3 @@ test("mapping records T01–T35, the ten executed globals, and sixteen executed 
     { target: "scripts/smartphone-empirical-boundary.test.mjs", exists: true },
   ]);
 });
-
-test.todo(
-  "implement the mapped empirical boundary suite (SP-PATH-CLIMATE-001 through SP-PATH-WATER-001)",
-);
