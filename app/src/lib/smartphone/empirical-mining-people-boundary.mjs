@@ -37,12 +37,11 @@ export const PATHWAY_KIND_QUALITATIVE_CONDITIONAL =
 
 /**
  * Pathway IDs kept pending by HQ for later empirical slices.
- * `SP-PATH-EWASTE-PEOPLE-001` is covered by the e-waste-people boundary module.
- * `SP-PATH-EWASTE-ECO-001` is covered by the e-waste-ecosystem boundary module.
+ * None remain. E-waste-people, e-waste-eco, and water are covered by their
+ * own boundary modules.
+ * @type {readonly string[]}
  */
-export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([
-  "SP-PATH-WATER-001",
-]);
+export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([]);
 
 /**
  * Frozen accepted claim record — exact fields from evidence/CLAIM_REGISTRY.json.

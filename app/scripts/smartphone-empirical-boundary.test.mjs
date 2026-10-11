@@ -80,6 +80,21 @@ import {
   validateEwasteEcoClaimAuthorityRecord,
   validateEwasteEcoSourceRecords,
 } from "../src/lib/smartphone/empirical-ewaste-eco-boundary.mjs";
+import {
+  ACCEPTED_WATER_CLAIM,
+  ACCEPTED_WATER_SOURCES,
+  ATTRIBUTION_NOT_ATTRIBUTABLE_TO_SPECIFIC_DEVICE as WATER_ATTRIBUTION,
+  NON_CONFLATABLE_WATER_INDICATOR_LABELS,
+  PACKAGE_PROVENANCE as WATER_PACKAGE_PROVENANCE,
+  PATHWAY_KIND_QUALITATIVE,
+  PENDING_EMPIRICAL_PATHWAY_IDS as WATER_PENDING_IDS,
+  WATER_CLAIM_ID,
+  WATER_CLAIM_PACKAGE_COMMIT,
+  WATER_PATHWAY_REASON,
+  resolveWaterPathwayBoundary,
+  validateWaterClaimAuthorityRecord,
+  validateWaterSourceRecords,
+} from "../src/lib/smartphone/empirical-water-boundary.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = resolve(scriptsDirectory, "../..");
@@ -264,9 +279,7 @@ test("missing, malformed, unknown and conflicting claim identity/version are den
 });
 
 test("pending empirical pathway IDs remain non-emitting in the climate slice", () => {
-  assert.deepEqual(PENDING_EMPIRICAL_PATHWAY_IDS, [
-    "SP-PATH-WATER-001",
-  ]);
+  assert.deepEqual(PENDING_EMPIRICAL_PATHWAY_IDS, []);
   for (const claimId of PENDING_EMPIRICAL_PATHWAY_IDS) {
     const decision = resolveClimatePathwayBoundary({
       claim_id: claimId,
@@ -281,12 +294,13 @@ test("pending empirical pathway IDs remain non-emitting in the climate slice", (
     assert.equal(decision.pathway, null);
   }
 
-  // Mining-eco / mining-people / e-waste-people / e-waste-eco are covered by their own modules; climate does not emit them.
+  // Mining-eco / mining-people / e-waste-people / e-waste-eco / water are covered by their own modules; climate does not emit them.
   for (const claimId of [
     "SP-PATH-MINING-ECO-001",
     "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
     "SP-PATH-EWASTE-ECO-001",
+    "SP-PATH-WATER-001",
   ]) {
     const decision = resolveClimatePathwayBoundary({
       claim_id: claimId,
@@ -807,9 +821,7 @@ test("mining-eco missing, malformed, unknown and conflicting claim identity/vers
 });
 
 test("pending empirical pathway IDs remain non-emitting in the mining-eco slice", () => {
-  assert.deepEqual(MINING_ECO_PENDING_IDS, [
-    "SP-PATH-WATER-001",
-  ]);
+  assert.deepEqual(MINING_ECO_PENDING_IDS, []);
   for (const claimId of MINING_ECO_PENDING_IDS) {
     const decision = resolveMiningEcoPathwayBoundary({
       claim_id: claimId,
@@ -824,12 +836,13 @@ test("pending empirical pathway IDs remain non-emitting in the mining-eco slice"
     assert.equal(decision.pathway, null);
   }
 
-  // Climate / mining-people / e-waste-people / e-waste-eco remain covered elsewhere; mining-eco does not emit them.
+  // Climate / mining-people / e-waste-people / e-waste-eco / water remain covered elsewhere; mining-eco does not emit them.
   for (const claimId of [
     CLIMATE_CLAIM_ID,
     "SP-PATH-MINING-PEOPLE-001",
     "SP-PATH-EWASTE-PEOPLE-001",
     EWASTE_ECO_CLAIM_ID,
+    WATER_CLAIM_ID,
   ]) {
     const decision = resolveMiningEcoPathwayBoundary({
       claim_id: claimId,
@@ -1407,9 +1420,7 @@ test("mining-people missing, malformed, unknown and conflicting claim identity/v
 });
 
 test("pending empirical pathway IDs remain non-emitting in the mining-people slice", () => {
-  assert.deepEqual(MINING_PEOPLE_PENDING_IDS, [
-    "SP-PATH-WATER-001",
-  ]);
+  assert.deepEqual(MINING_PEOPLE_PENDING_IDS, []);
   for (const claimId of MINING_PEOPLE_PENDING_IDS) {
     const decision = resolveMiningPeoplePathwayBoundary({
       claim_id: claimId,
@@ -1424,12 +1435,13 @@ test("pending empirical pathway IDs remain non-emitting in the mining-people sli
     assert.equal(decision.pathway, null);
   }
 
-  // Climate / mining-eco / e-waste-people / e-waste-eco remain covered elsewhere; mining-people does not emit them.
+  // Climate / mining-eco / e-waste-people / e-waste-eco / water remain covered elsewhere; mining-people does not emit them.
   for (const claimId of [
     CLIMATE_CLAIM_ID,
     MINING_ECO_CLAIM_ID,
     EWASTE_PEOPLE_CLAIM_ID,
     EWASTE_ECO_CLAIM_ID,
+    WATER_CLAIM_ID,
   ]) {
     const decision = resolveMiningPeoplePathwayBoundary({
       claim_id: claimId,
@@ -2090,9 +2102,7 @@ test("e-waste-people missing, malformed, unknown and conflicting claim identity/
 });
 
 test("pending empirical pathway IDs remain non-emitting in the e-waste-people slice", () => {
-  assert.deepEqual(EWASTE_PEOPLE_PENDING_IDS, [
-    "SP-PATH-WATER-001",
-  ]);
+  assert.deepEqual(EWASTE_PEOPLE_PENDING_IDS, []);
   for (const claimId of EWASTE_PEOPLE_PENDING_IDS) {
     const decision = resolveEwastePeoplePathwayBoundary({
       claim_id: claimId,
@@ -2112,6 +2122,7 @@ test("pending empirical pathway IDs remain non-emitting in the e-waste-people sl
     MINING_ECO_CLAIM_ID,
     MINING_PEOPLE_CLAIM_ID,
     EWASTE_ECO_CLAIM_ID,
+    WATER_CLAIM_ID,
   ]) {
     const decision = resolveEwastePeoplePathwayBoundary({
       claim_id: claimId,
@@ -2991,7 +3002,7 @@ test("e-waste-ecosystem missing, malformed, unknown and conflicting claim identi
 });
 
 test("pending empirical pathway IDs remain non-emitting in the e-waste-ecosystem slice", () => {
-  assert.deepEqual(EWASTE_ECO_PENDING_IDS, ["SP-PATH-WATER-001"]);
+  assert.deepEqual(EWASTE_ECO_PENDING_IDS, []);
   for (const claimId of EWASTE_ECO_PENDING_IDS) {
     const decision = resolveEwasteEcoPathwayBoundary({
       claim_id: claimId,
@@ -3011,6 +3022,7 @@ test("pending empirical pathway IDs remain non-emitting in the e-waste-ecosystem
     MINING_ECO_CLAIM_ID,
     MINING_PEOPLE_CLAIM_ID,
     EWASTE_PEOPLE_CLAIM_ID,
+    WATER_CLAIM_ID,
   ]) {
     const decision = resolveEwasteEcoPathwayBoundary({
       claim_id: claimId,
@@ -3740,4 +3752,775 @@ test("existing empirical pathways remain unchanged beside e-waste-ecosystem cove
   assert.equal(ewasteEco.pathway.unit, null);
   assert.deepEqual(ewasteEco.pathway.source_ids, ["S12"]);
   assert.deepEqual(ewasteEco.pathway.evidence_scope, ["systematic_review"]);
+});
+
+function validWaterRequest(overrides = {}) {
+  return {
+    claim_id: WATER_CLAIM_ID,
+    claim_version: WATER_CLAIM_PACKAGE_COMMIT,
+    requested_output: PATHWAY_KIND_QUALITATIVE,
+    ...overrides,
+  };
+}
+
+test("frozen water claim matches evidence/CLAIM_REGISTRY.json exactly", () => {
+  const registry = readJson("evidence/CLAIM_REGISTRY.json");
+  const fromRegistry = registry.find((row) => row.claim_id === WATER_CLAIM_ID);
+  assert.ok(fromRegistry, "SP-PATH-WATER-001 must exist in claim registry");
+  assert.deepEqual(
+    {
+      claim_id: fromRegistry.claim_id,
+      package_commit: fromRegistry.package_commit,
+      package_provenance: fromRegistry.package_provenance,
+      statement: fromRegistry.statement,
+      evidence_domain: fromRegistry.evidence_domain,
+      confidence: fromRegistry.confidence,
+      attribution_status: fromRegistry.attribution_status,
+      evidence_scope: fromRegistry.evidence_scope,
+      status: fromRegistry.status,
+      conditions: fromRegistry.conditions,
+      source_ids: fromRegistry.source_ids,
+    },
+    { ...ACCEPTED_WATER_CLAIM },
+  );
+  assert.equal(
+    ACCEPTED_WATER_CLAIM.statement,
+    "Smartphone production can require substantial water use; local consequences depend on geography and indicator.",
+  );
+  assert.deepEqual(ACCEPTED_WATER_CLAIM.evidence_domain, [
+    "water",
+    "ecosystems",
+    "human_health",
+  ]);
+  assert.equal(
+    ACCEPTED_WATER_CLAIM.confidence,
+    "high_for_water_use_low_to_moderate_for_arbitrary_phone_consequence",
+  );
+  assert.deepEqual(ACCEPTED_WATER_CLAIM.evidence_scope, [
+    "model_specific",
+    "product_class",
+  ]);
+  assert.equal(ACCEPTED_WATER_CLAIM.status, "QUALITATIVE");
+  assert.deepEqual(ACCEPTED_WATER_CLAIM.conditions, [
+    "model-specific indicator required for quantitative output",
+  ]);
+  assert.equal(ACCEPTED_WATER_CLAIM.value, undefined);
+  assert.equal(ACCEPTED_WATER_CLAIM.unit, undefined);
+  assert.equal(ACCEPTED_WATER_CLAIM.indicator, undefined);
+});
+
+test("frozen water sources match evidence/SOURCE_REGISTRY.json for S1/S2", () => {
+  const registry = readJson("evidence/SOURCE_REGISTRY.json");
+  for (const sourceId of ["S1", "S2"]) {
+    const fromRegistry = registry.find((row) => row.source_id === sourceId);
+    assert.ok(fromRegistry, `${sourceId} must exist in source registry`);
+    assert.deepEqual(
+      {
+        source_id: fromRegistry.source_id,
+        package_commit: fromRegistry.package_commit,
+        package_provenance: fromRegistry.package_provenance,
+        citation: fromRegistry.citation,
+        scope: fromRegistry.scope,
+        metadata_limit: fromRegistry.metadata_limit,
+      },
+      { ...ACCEPTED_WATER_SOURCES[sourceId] },
+    );
+  }
+});
+
+test("SP-PATH-WATER-001 emits the qualitative pathway with preserved authority and no numerical water output", () => {
+  const byParts = resolveWaterPathwayBoundary(validWaterRequest());
+  const byRef = resolveWaterPathwayBoundary(
+    validWaterRequest({
+      claim_id: undefined,
+      claim_version: undefined,
+      claim_ref: `${WATER_CLAIM_ID}@${WATER_CLAIM_PACKAGE_COMMIT}`,
+    }),
+  );
+  const withIncidentalCaseId = resolveWaterPathwayBoundary(
+    validWaterRequest({ case_id: "water-case-not-authority" }),
+  );
+
+  for (const decision of [byParts, byRef, withIncidentalCaseId]) {
+    assert.equal(decision.emitted, true);
+    assert.equal(decision.reason_code, null);
+    assert.equal(decision.claim_id, WATER_CLAIM_ID);
+    assert.equal(decision.claim_version, WATER_CLAIM_PACKAGE_COMMIT);
+    assert.equal(
+      decision.claim_ref,
+      `${WATER_CLAIM_ID}@${WATER_CLAIM_PACKAGE_COMMIT}`,
+    );
+    assert.ok(decision.pathway);
+    assert.equal(decision.pathway.pathway_kind, PATHWAY_KIND_QUALITATIVE);
+    assert.equal(decision.pathway.statement, ACCEPTED_WATER_CLAIM.statement);
+    assert.deepEqual(
+      decision.pathway.evidence_domain,
+      ACCEPTED_WATER_CLAIM.evidence_domain,
+    );
+    assert.deepEqual(
+      decision.pathway.evidence_scope,
+      ACCEPTED_WATER_CLAIM.evidence_scope,
+    );
+    assert.equal(decision.pathway.confidence, ACCEPTED_WATER_CLAIM.confidence);
+    assert.equal(decision.pathway.attribution_status, WATER_ATTRIBUTION);
+    assert.deepEqual(decision.pathway.conditions, ACCEPTED_WATER_CLAIM.conditions);
+    assert.deepEqual(
+      decision.pathway.major_assumptions,
+      ACCEPTED_WATER_CLAIM.conditions,
+    );
+    assert.equal(decision.pathway.status, "QUALITATIVE");
+    assert.equal(decision.pathway.package_provenance, WATER_PACKAGE_PROVENANCE);
+    assert.equal(decision.pathway.quantitative_value, null);
+    assert.equal(decision.pathway.value_range, null);
+    assert.equal(decision.pathway.unit, null);
+    assert.equal(decision.pathway.indicator, null);
+    assert.equal(decision.pathway.boundary, null);
+    assert.equal(decision.pathway.method, null);
+    assert.equal(decision.pathway.model_identity, null);
+    assert.equal(decision.pathway.geography, null);
+    assert.equal(decision.pathway.location, null);
+    assert.equal(decision.pathway.probability, null);
+    assert.equal(decision.pathway.litres_per_phone, null);
+    assert.equal(decision.pathway.drinking_water_denied, null);
+    assert.equal(decision.pathway.withdrawal, null);
+    assert.equal(decision.pathway.consumption, null);
+    assert.equal(decision.pathway.scarcity, null);
+    assert.equal(decision.pathway.deprivation, null);
+    assert.equal(decision.pathway.stress, null);
+    assert.equal(decision.pathway.water_use_quantity, null);
+    assert.equal(decision.pathway.affected_population, null);
+    assert.equal(decision.pathway.water_stress_outcome, null);
+    assert.equal(decision.pathway.water_scarcity_outcome, null);
+    assert.equal(decision.pathway.local_consequence, null);
+    assert.equal(decision.pathway.model_specific_or_fallback_status, null);
+    assert.deepEqual(decision.pathway.source_ids, ["S1", "S2"]);
+    assert.equal(decision.pathway.sources.length, 2);
+    assert.equal(
+      decision.pathway.sources[0].citation,
+      ACCEPTED_WATER_SOURCES.S1.citation,
+    );
+    assert.equal(
+      decision.pathway.sources[0].metadata_limit,
+      ACCEPTED_WATER_SOURCES.S1.metadata_limit,
+    );
+    assert.equal(
+      decision.pathway.sources[1].citation,
+      ACCEPTED_WATER_SOURCES.S2.citation,
+    );
+    assert.equal(
+      decision.pathway.sources[1].scope,
+      ACCEPTED_WATER_SOURCES.S2.scope,
+    );
+    assert.equal(decision.quantitative_value, null);
+    assert.equal(decision.litres_per_phone, null);
+    assert.equal(decision.drinking_water_denied, null);
+    assert.equal(decision.location, null);
+    assert.equal(decision.geography, null);
+    assert.equal(decision.local_consequence, null);
+    assert.equal(decision.unified_score, null);
+    assert.equal(decision.exact_human_damage, null);
+    assert.equal(decision.exact_ecological_damage, null);
+    assert.equal(decision.named_target_attribution, null);
+    assert.equal(decision.specific_device_attribution, null);
+    assert.ok(
+      decision.pathway.attribution_limits.includes(
+        "not_attributable_to_specific_device",
+      ),
+    );
+    assert.ok(
+      decision.pathway.attribution_limits.includes(
+        "local_consequences_depend_on_geography_and_indicator",
+      ),
+    );
+  }
+});
+
+test("water missing, malformed, unknown and conflicting claim identity/version are denied", () => {
+  assert.equal(
+    resolveWaterPathwayBoundary({}).reason_code,
+    WATER_PATHWAY_REASON.MISSING_CLAIM_IDENTITY,
+  );
+  assert.equal(
+    resolveWaterPathwayBoundary({ claim_id: WATER_CLAIM_ID }).reason_code,
+    WATER_PATHWAY_REASON.MISSING_CLAIM_VERSION,
+  );
+  assert.equal(
+    resolveWaterPathwayBoundary(
+      validWaterRequest({ claim_id: "SP-PATH-UNKNOWN-999" }),
+    ).reason_code,
+    WATER_PATHWAY_REASON.UNKNOWN_CLAIM,
+  );
+  assert.equal(
+    resolveWaterPathwayBoundary(
+      validWaterRequest({ claim_id: "not a claim" }),
+    ).reason_code,
+    WATER_PATHWAY_REASON.MALFORMED_CLAIM_IDENTITY,
+  );
+  assert.equal(
+    resolveWaterPathwayBoundary(
+      validWaterRequest({ claim_version: "wrong-commit" }),
+    ).reason_code,
+    WATER_PATHWAY_REASON.WRONG_CLAIM_VERSION,
+  );
+  assert.equal(
+    resolveWaterPathwayBoundary(
+      validWaterRequest({
+        claim_ref: `${WATER_CLAIM_ID}@${WATER_CLAIM_PACKAGE_COMMIT}`,
+        claim_id: CLIMATE_CLAIM_ID,
+      }),
+    ).reason_code,
+    WATER_PATHWAY_REASON.CONFLICTING_CLAIM_REPRESENTATION,
+  );
+});
+
+test("no empirical pathway ID remains pending in the water slice", () => {
+  assert.deepEqual(WATER_PENDING_IDS, []);
+  for (const claimId of [
+    CLIMATE_CLAIM_ID,
+    MINING_ECO_CLAIM_ID,
+    MINING_PEOPLE_CLAIM_ID,
+    EWASTE_PEOPLE_CLAIM_ID,
+    EWASTE_ECO_CLAIM_ID,
+  ]) {
+    const decision = resolveWaterPathwayBoundary({
+      claim_id: claimId,
+      claim_version: WATER_CLAIM_PACKAGE_COMMIT,
+    });
+    assert.equal(decision.emitted, false);
+    assert.equal(decision.reason_code, WATER_PATHWAY_REASON.UNKNOWN_CLAIM);
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("water missing required claim/source/scope/condition/attribution metadata fails closed", () => {
+  const cases = [
+    [{ statement: "" }, WATER_PATHWAY_REASON.MISSING_REQUIRED_CLAIM_METADATA],
+    [{ evidence_scope: [] }, WATER_PATHWAY_REASON.MISSING_REQUIRED_SCOPE],
+    [{ evidence_domain: [] }, WATER_PATHWAY_REASON.MISSING_REQUIRED_SCOPE],
+    [
+      { attribution_status: "" },
+      WATER_PATHWAY_REASON.MISSING_REQUIRED_ATTRIBUTION,
+    ],
+    [{ conditions: [] }, WATER_PATHWAY_REASON.MISSING_REQUIRED_CONDITIONS],
+    [{ source_ids: [] }, WATER_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA],
+  ];
+  for (const [alteration, reason] of cases) {
+    const decision = resolveWaterPathwayBoundary(
+      validWaterRequest({
+        authority_claim_record: { ...ACCEPTED_WATER_CLAIM, ...alteration },
+      }),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(decision.reason_code, reason);
+    assert.equal(decision.pathway, null);
+  }
+
+  const missingRecord = resolveWaterPathwayBoundary(
+    validWaterRequest({ authority_claim_record: null }),
+  );
+  assert.equal(
+    missingRecord.reason_code,
+    WATER_PATHWAY_REASON.MISSING_REQUIRED_CLAIM_METADATA,
+  );
+  assert.equal(validateWaterClaimAuthorityRecord(null).ok, false);
+});
+
+test("water malformed non-object source maps fail closed without throwing", () => {
+  const malformedMaps = [null, [], ["S1", "S2"], "S1", 0, false];
+  for (const [index, authority_source_map] of malformedMaps.entries()) {
+    let decision;
+    assert.doesNotThrow(() => {
+      decision = resolveWaterPathwayBoundary(
+        validWaterRequest({ authority_source_map }),
+      );
+    }, `resolve must not throw for malformed source map case ${index}`);
+    assert.equal(decision.emitted, false, `case ${index}`);
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+    assert.equal(decision.pathway, null, `case ${index}`);
+
+    let validation;
+    assert.doesNotThrow(() => {
+      validation = validateWaterSourceRecords(
+        ACCEPTED_WATER_CLAIM.source_ids,
+        authority_source_map,
+      );
+    }, `validate must not throw for malformed source map case ${index}`);
+    assert.equal(validation.ok, false, `case ${index}`);
+    assert.equal(
+      validation.reason_code,
+      WATER_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+      `case ${index}`,
+    );
+  }
+});
+
+test("caller-supplied water value, indicator, unit, boundary, method, model, geography, or citation is not authority", () => {
+  const supplied = [
+    { supplied_value: 12000 },
+    { supplied_value: 0 },
+    { supplied_value_range: [10, 20] },
+    { supplied_indicator: "withdrawal" },
+    { supplied_unit: "L" },
+    { supplied_boundary: "cradle-to-gate" },
+    { supplied_method: "AWARE" },
+    { supplied_model: "Fairphone 5" },
+    { supplied_geography: "a manufacturing region" },
+    { supplied_source_citation: "an unaccepted citation" },
+    {
+      authority_indicator_record: {
+        value: 1,
+        value_range: [1, 2],
+        indicator: "consumption",
+        unit: "L",
+        boundary: "factory",
+        method: "unspecified",
+        model: "generic phone",
+        source_ids: ["S1"],
+      },
+    },
+    { authority_quantitative_record: { litres_per_phone: 50 } },
+  ];
+  for (const marker of supplied) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.CALLER_SUPPLIED_AUTHORITY_PROHIBITED,
+      JSON.stringify(marker),
+    );
+    assert.equal(decision.quantitative_value, null);
+    assert.equal(decision.litres_per_phone, null);
+    assert.equal(decision.location, null);
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("generic litres per phone and drinking-water denial never emit", () => {
+  for (const marker of [
+    { request_generic_litres_per_phone: true },
+    { request_litres_per_phone: true },
+    { requested_output: "generic_litres_per_phone" },
+    { requested_output: "litres_per_phone" },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.GENERIC_LITRES_PER_PHONE_PROHIBITED,
+    );
+    assert.equal(decision.litres_per_phone, null);
+    assert.equal(decision.pathway, null);
+  }
+
+  for (const marker of [
+    { request_drinking_water_denied: true },
+    { request_litres_of_drinking_water_denied: true },
+    { requested_output: "litres_of_drinking_water_denied" },
+    { requested_output: "drinking_water_denied" },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.DRINKING_WATER_DENIAL_PROHIBITED,
+    );
+    assert.equal(decision.drinking_water_denied, null);
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("water indicator labels are not conflated or converted", () => {
+  for (const label of NON_CONFLATABLE_WATER_INDICATOR_LABELS) {
+    const decision = resolveWaterPathwayBoundary(
+      validWaterRequest({ requested_output: label }),
+    );
+    assert.equal(decision.emitted, false, label);
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.INDICATOR_CONFLATION_OR_CONVERSION_PROHIBITED,
+    );
+    assert.equal(decision.pathway, null);
+    assert.equal(decision.quantitative_value, null);
+  }
+
+  for (const marker of [
+    { request_indicator_conflation: true },
+    { request_indicator_conversion: true },
+    { convert_from: "withdrawal", convert_to: "consumption" },
+    { convert_from: "use", convert_to: "drinking_water" },
+    { convert_from: "scarcity", convert_to: "deprivation" },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.INDICATOR_CONFLATION_OR_CONVERSION_PROHIBITED,
+    );
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("named person, community, ecosystem, species, place, watershed, facility, model consequence, or event attribution is denied", () => {
+  for (const marker of [
+    { named_person: "Person A" },
+    { named_community: "Community B" },
+    { named_ecosystem: "Wetland C" },
+    { named_species: "Species D" },
+    { named_place: "Place E" },
+    { named_watershed: "Watershed F" },
+    { named_facility: "Facility G" },
+    { named_model_consequence: "Model H consequence" },
+    { named_event: "2018 water event" },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.NAMED_TARGET_ATTRIBUTION_PROHIBITED,
+    );
+    assert.equal(decision.named_target_attribution, null);
+    assert.equal(decision.pathway, null);
+  }
+
+  const device = resolveWaterPathwayBoundary(
+    validWaterRequest({ request_specific_device_attribution: true }),
+  );
+  assert.equal(device.emitted, false);
+  assert.equal(
+    device.reason_code,
+    WATER_PATHWAY_REASON.SPECIFIC_DEVICE_ATTRIBUTION_PROHIBITED,
+  );
+  assert.equal(device.specific_device_attribution, null);
+});
+
+test("exact damage, scarcity or stress, affected population, and inferred local consequence are denied", () => {
+  for (const marker of [
+    { request_exact_individual_human_damage: true },
+    { request_exact_individual_ecological_damage: true },
+    { request_exact_individual_damage: true },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.EXACT_INDIVIDUAL_HUMAN_OR_ECOLOGICAL_DAMAGE_PROHIBITED,
+    );
+    assert.equal(decision.exact_human_damage, null);
+    assert.equal(decision.exact_ecological_damage, null);
+    assert.equal(decision.pathway, null);
+  }
+
+  for (const marker of [
+    { request_water_scarcity_outcome: true },
+    { request_water_stress_outcome: true },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.WATER_SCARCITY_OR_STRESS_OUTCOME_PROHIBITED,
+    );
+    assert.equal(decision.water_scarcity_outcome, null);
+    assert.equal(decision.water_stress_outcome, null);
+    assert.equal(decision.pathway, null);
+  }
+
+  const population = resolveWaterPathwayBoundary(
+    validWaterRequest({ request_affected_population: true }),
+  );
+  assert.equal(
+    population.reason_code,
+    WATER_PATHWAY_REASON.AFFECTED_POPULATION_PROHIBITED,
+  );
+  assert.equal(population.affected_population, null);
+
+  for (const marker of [
+    { request_local_consequence: true },
+    { infer_local_consequence: true },
+    { request_human_harm: true },
+    { request_ecosystem_harm: true },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.LOCAL_CONSEQUENCE_INFERENCE_PROHIBITED,
+      JSON.stringify(marker),
+    );
+    assert.equal(decision.local_consequence, null);
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("water unified scores, causal-proof, unknown coercion, and quantitative or location output are denied", () => {
+  for (const marker of [
+    { request_unified_score: true },
+    { request_unified_environmental_score: true },
+    { request_unified_safety_score: true },
+    { request_protect_four_score: true },
+    { request_unified_moral_score: true },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.UNIFIED_SCORE_PROHIBITED,
+    );
+    assert.equal(decision.unified_score, null);
+    assert.equal(decision.pathway, null);
+  }
+
+  const causal = resolveWaterPathwayBoundary(
+    validWaterRequest({ request_causal_proof: true }),
+  );
+  assert.equal(
+    causal.reason_code,
+    WATER_PATHWAY_REASON.UNSUPPORTED_CAUSAL_PROOF_WORDING,
+  );
+
+  for (const marker of [
+    { coerce_unknown_to_zero: true },
+    { coerce_unknown_to_false: true },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.UNKNOWN_COERCION_PROHIBITED,
+    );
+    assert.equal(decision.quantitative_value, null);
+    assert.equal(decision.pathway, null);
+  }
+
+  for (const marker of [
+    { request_quantitative_output: true },
+    { request_location: true },
+    { request_probability: true },
+    { request_numerical_water: true },
+    { requested_output: "quantitative_output" },
+    { requested_output: "quantitative_water_indicator" },
+    { requested_output: "location" },
+    { requested_output: "probability" },
+  ]) {
+    const decision = resolveWaterPathwayBoundary(validWaterRequest(marker));
+    assert.equal(decision.emitted, false, JSON.stringify(marker));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.QUANTITATIVE_OR_LOCATION_OUTPUT_PROHIBITED,
+    );
+    assert.equal(decision.quantitative_value, null);
+    assert.equal(decision.location, null);
+    assert.equal(decision.probability, null);
+    assert.equal(decision.pathway, null);
+  }
+});
+
+test("water case/test metadata is not production authority", () => {
+  const asAuthority = resolveWaterPathwayBoundary(
+    validWaterRequest({ use_case_id_as_claim_authority: true, case_id: "T-WATER" }),
+  );
+  assert.equal(asAuthority.emitted, false);
+  assert.equal(
+    asAuthority.reason_code,
+    WATER_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+
+  const onlyCase = resolveWaterPathwayBoundary({
+    case_id: "SP-PATH-WATER-001",
+    assertion_id: "A-WATER",
+  });
+  assert.equal(onlyCase.emitted, false);
+  assert.equal(
+    onlyCase.reason_code,
+    WATER_PATHWAY_REASON.CASE_METADATA_NOT_PRODUCTION_AUTHORITY,
+  );
+  assert.equal(onlyCase.claim_id, null);
+});
+
+test("water unsupported requested outputs do not emit", () => {
+  const decision = resolveWaterPathwayBoundary(
+    validWaterRequest({ requested_output: "avoided_production_credit" }),
+  );
+  assert.equal(decision.emitted, false);
+  assert.equal(
+    decision.reason_code,
+    WATER_PATHWAY_REASON.UNSUPPORTED_REQUESTED_OUTPUT,
+  );
+  assert.equal(decision.pathway, null);
+});
+
+test("altered, reordered, extra or substituted water claim authority fails closed", () => {
+  const alteredClaims = [
+    { statement: "Altered water statement under accepted identity." },
+    { evidence_domain: ["human_health", "ecosystems", "water"] },
+    { evidence_domain: ["water", "ecosystems"] },
+    { evidence_scope: ["product_class", "model_specific"] },
+    { evidence_scope: ["product_class"] },
+    { confidence: "high" },
+    { status: "APPROVED" },
+    { attribution_status: "conditional_pathway" },
+    {
+      conditions: [
+        "model-specific indicator required for quantitative output",
+        "extra invented condition",
+      ],
+    },
+    { source_ids: ["S2", "S1"] },
+    { source_ids: ["S1"] },
+    { source_ids: ["S1", "S2", "S3"] },
+    { package_commit: "ffffffffffffffffffffffffffffffffffffffff" },
+    { package_provenance: "R&E-V0-SMARTPHONE-ALTERED" },
+    { extra_field: "not in the accepted record" },
+  ];
+  for (const alteration of alteredClaims) {
+    const decision = resolveWaterPathwayBoundary(
+      validWaterRequest({
+        authority_claim_record: { ...ACCEPTED_WATER_CLAIM, ...alteration },
+      }),
+    );
+    assert.equal(decision.emitted, false, JSON.stringify(alteration));
+    assert.equal(
+      decision.reason_code,
+      WATER_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+    );
+    assert.equal(decision.pathway, null);
+  }
+
+  const reorderedKeysOnly = {
+    source_ids: ["S1", "S2"],
+    conditions: ["model-specific indicator required for quantitative output"],
+    status: "QUALITATIVE",
+    evidence_scope: ["model_specific", "product_class"],
+    attribution_status: WATER_ATTRIBUTION,
+    confidence: ACCEPTED_WATER_CLAIM.confidence,
+    statement: ACCEPTED_WATER_CLAIM.statement,
+    evidence_domain: ["water", "ecosystems", "human_health"],
+    package_provenance: WATER_PACKAGE_PROVENANCE,
+    package_commit: WATER_CLAIM_PACKAGE_COMMIT,
+    claim_id: WATER_CLAIM_ID,
+  };
+  const keyOrderPreserved = resolveWaterPathwayBoundary(
+    validWaterRequest({ authority_claim_record: reorderedKeysOnly }),
+  );
+  assert.equal(keyOrderPreserved.emitted, true);
+  assert.equal(keyOrderPreserved.pathway.quantitative_value, null);
+});
+
+test("altered, extra, missing or substituted water source authority fails closed", () => {
+  const alteredMaps = [
+    {
+      S1: { ...ACCEPTED_WATER_SOURCES.S1, citation: "substituted citation" },
+      S2: ACCEPTED_WATER_SOURCES.S2,
+    },
+    {
+      S1: { ...ACCEPTED_WATER_SOURCES.S1, scope: "invented water quantity scope" },
+      S2: ACCEPTED_WATER_SOURCES.S2,
+    },
+    {
+      S1: {
+        ...ACCEPTED_WATER_SOURCES.S1,
+        metadata_limit: "DOI inferred",
+      },
+      S2: ACCEPTED_WATER_SOURCES.S2,
+    },
+    {
+      S1: ACCEPTED_WATER_SOURCES.S1,
+      S2: { ...ACCEPTED_WATER_SOURCES.S2, source_id: "S1" },
+    },
+    {
+      S1: ACCEPTED_WATER_SOURCES.S1,
+      S2: ACCEPTED_WATER_SOURCES.S2,
+      S3: { source_id: "S3" },
+    },
+    { S1: ACCEPTED_WATER_SOURCES.S1 },
+    { S2: ACCEPTED_WATER_SOURCES.S2 },
+    { S1: null, S2: ACCEPTED_WATER_SOURCES.S2 },
+  ];
+  for (const authority_source_map of alteredMaps) {
+    const decision = resolveWaterPathwayBoundary(
+      validWaterRequest({ authority_source_map }),
+    );
+    assert.equal(decision.emitted, false);
+    assert.equal(decision.pathway, null);
+    assert.ok(
+      decision.reason_code ===
+        WATER_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT ||
+        decision.reason_code ===
+          WATER_PATHWAY_REASON.MISSING_REQUIRED_SOURCE_METADATA,
+    );
+  }
+
+  const reorderedSourceIds = validateWaterSourceRecords(
+    ["S2", "S1"],
+    ACCEPTED_WATER_SOURCES,
+  );
+  assert.equal(reorderedSourceIds.ok, false);
+  assert.equal(
+    reorderedSourceIds.reason_code,
+    WATER_PATHWAY_REASON.AUTHORITY_RECORD_CONFLICT,
+  );
+
+  const reorderedKeysOnly = {
+    S1: {
+      metadata_limit: ACCEPTED_WATER_SOURCES.S1.metadata_limit,
+      scope: ACCEPTED_WATER_SOURCES.S1.scope,
+      citation: ACCEPTED_WATER_SOURCES.S1.citation,
+      package_provenance: ACCEPTED_WATER_SOURCES.S1.package_provenance,
+      package_commit: ACCEPTED_WATER_SOURCES.S1.package_commit,
+      source_id: "S1",
+    },
+    S2: {
+      metadata_limit: ACCEPTED_WATER_SOURCES.S2.metadata_limit,
+      scope: ACCEPTED_WATER_SOURCES.S2.scope,
+      citation: ACCEPTED_WATER_SOURCES.S2.citation,
+      package_provenance: ACCEPTED_WATER_SOURCES.S2.package_provenance,
+      package_commit: ACCEPTED_WATER_SOURCES.S2.package_commit,
+      source_id: "S2",
+    },
+  };
+  const keyOrderPreserved = resolveWaterPathwayBoundary(
+    validWaterRequest({ authority_source_map: reorderedKeysOnly }),
+  );
+  assert.equal(keyOrderPreserved.emitted, true);
+  assert.equal(keyOrderPreserved.reason_code, null);
+  assert.deepEqual(keyOrderPreserved.pathway.source_ids, ["S1", "S2"]);
+  assert.equal(keyOrderPreserved.pathway.unit, null);
+});
+
+test("existing empirical pathways remain unchanged beside water coverage", () => {
+  const climate = resolveClimatePathwayBoundary(validClimateRequest());
+  assert.equal(climate.emitted, true);
+  assert.equal(climate.pathway.unit, CLIMATE_UNIT);
+  assert.equal(climate.pathway.status, "APPROVED");
+
+  const miningEco = resolveMiningEcoPathwayBoundary(validMiningEcoRequest());
+  assert.equal(miningEco.emitted, true);
+  assert.equal(miningEco.pathway.status, "APPROVED_QUALITATIVE");
+  assert.equal(miningEco.pathway.unit, null);
+
+  const miningPeople = resolveMiningPeoplePathwayBoundary(
+    validMiningPeopleRequest(),
+  );
+  assert.equal(miningPeople.emitted, true);
+  assert.equal(miningPeople.pathway.status, "QUALITATIVE");
+  assert.equal(miningPeople.pathway.confidence, "moderate");
+
+  const ewastePeople = resolveEwastePeoplePathwayBoundary(
+    validEwastePeopleRequest(),
+  );
+  assert.equal(ewastePeople.emitted, true);
+  assert.equal(ewastePeople.pathway.status, "APPROVED");
+  assert.deepEqual(ewastePeople.pathway.source_ids, ["S11"]);
+
+  const ewasteEco = resolveEwasteEcoPathwayBoundary(validEwasteEcoRequest());
+  assert.equal(ewasteEco.emitted, true);
+  assert.equal(ewasteEco.pathway.status, "APPROVED");
+  assert.equal(ewasteEco.pathway.confidence, "high");
+  assert.deepEqual(ewasteEco.pathway.source_ids, ["S12"]);
+
+  const water = resolveWaterPathwayBoundary(validWaterRequest());
+  assert.equal(water.emitted, true);
+  assert.equal(water.pathway.status, "QUALITATIVE");
+  assert.equal(water.pathway.unit, null);
+  assert.equal(water.pathway.quantitative_value, null);
+  assert.deepEqual(water.pathway.source_ids, ["S1", "S2"]);
 });
