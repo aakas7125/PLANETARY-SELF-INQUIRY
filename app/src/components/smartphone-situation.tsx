@@ -53,6 +53,7 @@ export function SmartphoneSituation() {
         autoComplete="off"
         onSubmit={(event) => {
           event.preventDefault();
+          if (!view.canSubmit) return;
           dispatch({ type: "submit" });
         }}
         onFocus={(event) => {
@@ -115,7 +116,7 @@ export function SmartphoneSituation() {
         ) : null}
 
         <div className="flex scroll-mt-32 flex-wrap gap-2">
-          <Button type="submit" className="scroll-mt-32">
+          <Button type="submit" className="scroll-mt-32" disabled={!view.canSubmit}>
             {SITUATION_CHROME.submit}
           </Button>
           {view.editAvailable ? (

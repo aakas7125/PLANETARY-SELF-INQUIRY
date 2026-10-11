@@ -320,6 +320,45 @@ describe("smartphone situation UX", () => {
     }
   });
 
+  it("disables submit until all three answers are explicit, including Not sure", () => {
+    const empty = describeSituation(createSituationState());
+    assert.equal(empty.canSubmit, false);
+
+    let partial = createSituationState();
+    partial = reduceSituation(partial, {
+      type: "select",
+      field: "safe_to_use",
+      value: "unknown",
+    });
+    partial = reduceSituation(partial, {
+      type: "select",
+      field: "required_functions_met",
+      value: false,
+    });
+    const incomplete = describeSituation(partial);
+    assert.equal(incomplete.canSubmit, false);
+    assert.equal(incomplete.result, null);
+    assert.equal(partial.answers.safe_to_use, "unknown");
+    assert.notEqual(partial.answers.safe_to_use, false);
+
+    const readyState = reduceSituation(partial, {
+      type: "select",
+      field: "security_support",
+      value: "unknown",
+    });
+    const ready = describeSituation(readyState);
+    assert.equal(ready.canSubmit, true);
+    assert.equal(ready.result, null);
+    assert.equal(readyState.submitted, false);
+    assert.equal(readyState.answers.security_support, "unknown");
+
+    const component = readApp("src/components/smartphone-situation.tsx");
+    assert.match(component, /disabled=\{!view\.canSubmit\}/);
+    assert.match(component, /if \(!view\.canSubmit\) return;/);
+    assert.doesNotMatch(component, /isCompleteExplicit/);
+    assert.doesNotMatch(component, /answers\.(safe_to_use|required_functions_met|security_support)/);
+  });
+
   it("names later journey stages without presenting them as available controls", () => {
     const view = describeSituation(createSituationState());
     assert.deepEqual(
