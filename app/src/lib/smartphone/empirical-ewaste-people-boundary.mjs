@@ -78,9 +78,11 @@ export const UNCERTAIN_OLD_DEVICE_FATES = Object.freeze([
   "unknown",
 ]);
 
-/** Pathway IDs kept pending by HQ for later empirical slices. */
+/**
+ * Pathway IDs kept pending by HQ for later empirical slices.
+ * `SP-PATH-EWASTE-ECO-001` is covered by the e-waste-ecosystem boundary module.
+ */
 export const PENDING_EMPIRICAL_PATHWAY_IDS = Object.freeze([
-  "SP-PATH-EWASTE-ECO-001",
   "SP-PATH-WATER-001",
 ]);
 

@@ -228,9 +228,10 @@ const EXECUTED_SECONDARY_IDS = new Set([
  * exact six-question sequence plus INV-AP-01–20.
  * Empirical climate pathway boundary (`SP-PATH-CLIMATE-001`), mining-
  * ecosystem pathway (`SP-PATH-MINING-ECO-001`), mining-people pathway
- * (`SP-PATH-MINING-PEOPLE-001`), and e-waste-people pathway
- * (`SP-PATH-EWASTE-PEOPLE-001`) are covered; remaining two SP-PATH-* IDs
- * stay mapped gaps until later slices.
+ * (`SP-PATH-MINING-PEOPLE-001`), e-waste-people pathway
+ * (`SP-PATH-EWASTE-PEOPLE-001`), and e-waste-ecosystem pathway
+ * (`SP-PATH-EWASTE-ECO-001`) are covered; the remaining SP-PATH-* ID
+ * stays a mapped gap until a later slice.
  */
 const EXECUTED_AP_IDS = new Set([
   "APQ1_FUNCTION",
@@ -267,6 +268,7 @@ const EXECUTED_EMPIRICAL_IDS = new Set([
   "SP-PATH-MINING-ECO-001",
   "SP-PATH-MINING-PEOPLE-001",
   "SP-PATH-EWASTE-PEOPLE-001",
+  "SP-PATH-EWASTE-ECO-001",
 ]);
 
 const SOURCES = {
