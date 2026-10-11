@@ -228,6 +228,95 @@ export function SmartphoneComparison({
           </fieldset>
         ) : null}
 
+        {view.usedServiceField.visible ? (
+          <div className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+            <label className="block min-w-0" htmlFor="used-candidate-service">
+              <span className="font-display text-lg text-foreground">{view.usedServiceField.label}</span>
+              <input
+                id="used-candidate-service"
+                inputMode="decimal"
+                autoComplete="off"
+                value={state.usedServiceRaw}
+                onChange={(event) => dispatch({ type: "set_used_service", text: event.target.value })}
+                aria-describedby="used-candidate-service-helper"
+                aria-invalid={
+                  state.usedServiceRaw.trim().length > 0 &&
+                  state.usedServiceNotSure !== true &&
+                  typeof view.usedServiceField.parsedYears !== "number"
+                }
+                className="mt-3 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              />
+            </label>
+            <p id="used-candidate-service-helper" className="mt-2 text-sm leading-relaxed text-foreground">
+              {view.usedServiceField.helper}
+            </p>
+            {view.usedServiceField.notSureNote ? (
+              <p className="mt-2 text-sm leading-relaxed text-foreground">{view.usedServiceField.notSureNote}</p>
+            ) : null}
+            <div className="mt-3">
+              <Button
+                type="button"
+                variant={state.usedServiceNotSure ? "secondary" : "outline"}
+                aria-pressed={state.usedServiceNotSure}
+                aria-label={view.usedServiceField.notSureControl}
+                className="h-auto min-h-11 whitespace-normal text-left"
+                onClick={() => dispatch({ type: "mark_used_not_sure" })}
+              >
+                {view.usedServiceField.notSureLabel}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {view.refurbishedServiceField.visible ? (
+          <div className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+            <label className="block min-w-0" htmlFor="refurbished-candidate-service">
+              <span className="font-display text-lg text-foreground">
+                {view.refurbishedServiceField.label}
+              </span>
+              <input
+                id="refurbished-candidate-service"
+                inputMode="decimal"
+                autoComplete="off"
+                value={state.refurbishedServiceRaw}
+                onChange={(event) =>
+                  dispatch({ type: "set_refurbished_service", text: event.target.value })
+                }
+                aria-describedby="refurbished-candidate-service-helper"
+                aria-invalid={
+                  state.refurbishedServiceRaw.trim().length > 0 &&
+                  state.refurbishedServiceNotSure !== true &&
+                  typeof view.refurbishedServiceField.parsedYears !== "number"
+                }
+                className="mt-3 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              />
+            </label>
+            <p
+              id="refurbished-candidate-service-helper"
+              className="mt-2 text-sm leading-relaxed text-foreground"
+            >
+              {view.refurbishedServiceField.helper}
+            </p>
+            {view.refurbishedServiceField.notSureNote ? (
+              <p className="mt-2 text-sm leading-relaxed text-foreground">
+                {view.refurbishedServiceField.notSureNote}
+              </p>
+            ) : null}
+            <div className="mt-3">
+              <Button
+                type="button"
+                variant={state.refurbishedServiceNotSure ? "secondary" : "outline"}
+                aria-pressed={state.refurbishedServiceNotSure}
+                aria-label={view.refurbishedServiceField.notSureControl}
+                className="h-auto min-h-11 whitespace-normal text-left"
+                onClick={() => dispatch({ type: "mark_refurbished_not_sure" })}
+              >
+                {view.refurbishedServiceField.notSureLabel}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         {view.pendingNote ? (
           <p className="text-sm leading-relaxed text-foreground">{view.pendingNote}</p>
         ) : null}
