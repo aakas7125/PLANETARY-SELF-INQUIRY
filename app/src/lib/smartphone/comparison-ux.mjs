@@ -1,4 +1,4 @@
-import { evaluateAdequacyAndUnknownState } from "./input-decision.mjs";
+import { UNKNOWN, evaluateAdequacyAndUnknownState } from "./input-decision.mjs";
 import { evaluateSecondaryPathwayCase } from "./secondary-pathway.mjs";
 import { describeInquiry } from "./ap-inquiry-ux.mjs";
 import {
@@ -70,6 +70,42 @@ export const COMPARISON_PATHWAYS = Object.freeze([
   Object.freeze({ id: "new", label: "Buy a new phone" }),
 ]);
 
+export const REMAINING_SERVICE_LABEL =
+  "How many years is the current phone expected to remain adequate without repair?";
+
+export const REMAINING_SERVICE_HELPER =
+  "This is the current phone without a repair. It is not the shared horizon, and nothing is filled in for you.";
+
+export const REPAIR_CATEGORY_LEGEND = "What kind of repair is this?";
+
+export const REPAIR_CATEGORY_HELPER =
+  "No kind is preselected. Another kind of repair, or not sure, stays that choice.";
+
+export const POST_REPAIR_SERVICE_LABEL =
+  "How many years of adequate service are expected after this repair?";
+
+export const POST_REPAIR_SERVICE_HELPER =
+  "This is not the shared horizon and not the current phone without a repair. Not sure stays unknown.";
+
+export const FACT_NOT_SURE_LABEL = "Not sure";
+
+export const FACT_NOT_SURE_NOTE =
+  "Not sure is the answer being used. Typed years stay as typed and are not turned into zero.";
+
+/**
+ * Ordinary labels for repair facts. Only battery, display, and major-board
+ * are accepted evaluator repair types. The other two choices stay unmapped.
+ *
+ * @type {readonly { id: RepairFactCategoryId, label: string }[]}
+ */
+export const REPAIR_FACT_CATEGORIES = Object.freeze([
+  Object.freeze({ id: "battery", label: "Battery repair" }),
+  Object.freeze({ id: "display", label: "Display repair" }),
+  Object.freeze({ id: "major_board", label: "Major-board repair" }),
+  Object.freeze({ id: "another", label: "Another kind of repair" }),
+  Object.freeze({ id: "not_sure", label: "Not sure" }),
+]);
+
 const PATHWAY_IDS = COMPARISON_PATHWAYS.map((pathway) => pathway.id);
 
 const CAPABILITY_LABELS = Object.freeze({
@@ -96,15 +132,45 @@ const SCOPE_LABELS = Object.freeze({
  */
 
 /**
+ * @typedef {"battery" | "display" | "major_board" | "another" | "not_sure"} RepairFactCategoryId
+ */
+
+/**
+ * @typedef {number | "unknown" | null} ExplicitServiceValue
+ */
+
+/**
+ * @typedef {"absent" | "not_sure" | "invalid" | "accepted" | "rejected"} ServiceFactStatus
+ */
+
+/**
  * @typedef {{
  *   selectedIds: ComparisonPathwayId[],
  *   horizonRaw: string,
+ *   remainingServiceRaw: string,
+ *   remainingServiceNotSure: boolean,
+ *   repairCategoryId: RepairFactCategoryId | null,
+ *   postRepairServiceRaw: string,
+ *   postRepairServiceNotSure: boolean,
  * }} ComparisonState
+ */
+
+/**
+ * @typedef {{
+ *   remainingService?: ExplicitServiceValue,
+ *   repairCategoryId?: RepairFactCategoryId | null,
+ *   postRepairService?: ExplicitServiceValue,
+ * } | null} ComparisonFactInput
  */
 
 /**
  * @typedef {{ type: "toggle", pathwayId: string }
  *   | { type: "set_horizon", text: string }
+ *   | { type: "set_remaining_service", text: string }
+ *   | { type: "mark_remaining_not_sure" }
+ *   | { type: "set_repair_category", categoryId: string }
+ *   | { type: "set_post_repair_service", text: string }
+ *   | { type: "mark_post_repair_not_sure" }
  *   | { type: "reset" }} ComparisonAction
  */
 
@@ -128,6 +194,52 @@ export function isComparisonPathwayId(value) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {value is RepairFactCategoryId}
+ */
+export function isRepairFactCategoryId(value) {
+  return REPAIR_FACT_CATEGORIES.some((category) => category.id === value);
+}
+
+/**
+ * @param {ComparisonState} state
+ * @returns {boolean}
+ */
+function remainingServiceActive(state) {
+  return state.selectedIds.includes("keep") || state.selectedIds.includes("new");
+}
+
+/**
+ * @param {ComparisonState} state
+ * @returns {boolean}
+ */
+function repairFactsActive(state) {
+  return state.selectedIds.includes("repair");
+}
+
+/**
+ * @param {ComparisonState} state
+ * @param {ComparisonPathwayId[]} selectedIds
+ * @returns {ComparisonState}
+ */
+function stateForSelection(state, selectedIds) {
+  const next = {
+    ...state,
+    selectedIds: [...selectedIds],
+  };
+  if (!remainingServiceActive(next)) {
+    next.remainingServiceRaw = "";
+    next.remainingServiceNotSure = false;
+  }
+  if (!repairFactsActive(next)) {
+    next.repairCategoryId = null;
+    next.postRepairServiceRaw = "";
+    next.postRepairServiceNotSure = false;
+  }
+  return next;
+}
+
+/**
  * Finite positive decimal only. Empty, zero, and unusable text stay null.
  * Nothing here substitutes zero or the provisional three-year horizon.
  *
@@ -143,11 +255,75 @@ export function parseExplicitHorizon(raw) {
   return value;
 }
 
+/**
+ * Finite positive decimal for an explicit service-year fact.
+ * This does not read the shared horizon. Empty, zero, and unusable text stay null.
+ *
+ * @param {unknown} raw
+ * @returns {number | null}
+ */
+export function parseExplicitServiceYears(raw) {
+  return parseExplicitHorizon(typeof raw === "string" ? raw : "");
+}
+
+/**
+ * @param {unknown} raw
+ * @param {unknown} notSure
+ * @returns {ExplicitServiceValue}
+ */
+function explicitServiceValue(raw, notSure) {
+  if (notSure === true) return UNKNOWN;
+  if (typeof raw !== "string" || raw.trim() === "") return null;
+  const parsed = parseExplicitServiceYears(raw);
+  return parsed == null ? UNKNOWN : parsed;
+}
+
+/**
+ * @param {unknown} raw
+ * @param {unknown} notSure
+ * @returns {ServiceFactStatus}
+ */
+function textServiceStatus(raw, notSure) {
+  if (notSure === true) return "not_sure";
+  if (typeof raw !== "string" || raw.trim() === "") return "absent";
+  if (parseExplicitServiceYears(raw) == null) return "invalid";
+  return "accepted";
+}
+
+/**
+ * @param {ComparisonState} state
+ * @param {Record<string, unknown>} decision
+ * @returns {ServiceFactStatus}
+ */
+function remainingPresentationStatus(state, decision) {
+  const status = textServiceStatus(state.remainingServiceRaw, state.remainingServiceNotSure);
+  if (status === "accepted" && decision.validation_status === "error" && decision.accepted_value == null) {
+    return "rejected";
+  }
+  return status;
+}
+
+/**
+ * @param {RepairFactCategoryId | null | undefined} categoryId
+ * @returns {"battery" | "display" | "major_board" | null}
+ */
+function acceptedRepairType(categoryId) {
+  if (categoryId === "battery" || categoryId === "display" || categoryId === "major_board") {
+    return categoryId;
+  }
+  return null;
+}
+
 /** @returns {ComparisonState} */
 export function createComparisonState() {
   return {
     selectedIds: [],
     horizonRaw: "",
+    remainingServiceRaw: "",
+    remainingServiceNotSure: false,
+    repairCategoryId: null,
+    postRepairServiceRaw: "",
+    postRepairServiceNotSure: false,
   };
 }
 
@@ -163,11 +339,53 @@ export function reduceComparison(state, action) {
       const selected = state.selectedIds.includes(action.pathwayId)
         ? state.selectedIds.filter((id) => id !== action.pathwayId)
         : [...state.selectedIds, action.pathwayId];
-      return { selectedIds: selected, horizonRaw: state.horizonRaw };
+      return stateForSelection(state, selected);
     }
     case "set_horizon": {
       if (typeof action.text !== "string") return state;
-      return { selectedIds: [...state.selectedIds], horizonRaw: action.text };
+      return { ...state, selectedIds: [...state.selectedIds], horizonRaw: action.text };
+    }
+    case "set_remaining_service": {
+      if (!remainingServiceActive(state) || typeof action.text !== "string") return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        remainingServiceRaw: action.text,
+        remainingServiceNotSure: false,
+      };
+    }
+    case "mark_remaining_not_sure": {
+      if (!remainingServiceActive(state)) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        remainingServiceNotSure: state.remainingServiceNotSure !== true,
+      };
+    }
+    case "set_repair_category": {
+      if (!repairFactsActive(state) || !isRepairFactCategoryId(action.categoryId)) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        repairCategoryId: state.repairCategoryId === action.categoryId ? null : action.categoryId,
+      };
+    }
+    case "set_post_repair_service": {
+      if (!repairFactsActive(state) || typeof action.text !== "string") return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        postRepairServiceRaw: action.text,
+        postRepairServiceNotSure: false,
+      };
+    }
+    case "mark_post_repair_not_sure": {
+      if (!repairFactsActive(state)) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        postRepairServiceNotSure: state.postRepairServiceNotSure !== true,
+      };
     }
     case "reset":
       return createComparisonState();
@@ -224,11 +442,38 @@ export function comparisonStateAfterInquiryAction(actionType, comparison) {
 }
 
 /**
+ * @param {Record<string, unknown>} input
+ * @param {ComparisonFactInput} facts
+ */
+function applyRemainingServiceFact(input, facts) {
+  const value = facts?.remainingService;
+  if (typeof value === "number" || value === UNKNOWN) {
+    input["remaining_service.without_repair.expected_years"] = value;
+  }
+  return input;
+}
+
+/**
+ * @param {Record<string, unknown>} input
+ * @param {ComparisonFactInput} facts
+ */
+function applyRepairFacts(input, facts) {
+  const repairType = acceptedRepairType(facts?.repairCategoryId);
+  if (repairType) input["repair.type"] = repairType;
+  const value = facts?.postRepairService;
+  if (typeof value === "number" || value === UNKNOWN) {
+    input["repair.expected_adequate_service_after_repair.expected_years"] = value;
+  }
+  return input;
+}
+
+/**
  * @param {ComparisonPathwayId} pathwayId
  * @param {Parameters<typeof buildAdequacyInput>[0]} answers
  * @param {number} horizonYears
+ * @param {ComparisonFactInput} [facts]
  */
-export function buildPathwayEvaluatorInput(pathwayId, answers, horizonYears) {
+export function buildPathwayEvaluatorInput(pathwayId, answers, horizonYears, facts = null) {
   if (pathwayId === "used_secondhand" || pathwayId === "refurbished") {
     return {
       comparison: { common_service_horizon_years: horizonYears },
@@ -240,13 +485,17 @@ export function buildPathwayEvaluatorInput(pathwayId, answers, horizonYears) {
     ...buildAdequacyInput(answers),
     common_service_horizon_years: horizonYears,
   };
+  if (pathwayId === "repair") return applyRepairFacts(base, facts);
   if (pathwayId === "new") {
-    return {
-      ...base,
-      "replacement.type": "new",
-    };
+    return applyRemainingServiceFact(
+      {
+        ...base,
+        "replacement.type": "new",
+      },
+      facts,
+    );
   }
-  return base;
+  return applyRemainingServiceFact(base, facts);
 }
 
 /**
@@ -407,11 +656,92 @@ function secondaryBoundaryLines(decision) {
 }
 
 /**
+ * @param {Record<string, unknown>} decision
+ * @param {string} field
+ * @returns {boolean}
+ */
+function hasMissingField(decision, field) {
+  const missing = Array.isArray(decision.missing_required_fields)
+    ? decision.missing_required_fields
+    : [];
+  return missing.some(
+    (entry) =>
+      entry === field ||
+      (entry &&
+        typeof entry === "object" &&
+        /** @type {Record<string, unknown>} */ (entry).field === field),
+  );
+}
+
+/**
+ * @param {ServiceFactStatus} status
+ * @param {Record<string, unknown>} decision
+ * @returns {string[]}
+ */
+function keepRemainingLines(status, decision) {
+  if (status === "not_sure") {
+    return [
+      "No forward-looking keep total is shown. The expected remaining service is not sure, and it was not replaced with zero or a default.",
+    ];
+  }
+  if (
+    status === "invalid" ||
+    status === "rejected" ||
+    (status === "accepted" && typeof decision.H_primary_years !== "number")
+  ) {
+    return [
+      "No forward-looking keep total is shown. The remaining-service value was not accepted, and it was not replaced with another number.",
+    ];
+  }
+  if (status === "accepted" && typeof decision.H_primary_years === "number") {
+    return [
+      "No forward-looking keep total is shown.",
+      `Expected remaining adequate service without repair is ${decision.H_primary_years} years.`,
+    ];
+  }
+  return [
+    "No forward-looking keep total is shown. How long this phone can keep providing adequate service was not supplied.",
+  ];
+}
+
+/**
+ * @param {ServiceFactStatus} status
+ * @param {Record<string, unknown>} decision
+ * @returns {string[]}
+ */
+function newRemainingLines(status, decision) {
+  if (status === "not_sure") {
+    return ["The expected remaining service is not sure. It was not replaced with zero or a default."];
+  }
+  if (status === "invalid" || status === "rejected" || (status === "accepted" && typeof decision.H_primary_years !== "number")) {
+    return ["The remaining-service value was not accepted. It was not replaced with zero or another number."];
+  }
+  if (status === "accepted" && typeof decision.H_primary_years === "number") {
+    return [`Expected remaining adequate service without repair is ${decision.H_primary_years} years.`];
+  }
+  if (hasMissingField(decision, "remaining_service.without_repair")) {
+    return [
+      "How long the current phone can still provide adequate service was not supplied. It was not replaced with a default.",
+    ];
+  }
+  return [];
+}
+
+/**
+ * @typedef {{
+ *   remainingStatus: ServiceFactStatus,
+ *   repairCategoryId: RepairFactCategoryId | null,
+ *   postRepairStatus: ServiceFactStatus,
+ * }} CardFactContext
+ */
+
+/**
  * @param {ComparisonPathwayId} pathwayId
  * @param {string} label
  * @param {Record<string, unknown>} decision
+ * @param {CardFactContext} facts
  */
-function presentCard(pathwayId, label, decision) {
+function presentCard(pathwayId, label, decision, facts) {
   /** @type {string[]} */
   const lines = [];
   /** @type {ReturnType<typeof qualifiedRange>[]} */
@@ -426,37 +756,61 @@ function presentCard(pathwayId, label, decision) {
         ? /** @type {Record<string, unknown>} */ (keep).feasible
         : null;
     lines.push(keepFeasibilityLine(feasible));
-    lines.push(
-      "No forward-looking keep total is shown. How long this phone can keep providing adequate service was not supplied.",
-    );
+    lines.push(...keepRemainingLines(facts.remainingStatus, decision));
     if (namedCapability) lines.push(namedCapability);
     lines.push(...inputBoundaryLines(decision));
   } else if (pathwayId === "repair") {
-    lines.push("More information is needed before repair can be compared.");
-    lines.push("The kind of repair was not supplied.");
-    lines.push("How long adequate service would last after a repair was not supplied.");
-    lines.push("Those facts were not guessed, and no repair total is shown.");
     const repairValues = repairClimateValues(decision);
+    const factsAbsent = facts.repairCategoryId == null && facts.postRepairStatus === "absent";
+    if (factsAbsent) {
+      lines.push("More information is needed before repair can be compared.");
+      lines.push("The kind of repair was not supplied.");
+      lines.push("How long adequate service would last after a repair was not supplied.");
+      lines.push("Those facts were not guessed, and no repair total is shown.");
+    } else {
+      if (capability === "insufficient_information" || decision.service_sequence_required === true) {
+        lines.push("More information is needed before repair can be compared.");
+      }
+      if (facts.repairCategoryId == null) {
+        lines.push("The kind of repair was not supplied.");
+      } else if (facts.repairCategoryId === "not_sure") {
+        lines.push("The kind of repair is not sure. No repair range was selected in its place.");
+      } else if (facts.repairCategoryId === "another") {
+        lines.push(
+          "This kind of repair does not have a supported impact range. No other repair range was substituted.",
+        );
+      } else if (repairValues.length === 0) {
+        lines.push("No supported repair impact is available. No generic amount is used.");
+      }
+      if (facts.postRepairStatus === "absent") {
+        lines.push("How long adequate service would last after a repair was not supplied.");
+      } else if (facts.postRepairStatus === "not_sure") {
+        lines.push(
+          "How long adequate service would last after a repair is not sure. It was not replaced with a default.",
+        );
+      } else if (facts.postRepairStatus === "invalid") {
+        lines.push(
+          "The expected service after repair cannot be used. It was not replaced with zero or a default.",
+        );
+      }
+      if (
+        decision.service_sequence_required === true &&
+        hasMissingField(decision, "foreseeable_next_event")
+      ) {
+        lines.push(
+          "A complete service sequence is required. The next event was not supplied and was not invented.",
+        );
+      }
+    }
     values.push(...repairValues);
     for (const value of repairValues) lines.push(value.line);
     if (namedCapability && capability !== "insufficient_information") lines.push(namedCapability);
     lines.push(...inputBoundaryLines(decision));
   } else if (pathwayId === "new") {
-    lines.push("More information is needed before a new phone can be compared.");
-    const missing = Array.isArray(decision.missing_required_fields)
-      ? decision.missing_required_fields
-      : [];
-    const missingRemaining = missing.some((entry) =>
-      entry === "remaining_service.without_repair" ||
-      (entry &&
-        typeof entry === "object" &&
-        /** @type {Record<string, unknown>} */ (entry).field === "remaining_service.without_repair"),
-    );
-    if (missingRemaining) {
-      lines.push(
-        "How long the current phone can still provide adequate service was not supplied. It was not replaced with a default.",
-      );
+    if (facts.remainingStatus !== "accepted" || capability === "insufficient_information") {
+      lines.push("More information is needed before a new phone can be compared.");
     }
+    lines.push(...newRemainingLines(facts.remainingStatus, decision));
     lines.push("No specific new-phone model was supplied.");
     if (namedCapability) lines.push(namedCapability);
     const climate = newClimateValues(decision);
@@ -553,6 +907,12 @@ export function describeComparison(state, context = {}) {
   const horizonYears = parseExplicitHorizon(state.horizonRaw);
   const selected = COMPARISON_PATHWAYS.filter((pathway) => state.selectedIds.includes(pathway.id));
   const canEvaluate = available && horizonYears != null && selected.length > 0;
+  /** @type {ComparisonFactInput} */
+  const factPayload = {
+    remainingService: explicitServiceValue(state.remainingServiceRaw, state.remainingServiceNotSure),
+    repairCategoryId: state.repairCategoryId,
+    postRepairService: explicitServiceValue(state.postRepairServiceRaw, state.postRepairServiceNotSure),
+  };
 
   /** @type {ReturnType<typeof buildPathwayEvaluatorInput>[]} */
   const evaluatorInputs = [];
@@ -561,14 +921,15 @@ export function describeComparison(state, context = {}) {
 
   if (canEvaluate && answers) {
     for (const pathway of selected) {
-      const input = buildPathwayEvaluatorInput(pathway.id, answers, horizonYears);
+      const input = buildPathwayEvaluatorInput(pathway.id, answers, horizonYears, factPayload);
+      const decision = /** @type {Record<string, unknown>} */ (evaluatePathway(pathway.id, input));
       evaluatorInputs.push(input);
       cards.push(
-        presentCard(
-          pathway.id,
-          pathway.label,
-          /** @type {Record<string, unknown>} */ (evaluatePathway(pathway.id, input)),
-        ),
+        presentCard(pathway.id, pathway.label, decision, {
+          remainingStatus: remainingPresentationStatus(state, decision),
+          repairCategoryId: state.repairCategoryId,
+          postRepairStatus: textServiceStatus(state.postRepairServiceRaw, state.postRepairServiceNotSure),
+        }),
       );
     }
   }
@@ -604,6 +965,35 @@ export function describeComparison(state, context = {}) {
     horizonRaw: state.horizonRaw,
     horizonYears,
     evaluated: canEvaluate,
+    remainingServiceField: {
+      visible: state.selectedIds.includes("keep") || state.selectedIds.includes("new"),
+      label: publicLine(REMAINING_SERVICE_LABEL),
+      helper: publicLine(REMAINING_SERVICE_HELPER),
+      notSureLabel: publicLine(FACT_NOT_SURE_LABEL),
+      notSureControl: publicLine("Not sure about remaining service without repair"),
+      notSureNote: state.remainingServiceNotSure === true ? publicLine(FACT_NOT_SURE_NOTE) : null,
+      raw: state.remainingServiceRaw,
+      notSure: state.remainingServiceNotSure === true,
+      parsedYears: explicitServiceValue(state.remainingServiceRaw, state.remainingServiceNotSure),
+    },
+    repairField: {
+      visible: state.selectedIds.includes("repair"),
+      legend: publicLine(REPAIR_CATEGORY_LEGEND),
+      helper: publicLine(REPAIR_CATEGORY_HELPER),
+      categories: REPAIR_FACT_CATEGORIES.map((category) => ({
+        id: category.id,
+        label: publicLine(category.label),
+        selected: state.repairCategoryId === category.id,
+      })),
+      serviceLabel: publicLine(POST_REPAIR_SERVICE_LABEL),
+      serviceHelper: publicLine(POST_REPAIR_SERVICE_HELPER),
+      notSureLabel: publicLine(FACT_NOT_SURE_LABEL),
+      notSureControl: publicLine("Not sure about service after repair"),
+      notSureNote: state.postRepairServiceNotSure === true ? publicLine(FACT_NOT_SURE_NOTE) : null,
+      serviceRaw: state.postRepairServiceRaw,
+      serviceNotSure: state.postRepairServiceNotSure === true,
+      parsedServiceYears: explicitServiceValue(state.postRepairServiceRaw, state.postRepairServiceNotSure),
+    },
     pathways: COMPARISON_PATHWAYS.map((pathway) => ({
       id: pathway.id,
       label: pathway.label,
