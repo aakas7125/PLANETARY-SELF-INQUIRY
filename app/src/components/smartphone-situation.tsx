@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SmartphoneComparison } from "@/components/smartphone-comparison";
 import { SmartphoneInquiry } from "@/components/smartphone-inquiry";
 import { cn } from "@/lib/utils";
 import {
@@ -10,6 +11,14 @@ import {
   reduceInquiry,
 } from "@/lib/smartphone/ap-inquiry-ux.mjs";
 import {
+  canEnterComparison,
+  comparisonStateAfterInquiryAction,
+  comparisonStateAfterSituationAction,
+  createComparisonState,
+  describeComparison,
+  reduceComparison,
+} from "@/lib/smartphone/comparison-ux.mjs";
+import {
   SITUATION_CHROME,
   createSituationState,
   describeSituation,
@@ -19,9 +28,14 @@ import {
 export function SmartphoneSituation() {
   const [state, dispatchSituation] = useReducer(reduceSituation, createSituationState());
   const [inquiry, dispatchInquiry] = useReducer(reduceInquiry, createInquiryState());
-  const [step, setStep] = useState<"situation" | "inquiry">("situation");
+  const [comparison, dispatchComparison] = useReducer(reduceComparison, createComparisonState());
+  const [step, setStep] = useState<"situation" | "inquiry" | "comparison">("situation");
   const view = describeSituation(state);
   const resultRef = useRef<HTMLElement>(null);
+  const comparisonView = describeComparison(comparison, {
+    inquiryReviewComplete: canEnterComparison(inquiry),
+    situationAnswers: state.submitted ? state.answers : null,
+  });
 
   function onSituation(action: Parameters<typeof dispatchSituation>[0]) {
     const nextInquiry = inquiryStateAfterSituationAction(action.type, inquiry);
@@ -29,7 +43,21 @@ export function SmartphoneSituation() {
       dispatchInquiry({ type: "reset" });
       setStep("situation");
     }
+    const nextComparison = comparisonStateAfterSituationAction(action.type, comparison);
+    if (nextComparison !== comparison) {
+      dispatchComparison({ type: "reset" });
+      setStep("situation");
+    }
     dispatchSituation(action);
+  }
+
+  function onInquiry(action: Parameters<typeof dispatchInquiry>[0]) {
+    const nextComparison = comparisonStateAfterInquiryAction(action.type, comparison);
+    if (nextComparison !== comparison) {
+      dispatchComparison({ type: "reset" });
+      if (step === "comparison") setStep("inquiry");
+    }
+    dispatchInquiry(action);
   }
 
   useEffect(() => {
@@ -37,12 +65,27 @@ export function SmartphoneSituation() {
     resultRef.current?.scrollIntoView({ block: "nearest" });
   }, [state.submitted, step]);
 
+  if (step === "comparison") {
+    return (
+      <SmartphoneComparison
+        state={comparison}
+        dispatch={dispatchComparison}
+        view={comparisonView}
+        onBackToInquiry={() => setStep("inquiry")}
+      />
+    );
+  }
+
   if (step === "inquiry") {
     return (
       <SmartphoneInquiry
         state={inquiry}
-        dispatch={dispatchInquiry}
+        dispatch={onInquiry}
         onBackToSituation={() => setStep("situation")}
+        onContinueToComparison={() => {
+          if (!canEnterComparison(inquiry)) return;
+          setStep("comparison");
+        }}
       />
     );
   }
