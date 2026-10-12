@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SmartphoneComparison } from "@/components/smartphone-comparison";
+import { SmartphoneImpact } from "@/components/smartphone-impact";
 import { SmartphoneInquiry } from "@/components/smartphone-inquiry";
 import { cn } from "@/lib/utils";
 import {
@@ -19,6 +20,15 @@ import {
   reduceComparison,
 } from "@/lib/smartphone/comparison-ux.mjs";
 import {
+  canEnterImpact,
+  createImpactState,
+  describeImpact,
+  impactStateAfterComparisonAction,
+  impactStateAfterInquiryAction,
+  impactStateAfterSituationAction,
+  reduceImpact,
+} from "@/lib/smartphone/impact-pathways-ux.mjs";
+import {
   SITUATION_CHROME,
   createSituationState,
   describeSituation,
@@ -29,12 +39,22 @@ export function SmartphoneSituation() {
   const [state, dispatchSituation] = useReducer(reduceSituation, createSituationState());
   const [inquiry, dispatchInquiry] = useReducer(reduceInquiry, createInquiryState());
   const [comparison, dispatchComparison] = useReducer(reduceComparison, createComparisonState());
-  const [step, setStep] = useState<"situation" | "inquiry" | "comparison">("situation");
+  const [impact, dispatchImpact] = useReducer(reduceImpact, createImpactState());
+  const [comparisonEntered, setComparisonEntered] = useState(false);
+  const [step, setStep] = useState<"situation" | "inquiry" | "comparison" | "impact">("situation");
   const view = describeSituation(state);
   const resultRef = useRef<HTMLElement>(null);
   const comparisonView = describeComparison(comparison, {
     inquiryReviewComplete: canEnterComparison(inquiry),
     situationAnswers: state.submitted ? state.answers : null,
+  });
+  const impactView = describeImpact(impact, {
+    comparisonAvailable: comparisonView.available,
+    comparisonEntered,
+    comparisonEvaluated: comparisonView.evaluated,
+    inspectedPathways: comparisonView.cards.map((card) => ({
+      label: card.label,
+    })),
   });
 
   function onSituation(action: Parameters<typeof dispatchSituation>[0]) {
@@ -48,6 +68,12 @@ export function SmartphoneSituation() {
       dispatchComparison({ type: "reset" });
       setStep("situation");
     }
+    const nextImpact = impactStateAfterSituationAction(action.type, impact);
+    if (nextImpact !== impact) {
+      dispatchImpact({ type: "clear" });
+      setComparisonEntered(false);
+      setStep("situation");
+    }
     dispatchSituation(action);
   }
 
@@ -55,9 +81,24 @@ export function SmartphoneSituation() {
     const nextComparison = comparisonStateAfterInquiryAction(action.type, comparison);
     if (nextComparison !== comparison) {
       dispatchComparison({ type: "reset" });
-      if (step === "comparison") setStep("inquiry");
+      if (step === "comparison" || step === "impact") setStep("inquiry");
+    }
+    const nextImpact = impactStateAfterInquiryAction(action.type, impact);
+    if (nextImpact !== impact) {
+      dispatchImpact({ type: "clear" });
+      setComparisonEntered(false);
+      if (step === "comparison" || step === "impact") setStep("inquiry");
     }
     dispatchInquiry(action);
+  }
+
+  function onComparison(action: Parameters<typeof dispatchComparison>[0]) {
+    const nextImpact = impactStateAfterComparisonAction(action.type, impact);
+    if (nextImpact !== impact) {
+      dispatchImpact({ type: "clear" });
+      if (step === "impact") setStep("comparison");
+    }
+    dispatchComparison(action);
   }
 
   useEffect(() => {
@@ -65,13 +106,33 @@ export function SmartphoneSituation() {
     resultRef.current?.scrollIntoView({ block: "nearest" });
   }, [state.submitted, step]);
 
+  if (step === "impact") {
+    return (
+      <SmartphoneImpact view={impactView} onBackToComparison={() => setStep("comparison")} />
+    );
+  }
+
   if (step === "comparison") {
     return (
       <SmartphoneComparison
         state={comparison}
-        dispatch={dispatchComparison}
+        dispatch={onComparison}
         view={comparisonView}
         onBackToInquiry={() => setStep("inquiry")}
+        onContinueToImpact={() => {
+          if (
+            !canEnterImpact({
+              comparisonAvailable: comparisonView.available,
+              comparisonEntered: true,
+              comparisonEvaluated: comparisonView.evaluated,
+            })
+          ) {
+            return;
+          }
+          setComparisonEntered(true);
+          dispatchImpact({ type: "open" });
+          setStep("impact");
+        }}
       />
     );
   }
@@ -84,6 +145,7 @@ export function SmartphoneSituation() {
         onBackToSituation={() => setStep("situation")}
         onContinueToComparison={() => {
           if (!canEnterComparison(inquiry)) return;
+          setComparisonEntered(true);
           setStep("comparison");
         }}
       />

@@ -7,6 +7,7 @@ import {
   describeComparison,
   reduceComparison,
 } from "@/lib/smartphone/comparison-ux.mjs";
+import { IMPACT_CHROME } from "@/lib/smartphone/impact-pathways-ux.mjs";
 
 type ComparisonState = ReturnType<typeof createComparisonState>;
 type ComparisonAction = Parameters<typeof reduceComparison>[1];
@@ -23,11 +24,13 @@ export function SmartphoneComparison({
   dispatch,
   view,
   onBackToInquiry,
+  onContinueToImpact,
 }: {
   state: ComparisonState;
   dispatch: (action: ComparisonAction) => void;
   view: ComparisonView;
   onBackToInquiry: () => void;
+  onContinueToImpact: () => void;
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -360,6 +363,11 @@ export function SmartphoneComparison({
           </div>
           <p className="mt-4 text-sm leading-relaxed text-foreground">{view.boundary}</p>
           <p className="mt-2 text-sm leading-relaxed text-foreground">{view.laterNote}</p>
+          <div className="mt-4">
+            <Button type="button" onClick={onContinueToImpact}>
+              {IMPACT_CHROME.continueFromComparison}
+            </Button>
+          </div>
         </section>
       ) : null}
     </main>
