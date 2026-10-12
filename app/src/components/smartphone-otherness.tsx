@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { OTHERNESS_CHROME, describeOtherness } from "@/lib/smartphone/ap-otherness-ux.mjs";
+import { FINAL_CHOICE_CHROME } from "@/lib/smartphone/final-choice-ux.mjs";
 
 type OthernessView = ReturnType<typeof describeOtherness>;
 
@@ -9,11 +10,13 @@ export function SmartphoneOtherness({
   onBackToImpact,
   onResponse,
   onFollowUp,
+  onContinueToFinalChoice,
 }: {
   view: OthernessView;
   onBackToImpact: () => void;
   onResponse: (text: string) => void;
   onFollowUp: (text: string) => void;
+  onContinueToFinalChoice?: () => void;
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -126,6 +129,17 @@ export function SmartphoneOtherness({
             <p className="break-words text-sm leading-relaxed text-foreground">{view.unavailableNote}</p>
           )}
           <p className="mt-4 break-words text-sm leading-relaxed text-foreground">{view.boundary}</p>
+          {onContinueToFinalChoice ? (
+            <div className="mt-6">
+              <Button
+                type="button"
+                className="h-auto min-h-11 whitespace-normal px-4 py-2 text-center"
+                onClick={onContinueToFinalChoice}
+              >
+                {FINAL_CHOICE_CHROME.continueFromOtherness}
+              </Button>
+            </div>
+          ) : null}
         </section>
       ) : (
         <p className="mt-8 text-sm leading-relaxed text-foreground">{view.closedNote}</p>
