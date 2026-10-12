@@ -62,7 +62,7 @@ export const FINAL_CHOICE_OPTIONS = Object.freeze([
   Object.freeze({ id: "unclear", label: provisionalLabel("unclear") }),
 ]);
 
-const FINAL_CHOICE_IDS = new Set(FINAL_CHOICE_OPTIONS.map((option) => option.id));
+const FINAL_CHOICE_IDS = FINAL_CHOICE_OPTIONS.map((option) => option.id);
 
 /**
  * @typedef {"keep" | "repair" | "used_secondhand" | "refurbished" | "new" | "investigate_further" | "unclear"} FinalChoiceId
@@ -94,15 +94,22 @@ function pathwayLabel(id) {
 }
 
 /**
+ * @param {Readonly<Record<string, string>>} labels
+ * @param {string} id
+ * @returns {string}
+ */
+function labelFrom(labels, id) {
+  const label = Object.prototype.hasOwnProperty.call(labels, id) ? labels[id] : undefined;
+  if (typeof label !== "string") throw new Error("Missing provisional choice label");
+  return publicLine(label);
+}
+
+/**
  * @param {string} id
  * @returns {string}
  */
 function provisionalLabel(id) {
-  const label = Object.prototype.hasOwnProperty.call(PROVISIONAL_CHOICE_LABELS, id)
-    ? PROVISIONAL_CHOICE_LABELS[id]
-    : undefined;
-  if (typeof label !== "string") throw new Error("Missing provisional choice label");
-  return publicLine(label);
+  return labelFrom(PROVISIONAL_CHOICE_LABELS, id);
 }
 
 export const FINAL_CHOICE_OPENING = publicLine(
@@ -194,7 +201,7 @@ export function createFinalChoiceState() {
  * @returns {value is FinalChoiceId}
  */
 export function isFinalChoiceId(value) {
-  return typeof value === "string" && FINAL_CHOICE_IDS.has(value);
+  return typeof value === "string" && FINAL_CHOICE_IDS.some((id) => id === value);
 }
 
 /**
@@ -229,7 +236,7 @@ export function reduceFinalChoice(state, action) {
 }
 
 /**
- * @param {string} actionType
+ * @param {boolean} actionClears
  * @param {FinalChoiceState} state
  * @returns {FinalChoiceState}
  */
