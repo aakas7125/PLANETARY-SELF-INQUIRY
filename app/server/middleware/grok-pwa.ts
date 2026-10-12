@@ -1,7 +1,6 @@
 /**
- * Deployed-app (Nitro) half of the platform PWA chrome. Auto-registered as
- * global h3 middleware because vite.config.ts sets `serverDir: "./server"` —
- * without that option Nitro v3 never scans this directory.
+ * Legacy Grok PWA middleware. The public profile does not set Nitro `serverDir`,
+ * so this file is not registered in the production server graph.
  *
  * - `?install=1&platform=ios` on a document path → the Home Screen tutorial,
  *   bundled into the server build via `?raw` (the public/ directory is CDN

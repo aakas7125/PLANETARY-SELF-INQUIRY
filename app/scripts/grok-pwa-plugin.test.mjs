@@ -486,13 +486,13 @@ test("renders the manifest with the per-app name", () => {
   assert.equal(manifest.icons[0].src, "/__grok/icon-180.png");
 });
 
-// Tripwires: the deployed-app path only works if Nitro scans server/ — an
-// accidental edit that drops serverDir or the middleware file would otherwise
-// fail silently (published apps would just render the app for ?install=1).
-test("vite config keeps the nitro serverDir wiring", () => {
+// The public profile must not scan server/middleware into the production graph.
+// The dev authoring server may still register the plugin.
+test("public production profile does not wire Grok nitro middleware", () => {
   const viteConfig = readFileSync(join(TEMPLATE_ROOT, "vite.config.ts"), "utf8");
-  assert.match(viteConfig, /serverDir:\s*"\.\/server"/);
-  assert.match(viteConfig, /grokPwaPlugin\(\)/);
+  assert.doesNotMatch(viteConfig, /serverDir:\s*"\.\/server"/);
+  assert.match(viteConfig, /preset:\s*"node-server"/);
+  assert.match(viteConfig, /command === "serve" && !isPreview \? \[grokPwaPlugin\(\)\]/);
 });
 
 test("nitro middleware and its bundled assets exist", () => {

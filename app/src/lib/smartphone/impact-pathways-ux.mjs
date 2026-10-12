@@ -362,6 +362,7 @@ function denialLine(reasonCode) {
   if (reasonCode && INFERENCE_REASONS.has(reasonCode)) return publicLine(INFERENCE_DENIAL);
   if (reasonCode && WATER_QUANTITY_REASONS.has(reasonCode)) return publicLine(WATER_QUANTITY_DENIAL);
   if (reasonCode && PROHIBITED_REASONS.has(reasonCode)) return publicLine(PROHIBITED_DENIAL);
+  if (reasonCode && AUTHORITY_REASONS.has(reasonCode)) return publicLine(AUTHORITY_DENIAL);
   return publicLine(AUTHORITY_DENIAL);
 }
 

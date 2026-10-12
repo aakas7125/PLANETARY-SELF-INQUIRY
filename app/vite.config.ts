@@ -1,4 +1,5 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
@@ -13,6 +14,41 @@ import { appEnvPlugin } from "./scripts/app-env-plugin.mjs";
 import { isMigrationFile } from "./scripts/migration-plan.mjs";
 
 /** The files `src/lib/db.ts` globs — same directory, same non-recursive scope. */
+const PUBLISHED_STYLESHEET = /\/assets\/styles-[A-Za-z0-9_-]+\.css/g;
+
+/**
+ * SSR emits its own `styles.css?url` file, which Nitro does not publish.
+ * Point every server reference at the one stylesheet in the public output.
+ */
+function publishServerStylesheet(publicDir: string, serverDir: string) {
+  const assetsDir = join(publicDir, "assets");
+  const clientStyles = readdirSync(assetsDir).filter((name) => /^styles-.*\.css$/.test(name));
+  if (clientStyles.length !== 1) {
+    throw new Error(
+      `Expected one public stylesheet, found ${clientStyles.join(", ") || "none"}`,
+    );
+  }
+  const target = `/assets/${clientStyles[0]}`;
+  const files: string[] = [];
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) {
+        walk(path);
+        continue;
+      }
+      if (/\.(?:mjs|js|html|json)$/.test(name)) files.push(path);
+    }
+  };
+  walk(serverDir);
+  for (const path of files) {
+    const text = readFileSync(path, "utf8");
+    if (!text.includes("/assets/styles-")) continue;
+    const next = text.replace(PUBLISHED_STYLESHEET, target);
+    if (next !== text) writeFileSync(path, next);
+  }
+}
+
 function hasGlobbedMigrations(root: string): boolean {
   try {
     return readdirSync(join(root, "migrations")).some(isMigrationFile);
@@ -163,18 +199,35 @@ export default defineConfig(({ command, isPreview }) => ({
     authPopupPlugin(),
     // Dev-only /__app-env, read by scripts/check-auth-invariant.mjs.
     appEnvPlugin(),
-    // PWA head + ?install=1 tutorial page; runs before Start/Nitro.
-    grokPwaPlugin(),
+    // Dev authoring server only. The public production profile does not
+    // register Grok install, manifest, or head-injection middleware.
+    ...(command === "serve" && !isPreview ? [grokPwaPlugin()] : []),
     tailwindcss(),
     tanstackStart(),
     ...(command === "build" || isPreview
       ? [
           nitro({
-            preset: "vercel",
-            // Auto-registers server/middleware/* (the PWA install page +
-            // manifest + head-tag middleware). Nitro v3 defaults serverDir to
-            // false, so removing this silently unwires /?install=1 on deploys.
-            serverDir: "./server",
+            preset: "node-server",
+            publicAssets: [
+              {
+                baseURL: "/",
+                dir: "public",
+                maxAge: 0,
+                ignore: ["**/__grok/**"],
+              },
+            ],
+            hooks: {
+              async compiled(built) {
+                await rm(join(built.options.output.publicDir, "__grok"), {
+                  recursive: true,
+                  force: true,
+                });
+                publishServerStylesheet(
+                  built.options.output.publicDir,
+                  built.options.output.serverDir,
+                );
+              },
+            },
           }),
         ]
       : []),
