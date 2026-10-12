@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SmartphoneComparison } from "@/components/smartphone-comparison";
+import { SmartphoneFinalChoice } from "@/components/smartphone-final-choice";
 import { SmartphoneImpact } from "@/components/smartphone-impact";
 import { SmartphoneInquiry } from "@/components/smartphone-inquiry";
 import { SmartphoneOtherness } from "@/components/smartphone-otherness";
@@ -30,6 +31,16 @@ import {
   reduceOtherness,
 } from "@/lib/smartphone/ap-otherness-ux.mjs";
 import {
+  canEnterFinalChoice,
+  createFinalChoiceState,
+  describeFinalChoice,
+  finalChoiceStateAfterComparisonAction,
+  finalChoiceStateAfterInquiryAction,
+  finalChoiceStateAfterOthernessAction,
+  finalChoiceStateAfterSituationAction,
+  reduceFinalChoice,
+} from "@/lib/smartphone/final-choice-ux.mjs";
+import {
   canEnterImpact,
   createImpactState,
   describeImpact,
@@ -51,10 +62,11 @@ export function SmartphoneSituation() {
   const [comparison, dispatchComparison] = useReducer(reduceComparison, createComparisonState());
   const [impact, dispatchImpact] = useReducer(reduceImpact, createImpactState());
   const [otherness, dispatchOtherness] = useReducer(reduceOtherness, createOthernessState());
+  const [finalChoice, dispatchFinalChoice] = useReducer(reduceFinalChoice, createFinalChoiceState());
   const [comparisonEntered, setComparisonEntered] = useState(false);
-  const [step, setStep] = useState<"situation" | "inquiry" | "comparison" | "impact" | "otherness">(
-    "situation",
-  );
+  const [step, setStep] = useState<
+    "situation" | "inquiry" | "comparison" | "impact" | "otherness" | "choice"
+  >("situation");
   const view = describeSituation(state);
   const resultRef = useRef<HTMLElement>(null);
   const comparisonView = describeComparison(comparison, {
@@ -72,6 +84,14 @@ export function SmartphoneSituation() {
   const othernessView = describeOtherness(otherness, {
     impactAvailable: impactView.available,
     displayedRecords: impactView.domains,
+  });
+  const finalChoiceView = describeFinalChoice(finalChoice, {
+    othernessEntered: othernessView.available,
+    othernessActivated: othernessView.activated,
+    othernessResponse: otherness.response,
+    othernessFollowUp: otherness.followUp,
+    provisionalChoice: inquiry.provisionalSelection,
+    inspectedPathways: comparisonView.pathways,
   });
 
   function onSituation(action: Parameters<typeof dispatchSituation>[0]) {
@@ -96,6 +116,11 @@ export function SmartphoneSituation() {
       dispatchOtherness({ type: "clear" });
       setStep("situation");
     }
+    const nextFinalChoice = finalChoiceStateAfterSituationAction(action.type, finalChoice);
+    if (nextFinalChoice !== finalChoice) {
+      dispatchFinalChoice({ type: "clear" });
+      setStep("situation");
+    }
     dispatchSituation(action);
   }
 
@@ -114,7 +139,16 @@ export function SmartphoneSituation() {
     const nextOtherness = othernessStateAfterInquiryAction(action.type, otherness);
     if (nextOtherness !== otherness) {
       dispatchOtherness({ type: "clear" });
-      if (step === "comparison" || step === "impact" || step === "otherness") setStep("inquiry");
+      if (step === "comparison" || step === "impact" || step === "otherness" || step === "choice") {
+        setStep("inquiry");
+      }
+    }
+    const nextFinalChoice = finalChoiceStateAfterInquiryAction(action.type, finalChoice);
+    if (nextFinalChoice !== finalChoice) {
+      dispatchFinalChoice({ type: "clear" });
+      if (step === "comparison" || step === "impact" || step === "otherness" || step === "choice") {
+        setStep("inquiry");
+      }
     }
     dispatchInquiry(action);
   }
@@ -123,14 +157,28 @@ export function SmartphoneSituation() {
     const nextImpact = impactStateAfterComparisonAction(action.type, impact);
     if (nextImpact !== impact) {
       dispatchImpact({ type: "clear" });
-      if (step === "impact" || step === "otherness") setStep("comparison");
+      if (step === "impact" || step === "otherness" || step === "choice") setStep("comparison");
     }
     const nextOtherness = othernessStateAfterComparisonAction(action.type, otherness);
     if (nextOtherness !== otherness) {
       dispatchOtherness({ type: "clear" });
-      if (step === "otherness") setStep("comparison");
+      if (step === "otherness" || step === "choice") setStep("comparison");
+    }
+    const nextFinalChoice = finalChoiceStateAfterComparisonAction(action.type, finalChoice);
+    if (nextFinalChoice !== finalChoice) {
+      dispatchFinalChoice({ type: "clear" });
+      if (step === "choice") setStep("comparison");
     }
     dispatchComparison(action);
+  }
+
+  function onOtherness(action: { type: "set_response" | "set_follow_up" | "clear"; text?: string }) {
+    const nextFinalChoice = finalChoiceStateAfterOthernessAction(action.type, finalChoice);
+    if (nextFinalChoice !== finalChoice) {
+      dispatchFinalChoice({ type: "clear" });
+      if (step === "choice") setStep("otherness");
+    }
+    dispatchOtherness(action);
   }
 
   function returnToImpact() {
@@ -142,13 +190,29 @@ export function SmartphoneSituation() {
     resultRef.current?.scrollIntoView({ block: "nearest" });
   }, [state.submitted, step]);
 
+  if (step === "choice") {
+    return (
+      <SmartphoneFinalChoice
+        view={finalChoiceView}
+        onBackToOtherness={() => setStep("otherness")}
+        onSelect={(value) => dispatchFinalChoice({ type: "set_choice", value })}
+        onReset={() => dispatchFinalChoice({ type: "reset" })}
+      />
+    );
+  }
+
   if (step === "otherness") {
     return (
       <SmartphoneOtherness
         view={othernessView}
         onBackToImpact={returnToImpact}
-        onResponse={(text) => dispatchOtherness({ type: "set_response", text })}
-        onFollowUp={(text) => dispatchOtherness({ type: "set_follow_up", text })}
+        onResponse={(text) => onOtherness({ type: "set_response", text })}
+        onFollowUp={(text) => onOtherness({ type: "set_follow_up", text })}
+        onContinueToFinalChoice={() => {
+          if (!canEnterFinalChoice({ othernessEntered: othernessView.available })) return;
+          dispatchFinalChoice({ type: "open" });
+          setStep("choice");
+        }}
       />
     );
   }
