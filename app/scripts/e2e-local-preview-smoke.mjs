@@ -7,11 +7,12 @@
  * boundaries. It does not start hosting, change dependencies, or read
  * case identifiers as domain inputs.
  *
- * Usage, from app/, against a running `npm run preview`:
- *   node scripts/e2e-local-preview-smoke.mjs
+ * Usage, from app/, against the built public profile:
+ *   HOST=127.0.0.1 PORT=8081 npm run start
+ *   PREVIEW_URL=http://127.0.0.1:8081 node scripts/e2e-local-preview-smoke.mjs
  *
  * PREVIEW_URL defaults to http://127.0.0.1:8081
- * QA_SCREENSHOT_DIR defaults to /tmp/psi-qa-040
+ * QA_SCREENSHOT_DIR defaults to /tmp/psi-qa-042
  */
 import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
@@ -27,7 +28,9 @@ function chromeExecutable() {
 }
 
 const base = (process.env.PREVIEW_URL ?? "http://127.0.0.1:8081").replace(/\/$/, "");
-const shotDir = process.env.QA_SCREENSHOT_DIR ?? "/tmp/psi-qa-040";
+const shotDir = process.env.QA_SCREENSHOT_DIR ?? "/tmp/psi-qa-042";
+const PROHIBITED_REQUEST =
+  /api\.openalex\.org|api\.crossref\.org|api\.x\.ai|fonts\.googleapis\.com|fonts\.gstatic\.com|grok\.com|\/__grok\/|\/auth\/|\/__app-env|\/api\/auth|stun:|turn:/i;
 const NOT_SURE = "I\u2019m not sure";
 const SPACED = "  spaced answer  ";
 
@@ -62,10 +65,22 @@ function attachMonitors(page, bag) {
       error: request.failure()?.errorText ?? "",
     });
   });
+  page.on("request", (request) => {
+    const url = request.url();
+    bag.requests.push(url);
+    if (PROHIBITED_REQUEST.test(url)) bag.prohibitedRequests.push(url);
+  });
 }
 
 function freshBag() {
-  return { pageErrors: [], consoleErrors: [], httpFailures: [], requestFailed: [] };
+  return {
+    pageErrors: [],
+    consoleErrors: [],
+    httpFailures: [],
+    requestFailed: [],
+    requests: [],
+    prohibitedRequests: [],
+  };
 }
 
 async function shot(page, name) {
@@ -159,9 +174,42 @@ async function unnamedControls(page) {
   });
 }
 
+async function assertStaticResearch(page) {
+  const papers = page.locator("#papers");
+  await papers.waitFor();
+  const text = await papers.innerText();
+  assert(text.includes("Indicators of Global Climate Change 2025"), "Canon paper title is missing");
+  assert(text.includes("10.5194/essd-18-3889-2026"), "Canon DOI is missing");
+  assert(text.includes("not a live index"), "Research section does not say it is not a live index");
+  assert(
+    text.includes("not presented as current or exhaustive"),
+    "Research section does not keep the static-set boundary",
+  );
+  assert(
+    text.includes("The notice under each entry is inquiry beside the stored source text"),
+    "Research section does not keep the source/inquiry distinction",
+  );
+  assert(
+    !/OpenAlex|Crossref|Read again|Reading indexes|Read through the AP Framework|still arriving/i.test(text),
+    "Research section still offers runtime research or AI controls",
+  );
+  const head = await page.evaluate(() => ({
+    manifest: document.querySelector('link[rel="manifest"]')?.getAttribute("href") ?? "",
+    hrefs: [...document.querySelectorAll("link[href], script[src]")].map(
+      (node) => node.getAttribute("href") || node.getAttribute("src") || "",
+    ),
+  }));
+  assert(head.manifest === "", `Public document links a manifest: ${head.manifest}`);
+  const prohibitedHref = head.hrefs.find((href) =>
+    /fonts\.googleapis|fonts\.gstatic|grok\.com|__grok/.test(href),
+  );
+  assert(!prohibitedHref, `Public document links a prohibited asset: ${prohibitedHref}`);
+}
+
 async function walkHome(page, label) {
   await page.goto(`${base}/`, { waitUntil: "networkidle" });
   await page.getByRole("heading", { level: 1, name: /protect the whole planet/ }).waitFor();
+  await assertStaticResearch(page);
   await shot(page, `${label}-home-top`);
   const bridge = page.locator("#phone-inquiry");
   await bridge.getByRole("heading", { name: "Follow one phone question through to your own choice" }).waitFor();
@@ -434,6 +482,12 @@ async function walkRoutes(page, label) {
   await page.reload({ waitUntil: "networkidle" });
   await page.getByRole("heading", { level: 1, name: /protect the whole planet/ }).waitFor();
   await assertNoOverflow(page, `${label} home reload`);
+  await page.goto(`${base}/?install=1&platform=ios`, { waitUntil: "networkidle" });
+  await page.getByRole("heading", { level: 1, name: /protect the whole planet/ }).waitFor();
+  assert(
+    !(await bodyText(page)).includes("to your Home Screen"),
+    "Install query replaced the public homepage",
+  );
 }
 
 async function runViewport(browser, width, height) {
@@ -452,6 +506,20 @@ async function runViewport(browser, width, height) {
     await walkJourney(page, label);
     await walkRoutes(page, label);
     await assertNoOverflow(page, `${label} final home`);
+    const storage = await page.evaluate(() => ({
+      cookie: document.cookie,
+      local: localStorage.length,
+      session: sessionStorage.length,
+    }));
+    assert(storage.cookie === "", `Document cookie was set: ${storage.cookie}`);
+    assert(storage.local === 0, "localStorage is not empty");
+    assert(storage.session === 0, "sessionStorage is not empty");
+    const cookies = await context.cookies();
+    assert(cookies.length === 0, `Browser cookies were set: ${cookies.map((cookie) => cookie.name).join(", ")}`);
+    assert(
+      bag.prohibitedRequests.length === 0,
+      `Prohibited requests: ${bag.prohibitedRequests.join(" | ")}`,
+    );
   } catch (error) {
     await page.screenshot({ path: `${shotDir}/${label}-failure.png`, fullPage: true }).catch(() => {});
     const heading = await page.locator("h1").first().textContent().catch(() => "");
@@ -467,6 +535,25 @@ function sameOriginFailures(bag) {
     if (!failure.url.startsWith(base)) return false;
     return !failure.url.endsWith("/favicon.ico");
   });
+}
+
+function externalHosts(bag) {
+  const hosts = new Set();
+  let baseHost = "";
+  try {
+    baseHost = new URL(base).host;
+  } catch {
+    baseHost = "";
+  }
+  for (const url of bag.requests) {
+    try {
+      const host = new URL(url).host;
+      if (host && host !== baseHost) hosts.add(host);
+    } catch {
+      continue;
+    }
+  }
+  return [...hosts];
 }
 
 function optimizer504(bag) {
@@ -507,6 +594,8 @@ for (const [width, height] of viewports) {
         height,
         ok: true,
         thirdPartyConsole,
+        externalHosts: externalHosts(bag),
+        prohibitedRequests: bag.prohibitedRequests,
         ignoredFavicon: bag.httpFailures.filter((failure) => failure.url.endsWith("/favicon.ico")),
         requestFailed: bag.requestFailed,
       });
@@ -517,9 +606,34 @@ for (const [width, height] of viewports) {
   }
 }
 await browser.close();
+
+const probes = [];
+for (const path of ["/__grok/manifest.webmanifest", "/__grok/icon-180.png", "/auth/popup", "/__app-env"]) {
+  const response = await fetch(`${base}${path}`, { redirect: "manual" });
+  probes.push({ path, status: response.status });
+  if (response.status !== 404) {
+    failed = true;
+  }
+}
+const home = await fetch(`${base}/`, { redirect: "manual" });
+const homeCookie = home.headers.get("set-cookie");
+if (home.status !== 200 || homeCookie) {
+  failed = true;
+}
+probes.push({ path: "/", status: home.status, setCookie: Boolean(homeCookie) });
+const install = await fetch(`${base}/?install=1&platform=ios`, { redirect: "manual" });
+const installBody = await install.text();
+const installIsHomepage =
+  install.status === 200 &&
+  !installBody.includes("/__grok/") &&
+  !installBody.includes("to your Home Screen");
+if (!installIsHomepage) failed = true;
+probes.push({ path: "/?install=1&platform=ios", status: install.status, homepage: installIsHomepage });
+
 const report = {
   preview: base,
   browser: executablePath,
+  probes,
   reducedMotion: "reduce",
   renderedOtherness: "non-activated; the approved question is not shown because displayed impact records do not carry explicit extent and support",
   results,
