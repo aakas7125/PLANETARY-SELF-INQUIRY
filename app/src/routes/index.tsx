@@ -3,6 +3,7 @@ import { CalculatorSection } from "@/components/calculator-section";
 import { CloseSection } from "@/components/close-section";
 import { FrameworkSection } from "@/components/framework-section";
 import { HeroSection } from "@/components/hero-section";
+import { PhoneInquiryBridge } from "@/components/phone-inquiry-bridge";
 import { ProofSection } from "@/components/proof-section";
 import { ResearchSection } from "@/components/research-section";
 import { SiteNav } from "@/components/site-nav";
@@ -18,6 +19,7 @@ function Home() {
         <CalculatorSection />
         <ProofSection />
         <FrameworkSection />
+        <PhoneInquiryBridge />
         <ResearchSection />
         <CloseSection />
       </main>
