@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { SmartphoneComparison } from "@/components/smartphone-comparison";
 import { SmartphoneImpact } from "@/components/smartphone-impact";
 import { SmartphoneInquiry } from "@/components/smartphone-inquiry";
+import { SmartphoneOtherness } from "@/components/smartphone-otherness";
 import { cn } from "@/lib/utils";
 import {
   INQUIRY_CHROME,
@@ -19,6 +20,15 @@ import {
   describeComparison,
   reduceComparison,
 } from "@/lib/smartphone/comparison-ux.mjs";
+import {
+  canEnterOtherness,
+  createOthernessState,
+  describeOtherness,
+  othernessStateAfterComparisonAction,
+  othernessStateAfterInquiryAction,
+  othernessStateAfterSituationAction,
+  reduceOtherness,
+} from "@/lib/smartphone/ap-otherness-ux.mjs";
 import {
   canEnterImpact,
   createImpactState,
@@ -40,8 +50,11 @@ export function SmartphoneSituation() {
   const [inquiry, dispatchInquiry] = useReducer(reduceInquiry, createInquiryState());
   const [comparison, dispatchComparison] = useReducer(reduceComparison, createComparisonState());
   const [impact, dispatchImpact] = useReducer(reduceImpact, createImpactState());
+  const [otherness, dispatchOtherness] = useReducer(reduceOtherness, createOthernessState());
   const [comparisonEntered, setComparisonEntered] = useState(false);
-  const [step, setStep] = useState<"situation" | "inquiry" | "comparison" | "impact">("situation");
+  const [step, setStep] = useState<"situation" | "inquiry" | "comparison" | "impact" | "otherness">(
+    "situation",
+  );
   const view = describeSituation(state);
   const resultRef = useRef<HTMLElement>(null);
   const comparisonView = describeComparison(comparison, {
@@ -55,6 +68,10 @@ export function SmartphoneSituation() {
     inspectedPathways: comparisonView.cards.map((card) => ({
       label: card.label,
     })),
+  });
+  const othernessView = describeOtherness(otherness, {
+    impactAvailable: impactView.available,
+    displayedRecords: impactView.domains,
   });
 
   function onSituation(action: Parameters<typeof dispatchSituation>[0]) {
@@ -74,6 +91,11 @@ export function SmartphoneSituation() {
       setComparisonEntered(false);
       setStep("situation");
     }
+    const nextOtherness = othernessStateAfterSituationAction(action.type, otherness);
+    if (nextOtherness !== otherness) {
+      dispatchOtherness({ type: "clear" });
+      setStep("situation");
+    }
     dispatchSituation(action);
   }
 
@@ -81,13 +103,18 @@ export function SmartphoneSituation() {
     const nextComparison = comparisonStateAfterInquiryAction(action.type, comparison);
     if (nextComparison !== comparison) {
       dispatchComparison({ type: "reset" });
-      if (step === "comparison" || step === "impact") setStep("inquiry");
+      if (step === "comparison" || step === "impact" || step === "otherness") setStep("inquiry");
     }
     const nextImpact = impactStateAfterInquiryAction(action.type, impact);
     if (nextImpact !== impact) {
       dispatchImpact({ type: "clear" });
       setComparisonEntered(false);
-      if (step === "comparison" || step === "impact") setStep("inquiry");
+      if (step === "comparison" || step === "impact" || step === "otherness") setStep("inquiry");
+    }
+    const nextOtherness = othernessStateAfterInquiryAction(action.type, otherness);
+    if (nextOtherness !== otherness) {
+      dispatchOtherness({ type: "clear" });
+      if (step === "comparison" || step === "impact" || step === "otherness") setStep("inquiry");
     }
     dispatchInquiry(action);
   }
@@ -96,9 +123,18 @@ export function SmartphoneSituation() {
     const nextImpact = impactStateAfterComparisonAction(action.type, impact);
     if (nextImpact !== impact) {
       dispatchImpact({ type: "clear" });
-      if (step === "impact") setStep("comparison");
+      if (step === "impact" || step === "otherness") setStep("comparison");
+    }
+    const nextOtherness = othernessStateAfterComparisonAction(action.type, otherness);
+    if (nextOtherness !== otherness) {
+      dispatchOtherness({ type: "clear" });
+      if (step === "otherness") setStep("comparison");
     }
     dispatchComparison(action);
+  }
+
+  function returnToImpact() {
+    setStep("impact");
   }
 
   useEffect(() => {
@@ -106,9 +142,28 @@ export function SmartphoneSituation() {
     resultRef.current?.scrollIntoView({ block: "nearest" });
   }, [state.submitted, step]);
 
+  if (step === "otherness") {
+    return (
+      <SmartphoneOtherness
+        view={othernessView}
+        onBackToImpact={returnToImpact}
+        onResponse={(text) => dispatchOtherness({ type: "set_response", text })}
+        onFollowUp={(text) => dispatchOtherness({ type: "set_follow_up", text })}
+      />
+    );
+  }
+
   if (step === "impact") {
     return (
-      <SmartphoneImpact view={impactView} onBackToComparison={() => setStep("comparison")} />
+      <SmartphoneImpact
+        view={impactView}
+        onBackToComparison={() => setStep("comparison")}
+        onContinueToOtherness={() => {
+          if (!canEnterOtherness({ impactAvailable: impactView.available })) return;
+          dispatchOtherness({ type: "open" });
+          setStep("otherness");
+        }}
+      />
     );
   }
 

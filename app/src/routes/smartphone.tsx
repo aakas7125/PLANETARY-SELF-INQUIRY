@@ -10,7 +10,7 @@ export const Route = createFileRoute("/smartphone")({
       {
         name: "description",
         content:
-          "A situation step, six inquiry questions, an empirical comparison, then conditional impact and dependency pathways. It does not recommend a purchase.",
+          "A situation step, six inquiry questions, an empirical comparison, conditional impact and dependency pathways, then a Protect Four and otherness inquiry when a displayed consequence establishes it. It does not recommend a purchase.",
       },
     ],
   }),

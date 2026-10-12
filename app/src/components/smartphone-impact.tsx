@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { OTHERNESS_CHROME } from "@/lib/smartphone/ap-otherness-ux.mjs";
 import { IMPACT_CHROME, describeImpact } from "@/lib/smartphone/impact-pathways-ux.mjs";
 
 type ImpactView = ReturnType<typeof describeImpact>;
@@ -7,9 +8,11 @@ type ImpactView = ReturnType<typeof describeImpact>;
 export function SmartphoneImpact({
   view,
   onBackToComparison,
+  onContinueToOtherness,
 }: {
   view: ImpactView;
   onBackToComparison: () => void;
+  onContinueToOtherness?: () => void;
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -109,6 +112,13 @@ export function SmartphoneImpact({
             ))}
           </div>
           <p className="mt-4 text-sm leading-relaxed text-foreground">{view.boundary}</p>
+          {onContinueToOtherness ? (
+            <div className="mt-4">
+              <Button type="button" onClick={onContinueToOtherness}>
+                {OTHERNESS_CHROME.continueFromImpact}
+              </Button>
+            </div>
+          ) : null}
         </section>
       ) : (
         <p className="mt-8 text-sm leading-relaxed text-foreground">{view.closedNote}</p>
