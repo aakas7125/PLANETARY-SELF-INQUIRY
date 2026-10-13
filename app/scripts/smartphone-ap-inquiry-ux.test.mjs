@@ -7,6 +7,7 @@ import {
   EXPLICIT_UNCERTAINTY_ANSWER,
   INQUIRY_BOUNDARY,
   INQUIRY_CHOICE_NOTE,
+  INQUIRY_CHROME,
   PROVISIONAL_CHOICE_LABELS,
   SHIFT_LABELS,
   buildInquiryDomainSession,
@@ -133,6 +134,141 @@ describe("smartphone AP inquiry UX", () => {
     assert.equal(state.activeIndex, 4);
     assert.equal(state.rawAnswers.APQ5_NONPURCHASE, texts[4]);
     assert.equal(describeInquiry(state).question?.exactAnswer, texts[4]);
+  });
+
+  it("shows verbatim APQ1–APQ5 answers only while APQ6 is active", () => {
+    const priorTexts = [
+      "  leading and trailing  ",
+      EXPLICIT_UNCERTAINTY_ANSWER,
+      "first line\nsecond line\n  indented  ",
+      "plain four",
+      "\nstarts with a break",
+    ];
+    const q6Text = "  q6 stays separate  \n";
+    assert.equal(INQUIRY_CHROME.priorAnswersHeading, "Your answers so far");
+
+    let state = createInquiryState();
+    for (let index = 0; index < 5; index += 1) {
+      const before = describeInquiry(state);
+      assert.equal(before.question?.questionId, QUESTION_IDS[index]);
+      assert.equal(before.priorAnswers, null);
+      assert.equal(before.review, null);
+      state = reduceInquiry(state, {
+        type: "set_raw",
+        questionId: QUESTION_IDS[index],
+        text: priorTexts[index],
+      });
+      state = reduceInquiry(state, { type: "continue" });
+    }
+
+    state = reduceInquiry(state, {
+      type: "set_raw",
+      questionId: "APQ6_RESEE",
+      text: q6Text,
+    });
+    const sessionBeforeView = buildInquiryDomainSession(state);
+    let view = describeInquiry(state);
+    assert.deepEqual(buildInquiryDomainSession(state), sessionBeforeView);
+    assert.equal(view.mode, "question");
+    assert.equal(view.review, null);
+    assert.equal(view.question?.questionId, "APQ6_RESEE");
+    assert.equal(view.question?.exactQuestionText, QUESTION_TEXT.APQ6_RESEE);
+    assert.equal(view.question?.exactAnswer, q6Text);
+    assert.equal(view.showStructuredChoices, true);
+    assert.equal(view.priorAnswers?.length, 5);
+    view.priorAnswers?.forEach((answer, index) => {
+      assert.equal(answer.questionId, QUESTION_IDS[index]);
+      assert.equal(answer.exactQuestionText, QUESTION_TEXT[answer.questionId]);
+      assert.equal(answer.exactAnswer, priorTexts[index]);
+      assert.notEqual(answer.exactAnswer, q6Text);
+    });
+    assert.equal(
+      view.priorAnswers?.some((answer) => answer.questionId === "APQ6_RESEE"),
+      false,
+    );
+
+    state = reduceInquiry(state, { type: "set_choice", value: "buy_new" });
+    state = reduceInquiry(state, { type: "set_shift", value: "uncertain" });
+    view = describeInquiry(state);
+    assert.equal(view.provisionalSelection, "buy_new");
+    assert.equal(view.shiftSelection, "uncertain");
+    assert.equal(view.shiftExplicit, true);
+    assert.equal(view.domain.inquiryFailed, false);
+    assert.equal(view.domain.provisionalChoice, "unclear");
+    assert.equal(view.domain.motiveScoresPresent, false);
+    assert.equal(view.priorAnswers?.[1].exactAnswer, EXPLICIT_UNCERTAINTY_ANSWER);
+    const q6Session = buildInquiryDomainSession(state);
+    assert.equal(q6Session.self_reported_shift, "uncertain");
+    assert.equal(q6Session.answer_records[5].exact_user_answer, q6Text);
+    assert.equal(q6Session.answer_records[0].exact_user_answer, priorTexts[0]);
+    assert.equal(q6Session.provisional_choice, "unclear");
+
+    state = reduceInquiry(state, { type: "back" });
+    state = reduceInquiry(state, { type: "back" });
+    state = reduceInquiry(state, { type: "back" });
+    assert.equal(describeInquiry(state).question?.questionId, "APQ3_ORIGIN");
+    assert.equal(describeInquiry(state).priorAnswers, null);
+    const editedOrigin = "edited origin\n  with space  ";
+    state = reduceInquiry(state, {
+      type: "set_raw",
+      questionId: "APQ3_ORIGIN",
+      text: editedOrigin,
+    });
+    state = reduceInquiry(state, { type: "continue" });
+    state = reduceInquiry(state, { type: "continue" });
+    state = reduceInquiry(state, { type: "continue" });
+    view = describeInquiry(state);
+    assert.equal(view.question?.questionId, "APQ6_RESEE");
+    assert.equal(view.question?.exactAnswer, q6Text);
+    assert.equal(view.priorAnswers?.[2].exactAnswer, editedOrigin);
+    assert.equal(view.priorAnswers?.[0].exactAnswer, priorTexts[0]);
+    assert.equal(view.provisionalSelection, "buy_new");
+    assert.equal(view.shiftSelection, "uncertain");
+
+    state = reduceInquiry(state, { type: "edit_question", questionId: "APQ1_FUNCTION" });
+    assert.equal(describeInquiry(state).priorAnswers, null);
+    const editedFunction = "  edited function  ";
+    state = reduceInquiry(state, {
+      type: "set_raw",
+      questionId: "APQ1_FUNCTION",
+      text: editedFunction,
+    });
+    state = reduceInquiry(state, { type: "edit_question", questionId: "APQ6_RESEE" });
+    view = describeInquiry(state);
+    assert.equal(view.priorAnswers?.[0].exactAnswer, editedFunction);
+    assert.equal(view.priorAnswers?.[2].exactAnswer, editedOrigin);
+    assert.equal(view.question?.exactAnswer, q6Text);
+
+    const completed = reduceInquiry(state, { type: "continue" });
+    const review = describeInquiry(completed);
+    assert.equal(review.mode, "review");
+    assert.equal(review.priorAnswers, null);
+    assert.equal(review.review?.[0].exactAnswer, editedFunction);
+    assert.equal(review.review?.[2].exactAnswer, editedOrigin);
+    assert.equal(review.review?.[5].exactAnswer, q6Text);
+    assert.equal(review.showStructuredChoices, true);
+
+    const reset = reduceInquiry(state, { type: "reset" });
+    const resetView = describeInquiry(reset);
+    assert.deepEqual(reset, createInquiryState());
+    assert.equal(resetView.priorAnswers, null);
+    assert.equal(resetView.question?.questionId, "APQ1_FUNCTION");
+    assert.equal(resetView.question?.exactAnswer, "");
+    for (const value of Object.values(reset.rawAnswers)) {
+      assert.equal(value, "");
+    }
+    assert.equal(JSON.stringify(resetView).includes(editedOrigin), false);
+    assert.equal(JSON.stringify(resetView).includes(editedFunction), false);
+    assert.equal(JSON.stringify(resetView).includes(q6Text.trim()), false);
+
+    const component = readApp("src/components/smartphone-inquiry.tsx");
+    assert.match(component, /view\.priorAnswers/);
+    assert.match(component, /INQUIRY_CHROME\.priorAnswersHeading/);
+    assert.match(component, /whitespace-pre-wrap/);
+    assert.match(component, /\{answer\.exactQuestionText\}/);
+    assert.match(component, /\{answer\.exactAnswer\}/);
+    assert.equal(component.includes("APQ1_FUNCTION"), false);
+    assert.equal(component.includes(priorTexts[2]), false);
   });
 
   it("lets explicit uncertainty continue and refuses to trim, paraphrase, or overwrite raw text", () => {

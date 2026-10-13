@@ -87,6 +87,7 @@ export const INQUIRY_CHROME = Object.freeze({
   answerLabel: "Your answer",
   choiceLegend: "Choice",
   shiftLegend: "Whether it looks different",
+  priorAnswersHeading: "Your answers so far",
   reviewHeading: "Your answers",
   reset: "Reset",
   laterHeading: "Still ahead",
@@ -352,6 +353,16 @@ export function describeInquiry(state) {
   const reviewComplete = reviewAnswers.every((answer) => answer.present);
   const showStructured =
     state.phase === "review" || active?.question_id === "APQ6_RESEE";
+  const priorAnswers =
+    state.phase === "question" && active?.question_id === "APQ6_RESEE"
+      ? sequence
+          .filter((question) => question.question_id !== active.question_id)
+          .map((question) => ({
+            questionId: question.question_id,
+            exactQuestionText: question.exact_question_text,
+            exactAnswer: state.rawAnswers[question.question_id] ?? "",
+          }))
+      : null;
   const choices = getProvisionalChoices().map((choice) => ({
     value: choice,
     label: ordinaryLabel(PROVISIONAL_CHOICE_LABELS, choice),
@@ -414,6 +425,7 @@ export function describeInquiry(state) {
       isRawAnswerPresent(state.rawAnswers[active.question_id]),
     atFirstQuestion: state.phase === "question" && activeIndex === 0,
     showStructuredChoices: showStructured,
+    priorAnswers,
     choices,
     shifts,
     provisionalSelection: state.provisionalSelection,
