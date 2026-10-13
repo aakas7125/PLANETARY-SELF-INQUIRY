@@ -87,6 +87,29 @@ When HQ finds a meaningful `VERIFIED_FOR_HQ_REVIEW` or `BLOCKED` result, prerequ
 
 Routine receiving-state updates, governance records, task publication, acceptance/rejection, push authorization, and qualifying HQ-reviewed merges should be completed in the same work chunk when their conditions are already satisfied. A routine qualifying merge does not require another owner prompt. No artificial work should be created.
 
+### HQ active-progression rule
+
+Project HQ must not stop at an intermediate state whose next action is itself an
+HQ responsibility.
+
+Within each Work run, HQ continues through review, acceptance or rejection,
+merge when authorized, reconciliation, routing, publication, and dispatch of
+the next already-determined owner-independent work until one of these conditions
+is reached:
+
+1. a genuine owner-controlled decision or action is required under
+   `OWNER_CONTROL.md`;
+2. a genuine unresolved external dependency prevents further owner-independent
+   progress; or
+3. no meaningful actionable work remains.
+
+`VERIFIED_FOR_HQ_REVIEW`, passing CI, a qualifying merge, task reconciliation,
+or an already-determined next routing action are not stopping conditions when
+HQ itself has authority to perform the next step.
+
+Status reporting comes after currently actionable owner-independent execution,
+not instead of it.
+
 ## Cursor event-driven dispatch
 
 A native Cursor Automation may listen for GitHub Issue comments containing the exact marker `[CURSOR-DISPATCH]`. The comment is a transport and wake signal only. It never creates, expands, or substitutes for execution authority; the Issue remains the sole authoritative task record.
