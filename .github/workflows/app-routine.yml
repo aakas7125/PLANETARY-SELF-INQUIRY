@@ -1,0 +1,56 @@
+name: Routine app validation
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/app-routine.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - ".github/workflows/app-routine.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: test, lint, typecheck, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+
+      - name: Pin npm 11.19.0
+        run: |
+          npm install -g npm@11.19.0
+          node -e "const {execFileSync}=require('node:child_process'); const npmVersion=execFileSync('npm',['-v'],{encoding:'utf8'}).trim(); if (process.version!=='v22.14.0' || npmVersion!=='11.19.0') { console.error(process.version, npmVersion); process.exit(1); }"
+
+      - name: Install without rewriting the lockfile
+        run: |
+          cp package-lock.json /tmp/package-lock.json
+          npm ci --ignore-scripts
+          node -e "const fs=require('node:fs'); if (!fs.readFileSync('package-lock.json').equals(fs.readFileSync('/tmp/package-lock.json'))) { console.error('npm ci rewrote package-lock.json'); process.exit(1); }"
+
+      - name: Test
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
