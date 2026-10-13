@@ -1,0 +1,15 @@
+node_modules
+.output
+.vercel
+dist
+coverage
+*.log
+.env
+.env.*
+*.pem
+*.pfx
+*.key
+screenshots
+playwright-report
+test-results
+.DS_Store
