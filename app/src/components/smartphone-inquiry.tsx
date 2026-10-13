@@ -89,6 +89,28 @@ export function SmartphoneInquiry({
           >
             {question.exactQuestionText}
           </h2>
+          {view.priorAnswers ? (
+            <section
+              aria-label={INQUIRY_CHROME.priorAnswersHeading}
+              className="mt-6 min-w-0 rounded-2xl bg-paper px-4 py-4"
+            >
+              <h3 className="font-display text-lg leading-snug text-foreground">
+                {INQUIRY_CHROME.priorAnswersHeading}
+              </h3>
+              <ol className="mt-3 space-y-3">
+                {view.priorAnswers.map((answer) => (
+                  <li key={answer.questionId} className="min-w-0">
+                    <p className="break-words text-sm font-medium leading-snug text-foreground">
+                      {answer.exactQuestionText}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">
+                      {answer.exactAnswer}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
           <label className="mt-4 block min-w-0" htmlFor="inquiry-answer">
             <span className="text-sm font-medium text-foreground">{INQUIRY_CHROME.answerLabel}</span>
             <textarea
