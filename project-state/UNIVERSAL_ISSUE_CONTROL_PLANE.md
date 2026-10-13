@@ -164,6 +164,38 @@ Cadence may later be reduced or made event/session-driven once migration stabili
 - HQ must not accept or promote scientific, AP, product, or semantic changes without the required review.
 - Owner-level matters remain subject to `OWNER_CONTROL.md`.
 
+## Risk-tiered execution
+
+HQ names one risk tier on each executable task. The tier sets context, reasoning, and the routine checks for that task. It does not relax authorization.
+
+These safeguards remain at every tier: the existing authorization gates, deterministic branch and PR identity, idempotency, `[CURSOR-DISPATCH]` wake rules, no self-merge, owner and domain authority, exact-head validation, and independent HQ review.
+
+### Tier 1 — mechanical / infrastructure
+
+Narrow context. Default reasoning. Task smoke checks.
+
+### Tier 2 — accepted-product implementation
+
+The relevant contract and files. Moderate reasoning. Targeted regressions, and rendered checks when the change is visual.
+
+### Tier 3 — semantic / high-risk
+
+High reasoning. Source packages, provenance, and the required specialist authority.
+
+Escalate upward when genuine ambiguity or risk appears. Do not keep a lower tier once that condition is real.
+
+Use progressive context: the Issue, then the relevant files, then the implementation. Expand only when a concrete need appears.
+
+Prefer the smallest coherent task. Point to durable governance instead of repeating boilerplate.
+
+### Evidence split
+
+The executor owns task-specific verification. Routine CI owns deterministic repository regression for the application toolchain.
+
+A successful routine run is reported with its status and check link. Do not copy the long log into the return when the check passed. Inspect the detailed log when the check fails, or when the evidence is task-specific.
+
+Routine CI does not build the Docker image. Docker remains task-specific unless a later measured need justifies dedicated CI.
+
 ## Current implementation
 
 - The HQ return intake watches formal Cursor and Local Codex task results and meaningful state transitions.
