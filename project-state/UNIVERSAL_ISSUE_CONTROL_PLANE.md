@@ -103,6 +103,21 @@ The dispatch comment is a wake signal only. Inspect the Issue itself and execute
 
 HQ must not post a duplicate dispatch for the same uninterrupted `READY_FOR_CURSOR` transition. It must not dispatch a task currently marked `IN_PROGRESS`, `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `ACCEPTED`, `RESOLVED`, or `SUPERSEDED`. If HQ legitimately returns a task to `READY_FOR_CURSOR` after a blocked or review state, that new transition requires a new dispatch comment.
 
+### Cursor active-run lease — owner direction 2026-10-13
+
+Cursor records the exact cycle's run state in `handoffs/cursor-runs/<TASK-ID>/<CYCLE>.md`: `CURSOR_WORKING`, `RETURNED_FOR_HQ_REVIEW`, or `BLOCKED`. This metadata-only path is permitted for an already-authorized cycle; it adds no execution or semantic authority. Issues remain task authority.
+
+Before creating a new Cursor Issue, posting a wake, or authorizing a retry, HQ must inspect the Task ID/Issue, deterministic branch and matching PR, durable run lease, and existing return artifact, including those on the task branch/current PR head rather than only `main`.
+
+- `CURSOR_WORKING`: the exact cycle is actively claimed. Do not create another Issue, retry, or wake for that cycle.
+- `RETURNED_FOR_HQ_REVIEW`: execution has finished. Review the existing work; if routine CI is `PENDING`, wait/recheck CI rather than waking Cursor.
+- `BLOCKED`: reconcile the recorded blocker and authorize only the smallest clearing action under the existing gates.
+- No lease, no branch, no PR, and independently confirmed non-start: a same-task retry may be considered under existing governance. Absence or silence alone is insufficient.
+
+A stale `CURSOR_WORKING` lease never authorizes a duplicate run. HQ must independently establish that no matching Cursor execution remains active before clearing/retrying it and record that evidence in the task reconciliation.
+
+Apply this rule from the next appropriate dispatch. Do not interrupt an already-running cycle merely to retrofit a lease unless clearly safe and trivial. Existing returned work must be reviewed, not replayed because it predates this rule.
+
 ### Cursor wake completeness and state reporting
 
 Whenever HQ determines that Cursor must perform any work, HQ must pair the authorized executable cycle with an actual `[CURSOR-DISPATCH]` wake comment. This applies to implementation, review corrections, regression repair, exact-head validation, test execution, rendered inspection, screenshot capture, evidence completion, and any other bounded Cursor action. Updating an Issue to `READY_FOR_CURSOR`, writing instructions, requesting PR changes, or saying that Cursor should continue does not by itself wake Cursor.
@@ -255,7 +270,7 @@ If the return artifact is committed after substantive implementation validation,
 - `VALIDATED_IMPLEMENTATION_HEAD`;
 - `EVIDENCE_RETURN_HEAD`.
 
-The evidence-return commit must change only the permitted return artifact. When HQ independently confirms that condition, the new evidence-only SHA does not by itself require another complete application validation cycle.
+The evidence-return commit must change only the permitted return artifact and, when applicable, the same cycle's metadata-only run lease. HQ must independently confirm those changes contain no implementation or semantic changes; only then does the new evidence-only SHA not require another complete application validation cycle.
 
 Cursor must reuse the existing task Issue, deterministic implementation branch and PR. Missing native PR/Issue update capability must not cause a duplicate Issue, implementation branch or PR.
 
