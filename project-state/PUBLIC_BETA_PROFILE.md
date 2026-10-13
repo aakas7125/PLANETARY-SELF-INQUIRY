@@ -54,6 +54,9 @@ variables, when set:
 
 `NITRO_HOST` wins over `HOST`. `NITRO_PORT` wins over `PORT`.
 
+The Render Free image sets `NITRO_HOST=0.0.0.0` and does not set `PORT` or
+`NITRO_PORT`. Its manual dashboard steps are in `RENDER_FREE_DOCKER.md`.
+
 ## Local verification
 
 ```sh
@@ -80,6 +83,8 @@ surfaces, cookies, and browser storage.
 
 ## Exclusions
 
-This profile does not add a provider adapter, container, workflow, deployment
-file, domain, credential, or cloud configuration. Staging and public release
-remain separately owner-controlled.
+This profile does not select a provider, create an account, deploy, configure
+DNS, or authorize public release. `RENDER_FREE_DOCKER.md` is repository
+preparation for a later manual Render Free Docker service. It does not create
+that service, add a database, secret, domain, or credential, or authorize
+payment. Staging and public release remain separately owner-controlled.
