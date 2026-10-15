@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { SmartphoneLifecycleGuide } from "@/components/smartphone-lifecycle";
 import { Button } from "@/components/ui/button";
 import { OTHERNESS_CHROME } from "@/lib/smartphone/ap-otherness-ux.mjs";
 import { IMPACT_CHROME, describeImpact } from "@/lib/smartphone/impact-pathways-ux.mjs";
@@ -54,6 +55,8 @@ export function SmartphoneImpact({
           ))}
         </ol>
       </nav>
+
+      <SmartphoneLifecycleGuide />
 
       {view.available ? (
         <section aria-label="Impact and dependency pathways" className="mt-8 min-w-0">
