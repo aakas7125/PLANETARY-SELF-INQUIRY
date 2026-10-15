@@ -78,3 +78,5 @@ ROUTINE_CI: PENDING until the branch-tip workflow finishes. Pending routine CI d
 ## Discrepancies
 
 The Issue recorded an earlier accepted main SHA `c78eb32066d339c4ddc2076be49b7276c68f7405`. Execution started from current `origin/main` `1ec32e6eade3d08cde09901fb56965d38979d959`, which contains that commit and D-005. No other scope discrepancy.
+
+The configured PR action created draft PR #152 and did not update its body on the later call. The PR description can still say CURSOR_WORKING. This return and the run lease are the completed evidence. The lease on this commit says RETURNED_FOR_HQ_REVIEW.
