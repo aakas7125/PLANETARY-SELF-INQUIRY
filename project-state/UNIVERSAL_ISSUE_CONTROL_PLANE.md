@@ -87,6 +87,8 @@ classify them as unauthorized unless the Owner explicitly requests evaluation.
 They must not trigger implementation, executor dispatch, correction cycles,
 acceptance, merge, or new PSI semantics.
 
+HQ must not automatically close, edit, or respond to unsolicited public contributions unless accepted governance explicitly authorizes moderation. Surface them to the Owner only when materially relevant or requiring a decision.
+
 ## Common intake
 
 Each active workstream must inspect GitHub Issues addressed to it during its intake:
