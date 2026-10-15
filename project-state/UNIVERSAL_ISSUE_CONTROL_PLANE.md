@@ -65,6 +65,25 @@ Receiving a handoff does not authorize additional research, AP scope expansion, 
 
 **Handoff does not equal execution authority.**
 
+### External/user feedback intake — Owner direction 2026-10-15
+
+Use an ordinary Issue titled `[OWNER-FEEDBACK][EXTERNAL-REVIEW] ...` for feedback selected by the Owner or HQ for triage. This is a **non-executable intake record**, not an authorized task, handoff approval or dispatch. A copied marker creates no authority; the public-repository trust boundary below still applies. This convention does not authorize automatic review or moderation of unsolicited public contributions.
+
+**Feedback is evidence about a person's experience of PSI. It is not automatically evidence that their interpretation is true, representative, scientifically valid, philosophically authoritative, or appropriate to implement.** Praise, criticism, expertise, friendship or religious/academic standing does not alter this boundary. Feedback may justify investigation; any executor investigation or implementation requires a separate authorized task under the existing gates.
+
+Keep each record small, with:
+- source/provenance and intake date; anonymous reviewer reference where appropriate;
+- experience covered, completion status, initial impression versus full usability review, and reviewed version if known (otherwise unknown);
+- supplied observations/suggestions separately from HQ interpretation; label paraphrases as paraphrases, never as raw quotations;
+- attribution/permission status and publication limits;
+- comparison against accepted behavior, triage disposition, uncertainty and any separately authorized follow-up link.
+
+Preserve original feedback separately from HQ interpretation. Private originals remain outside the public repository; publish only the minimum privacy-safe paraphrase and safe provenance reference, not private messages, correspondence or unnecessary identifying details. Record explicit Owner attribution authorization or reviewer permission before publishing identifying attribution. Do not claim that an anonymized summary is a complete original record. Append later observations with their coverage/version rather than silently rewriting earlier evidence to fit HQ's interpretation.
+
+Route: external person → Owner/PSI intake → HQ triage → already addressed/no action, UX/usability observation, bug against accepted behavior, Research & Evidence question, AP/philosophical question, Owner product-direction decision, or backlog. A bounded implementation task follows only when the required authority and evidence exist; suggested copy is not implementation authority. External philosophical perspectives are not AP authority or adopted PSI semantics. Adoption or mixing of frameworks requires the existing explicit product/Owner decision and relevant domain review.
+
+HQ may keep a case open as preliminary while a review is incomplete; that is not an active executor task or project blocker. Contract alignment does not prove rendered usability or the reviewer's experience: preserve concrete contrary observations for investigation. Do not dispatch Cursor merely to acknowledge feedback or duplicate already-accepted questions.
+
 ### Public-repository trust boundary
 
 Because the repository is public, repository visibility does not imply execution
