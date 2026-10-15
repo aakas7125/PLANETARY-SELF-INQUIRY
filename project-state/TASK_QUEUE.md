@@ -14,9 +14,10 @@ GitHub Issues, exact PR heads and durable leases/returns are the current executi
 
 Accepted specification: D-005 in DECISIONS.md at `c78eb32066d339c4ddc2076be49b7276c68f7405` records scoped adoption and AP/Research agreement. Full empirical projection metadata, including gate_eligible and extent_semantics, controls over a shortened handoff example; no realized-harm or individual-causation claim follows.
 
-- #151, `HQ-CURSOR-2026-10-15-048`, INITIAL-1: published for the first Tier-2 slice, generic lifecycle evidence navigator. Issue readiness, actual dispatch comment and matching branch/lease/return are authoritative for current execution status. No model lookup, AP bridge or gate change in this slice.
+- #151 / PR #152, `HQ-CURSOR-2026-10-15-048`, INITIAL-1: ACCEPTED and merged at `8521b81e73fa6e8c5214697e886d370c09d011b0`, independent review 5534329565. Exact-head CI 38744865125 and post-merge CI 38747286773 passed. Generic lifecycle education only; returned lease is terminal and no retry/wake is required.
+- #153, `HQ-CURSOR-2026-10-15-049`, INITIAL-1: published for the controlled model-record/input slice with explicit generic fallback. Actual Issue dispatch and matching branch/lease/return determine current execution status. No AP bridge or model-specific consequence projection in this slice.
 
-Next dependency chain: review/accept #151 when returned, then authorize the smallest controlled model-record/input slice, then the agreed empirical projection + optional system-participation slice. One non-overlapping Cursor implementation at a time. Do not ask Cursor to invent evidence/AP semantics. Current explicit horizon remains unchanged; original interview disclosure remains absent until its exact source is pinned.
+Next dependency chain: review/accept #153 when returned, then authorize the agreed empirical projection + optional system-participation slice. One non-overlapping Cursor implementation at a time. Do not ask Cursor to invent evidence/AP semantics. Current explicit horizon remains unchanged; original interview disclosure remains absent until its exact source is pinned.
 
 Before stopping, follow the bounded next-task discovery rule in `UNIVERSAL_ISSUE_CONTROL_PLANE.md`. Public unsolicited contributions are not work authority. Do not replay historical queue entries merely because they remain in old state documents.
 
