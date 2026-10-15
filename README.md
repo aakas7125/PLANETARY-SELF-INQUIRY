@@ -2,13 +2,13 @@
 
 This is the canonical, governed repository for Planetary Self-Inquiry.
 
-The repository currently contains the project constitution, state, decisions, contract placeholders, provenance records, design records, evidence-registry placeholders, regression-import scaffolding, and the Antigravity candidate audit. It does **not** yet contain an accepted application baseline. The exact accepted V17 source and authoritative specialist packages have not been independently imported and verified.
+The repository contains the project constitution, accepted contracts and source packages, provenance and evidence records, and the independently HQ-reviewed application in `app/`. Current coordination and accepted work are recorded in [`project-state/TASK_QUEUE.md`](project-state/TASK_QUEUE.md) and [`project-state/DECISIONS.md`](project-state/DECISIONS.md). The implemented smartphone journey includes generic lifecycle evidence, controlled model references, and the evidence-gated optional system-participation inquiry. This does not establish that the current application is identical to the historical frozen V17 reference; that identity remains unverified.
 
 ## Authority and status
 
 - `PROJECT_CONSTITUTION.md` contains the permanent governing principles.
-- `PROJECT_STATE.md` records the accepted state and current migration limits.
-- `contracts/` will contain integrated current contracts after authoritative source import and reconciliation.
+- `PROJECT_STATE.md` preserves the earlier baseline and migration record; current coordination is in `project-state/TASK_QUEUE.md`.
+- `contracts/` contains integrated accepted contracts.
 - `provenance/` preserves historical inputs and external-candidate identity.
 - `project-state/` records decisions, limitations, workstreams, queues, and audits.
 
