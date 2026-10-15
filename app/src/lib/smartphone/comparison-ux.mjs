@@ -19,13 +19,13 @@ const SNAKE_CASE_TOKEN = /[a-z0-9]+_[a-z0-9_]+/;
 const HORIZON_LITERAL = /^(?:\d+)(?:\.\d+)?$/;
 
 export const COMPARISON_OPENING =
-  "Choose the pathways you want to inspect, and one shared horizon in years.";
+  "Enter one shared horizon in years for the alternatives you compare.";
 
 export const COMPARISON_BOUNDARY =
   "This comparison does not tell you what to buy, and it does not rank the pathways.";
 
 export const COMPARISON_SELECTION_NOTE =
-  "No pathway is preselected. Choosing one does not mean it is adequate, available, preferable, or supported by complete evidence. A choice from the inquiry does not select these pathways.";
+  "Select the possibilities you want to compare side by side. Selecting more than one does not mean you intend to do all of them. The actual decision is recorded later, at the user choice stage. No pathway is preselected. Choosing one does not mean it is adequate, available, preferable, or supported by complete evidence. A choice from the inquiry does not select these pathways.";
 
 export const COMPARISON_ORDER_NOTE =
   "Selected pathways are shown in a fixed order. That order is not a ranking.";
@@ -51,7 +51,7 @@ export const COMPARISON_CHROME = Object.freeze({
   continueFromInquiry: "Continue to empirical comparison",
   back: "Back to inquiry",
   reset: "Reset comparison",
-  pathwayLegend: "Pathways to inspect",
+  pathwayLegend: "Which alternatives do you want to compare?",
   horizonLabel: "Common adequate-service horizon in years",
   resultHeading: "What can be said so far",
 });
