@@ -7,9 +7,9 @@ configure DNS, or authorize public release.
 
 ## Public surface
 
-The public application is the Protect Four homepage, Journey, and the complete
-smartphone inquiry, plus the static repository canon and ordinary outbound
-source links.
+The public application is the Protect Four homepage, Journey, the complete
+smartphone inquiry, and the static Principles page at `/constitution`, plus
+the static repository canon and ordinary outbound source links.
 
 The profile is anonymous. It has no account, login, session, persistent user
 data, analytics, tracking, or non-essential cookies. It does not call xAI,
@@ -80,6 +80,18 @@ PREVIEW_URL=http://127.0.0.1:8081 node scripts/e2e-local-preview-smoke.mjs
 The smoke walks `/`, `/journey`, and `/smartphone`, including direct refresh,
 at 390×844 and 1280×800. It checks the static canon, prohibited network
 surfaces, cookies, and browser storage.
+
+Focused Principles check, with that same server running:
+
+```sh
+cd app
+PREVIEW_URL=http://127.0.0.1:8081 node scripts/constitution-public-profile-smoke.mjs
+```
+
+That check opens `/constitution` directly and from Home, reloads it, follows
+Principles and existing navigation to home and the phone inquiry, and checks
+cookies, storage, and prohibited requests. It does not submit a GitHub issue.
+Privacy and data limits in this profile are unchanged.
 
 ## Exclusions
 
