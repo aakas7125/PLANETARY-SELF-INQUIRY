@@ -1,6 +1,13 @@
-import { UNKNOWN, evaluateAdequacyAndUnknownState } from "./input-decision.mjs";
-import { evaluateSecondaryPathwayCase } from "./secondary-pathway.mjs";
 import { describeInquiry } from "./ap-inquiry-ux.mjs";
+import { UNKNOWN, evaluateAdequacyAndUnknownState } from "./input-decision.mjs";
+import {
+  APPROVED_SMARTPHONE_MODEL_RECORDS,
+  GENERIC_SMARTPHONE_MODEL_ID,
+  GENERIC_SMARTPHONE_MODEL_LABEL,
+  isControlledModelChoice,
+  resolveApprovedModelRecord,
+} from "./model-evidence.mjs";
+import { evaluateSecondaryPathwayCase } from "./secondary-pathway.mjs";
 import {
   SMARTPHONE_JOURNEY_STAGES,
   buildAdequacyInput,
@@ -11,8 +18,8 @@ import {
  * Presentation for the canonical smartphone comparison-entry step.
  *
  * Domain results come only from the accepted input and secondary evaluators.
- * This module does not copy their numerical constants, invent repair or model
- * facts, or rank pathways.
+ * Exact model figures come from the read-only model records. This module does
+ * not copy repair constants, invent a model, or rank pathways.
  */
 
 const SNAKE_CASE_TOKEN = /[a-z0-9]+_[a-z0-9_]+/;
@@ -168,6 +175,8 @@ const SCOPE_LABELS = Object.freeze({
  *   usedServiceNotSure: boolean,
  *   refurbishedServiceRaw: string,
  *   refurbishedServiceNotSure: boolean,
+ *   currentOwnedModelId: string | null,
+ *   candidateNewModelId: string | null,
  * }} ComparisonState
  */
 
@@ -178,6 +187,8 @@ const SCOPE_LABELS = Object.freeze({
  *   postRepairService?: ExplicitServiceValue,
  *   usedService?: ExplicitServiceValue,
  *   refurbishedService?: ExplicitServiceValue,
+ *   currentOwnedModelId?: string | null,
+ *   candidateNewModelId?: string | null,
  * } | null} ComparisonFactInput
  */
 
@@ -193,6 +204,8 @@ const SCOPE_LABELS = Object.freeze({
  *   | { type: "mark_used_not_sure" }
  *   | { type: "set_refurbished_service", text: string }
  *   | { type: "mark_refurbished_not_sure" }
+ *   | { type: "set_current_owned_model", modelId: string }
+ *   | { type: "set_candidate_new_model", modelId: string }
  *   | { type: "reset" }} ComparisonAction
  */
 
@@ -281,6 +294,9 @@ function stateForSelection(state, selectedIds) {
   if (!refurbishedServiceActive(next)) {
     next.refurbishedServiceRaw = "";
     next.refurbishedServiceNotSure = false;
+  }
+  if (!next.selectedIds.includes("new")) {
+    next.candidateNewModelId = null;
   }
   return next;
 }
@@ -374,6 +390,8 @@ export function createComparisonState() {
     usedServiceNotSure: false,
     refurbishedServiceRaw: "",
     refurbishedServiceNotSure: false,
+    currentOwnedModelId: null,
+    candidateNewModelId: null,
   };
 }
 
@@ -471,6 +489,22 @@ export function reduceComparison(state, action) {
         refurbishedServiceNotSure: state.refurbishedServiceNotSure !== true,
       };
     }
+    case "set_current_owned_model": {
+      if (!isControlledModelChoice(action.modelId)) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        currentOwnedModelId: state.currentOwnedModelId === action.modelId ? null : action.modelId,
+      };
+    }
+    case "set_candidate_new_model": {
+      if (!state.selectedIds.includes("new") || !isControlledModelChoice(action.modelId)) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        candidateNewModelId: state.candidateNewModelId === action.modelId ? null : action.modelId,
+      };
+    }
     case "reset":
       return createComparisonState();
     default:
@@ -538,6 +572,31 @@ function applyRemainingServiceFact(input, facts) {
 }
 
 /**
+ * Current-owned identity is historical context. Candidate identity is passed
+ * only for the new alternative, and only as an exact controlled choice.
+ *
+ * @param {Record<string, unknown>} input
+ * @param {ComparisonFactInput} facts
+ * @param {ComparisonPathwayId} pathwayId
+ */
+function applyModelIdentity(input, facts, pathwayId) {
+  const owned = resolveApprovedModelRecord(facts?.currentOwnedModelId);
+  if (owned) {
+    input["current_device.model_record_id"] = owned.record_id;
+    input["current_device.manufacturer"] = owned.manufacturer;
+    input["current_device.model"] = owned.public_label;
+  }
+  if (pathwayId === "new") {
+    const candidate = resolveApprovedModelRecord(facts?.candidateNewModelId);
+    if (candidate) {
+      input["replacement.new.model"] = candidate.record_id;
+      input["replacement.new.manufacturer"] = candidate.manufacturer;
+    }
+  }
+  return input;
+}
+
+/**
  * @param {Record<string, unknown>} input
  * @param {ComparisonFactInput} facts
  */
@@ -575,10 +634,14 @@ export function buildPathwayEvaluatorInput(pathwayId, answers, horizonYears, fac
     };
   }
 
-  const base = {
-    ...buildAdequacyInput(answers),
-    common_service_horizon_years: horizonYears,
-  };
+  const base = applyModelIdentity(
+    {
+      ...buildAdequacyInput(answers),
+      common_service_horizon_years: horizonYears,
+    },
+    facts,
+    pathwayId,
+  );
   if (pathwayId === "repair") return applyRepairFacts(base, facts);
   if (pathwayId === "new") {
     return applyRemainingServiceFact(
@@ -642,6 +705,54 @@ function qualifiedRange(name, value, scope) {
 /**
  * @param {Record<string, unknown>} decision
  */
+/**
+ * @param {string} name
+ * @param {Record<string, unknown>} source
+ * @param {"production" | "distribution"} phase
+ */
+function qualifiedModelPoint(name, source, phase) {
+  const prefix = phase === "production" ? "production" : "distribution";
+  const magnitude = source[`${prefix}_CO2e_kg`];
+  const display = source[`${prefix}_display`];
+  const kind = source[`${prefix}_value_kind`];
+  const approximate = source[`${prefix}_approximate`] === true;
+  if (source.provenance_scope !== "model_specific") return null;
+  if (typeof magnitude !== "number" || typeof display !== "string") return null;
+  if (kind !== "source_reported_point" && kind !== "approximate_derived_point") return null;
+  const scopeLabel = SCOPE_LABELS.model_specific;
+  const shown = approximate ? `about ${display}` : display;
+  const estimate = approximate
+    ? "This is an approximate derived estimate for the matched configuration, not a measurement of this physical handset. Rounding uncertainty stays visible."
+    : "This is a source-reported estimate for the matched configuration, not a measurement of this physical handset.";
+  const line = publicLine(
+    `${name}: ${shown} kg CO2e (GWP100). ${scopeLabel}. ${estimate} It does not finish the comparison.`,
+  );
+  return {
+    name,
+    exactValue: [magnitude],
+    display,
+    valueKind: kind,
+    approximate,
+    unit: "kg CO2e",
+    scope: "model_specific",
+    line,
+  };
+}
+
+/**
+ * @param {string} phaseLabel
+ * @returns {string | null}
+ */
+function phaseName(phaseLabel) {
+  if (phaseLabel === "transport") return "Transport";
+  if (phaseLabel === "distribution") return "Distribution";
+  if (phaseLabel === "transportation") return "Transportation";
+  return null;
+}
+
+/**
+ * @param {Record<string, unknown>} decision
+ */
 function newClimateValues(decision) {
   const replacement = decision.replacement;
   const scoped =
@@ -655,6 +766,15 @@ function newClimateValues(decision) {
         ? /** @type {Record<string, unknown>} */ (decision.new)
         : null;
   if (!source) return [];
+  if (source.provenance_scope === "model_specific") {
+    const distributionName = phaseName(
+      typeof source.distribution_phase_label === "string" ? source.distribution_phase_label : "",
+    );
+    return [
+      qualifiedModelPoint("Production", source, "production"),
+      distributionName ? qualifiedModelPoint(distributionName, source, "distribution") : null,
+    ].filter((entry) => entry != null);
+  }
   const scope =
     typeof source.provenance_scope === "string"
       ? source.provenance_scope
@@ -664,6 +784,43 @@ function newClimateValues(decision) {
   return [qualifiedRange("Production", source.production_CO2e_kg, scope), qualifiedRange("Distribution", source.distribution_CO2e_kg, scope)].filter(
     (entry) => entry != null,
   );
+}
+
+/**
+ * @param {Record<string, unknown>} reference
+ * @returns {string[]}
+ */
+function sourceReferenceLines(reference) {
+  /** @type {string[]} */
+  const lines = [];
+  if (typeof reference.total_display === "string") {
+    lines.push(
+      `Source whole-life reference: ${reference.total_display} kg CO2e (GWP100). It stays separate from the phase values and is not added to this horizon.`,
+    );
+  }
+  if (typeof reference.use_display === "string") {
+    const about = reference.use_value_kind === "approximate_derived_point" ? "about " : "";
+    if (reference.use_period_known === true && typeof reference.use_period_years === "number") {
+      lines.push(
+        `Source use-phase reference: ${about}${reference.use_display} kg CO2e (GWP100) over the source ${reference.use_period_years}-year period. That period is not expected service, and this value is not applied to the horizon.`,
+      );
+    } else {
+      lines.push(
+        `Source use-phase reference: ${about}${reference.use_display} kg CO2e (GWP100). The accepted record does not state how many years that use covers. It is not applied to this horizon.`,
+      );
+    }
+  }
+  if (reference.eol_value_kind === "upper_bound" && reference.eol_comparator === "<") {
+    lines.push(
+      `Source end-of-life reference: below ${reference.eol_bound_kg} kg CO2e (GWP100). That is an upper bound, not an exact amount. It is not included in a prospective total.`,
+    );
+  } else if (typeof reference.eol_display === "string") {
+    const about = reference.eol_value_kind === "approximate_derived_point" ? "about " : "";
+    lines.push(
+      `Source end-of-life reference: ${about}${reference.eol_display} kg CO2e (GWP100). It is not included in a prospective total.`,
+    );
+  }
+  return lines;
 }
 
 /**
@@ -830,6 +987,7 @@ function newRemainingLines(status, decision) {
  *   usedYears: ExplicitServiceValue,
  *   refurbishedStatus: ServiceFactStatus,
  *   refurbishedYears: ExplicitServiceValue,
+ *   candidateModelId: string | null,
  * }} CardFactContext
  */
 
@@ -957,11 +1115,39 @@ function presentCard(pathwayId, label, decision, facts) {
       lines.push("More information is needed before a new phone can be compared.");
     }
     lines.push(...newRemainingLines(facts.remainingStatus, decision));
-    lines.push("No specific new-phone model was supplied.");
+    const candidate = resolveApprovedModelRecord(facts.candidateModelId);
+    const replacement = decision.replacement;
+    const scopedValue =
+      replacement && typeof replacement === "object"
+        ? /** @type {Record<string, unknown>} */ (replacement).new
+        : null;
+    const scoped =
+      scopedValue && typeof scopedValue === "object"
+        ? /** @type {Record<string, unknown>} */ (scopedValue)
+        : null;
+    const referenceValue = scoped ? scoped.source_model_reference : null;
+    const reference =
+      referenceValue && typeof referenceValue === "object"
+        ? /** @type {Record<string, unknown>} */ (referenceValue)
+        : null;
+    if (candidate && scoped?.provenance_scope === "model_specific") {
+      lines.push(
+        `Candidate new phone: ${candidate.public_label}. ${candidate.configuration} These figures are source-model estimates for that configuration, not a measurement of a physical handset.`,
+      );
+    } else if (facts.candidateModelId === GENERIC_SMARTPHONE_MODEL_ID) {
+      lines.push(
+        "The new-phone model is not known. Approved generic smartphone evidence is used.",
+      );
+    } else {
+      lines.push("No specific new-phone model was supplied.");
+    }
     if (namedCapability) lines.push(namedCapability);
     const climate = newClimateValues(decision);
     values.push(...climate);
     for (const value of climate) lines.push(value.line);
+    if (reference?.not_substituted_into_user_horizon === true) {
+      lines.push(...sourceReferenceLines(reference));
+    }
     lines.push(...inputBoundaryLines(decision));
   } else if (pathwayId === "used_secondhand") {
     lines.push("This is a used or second-hand phone. It is not treated as a refurbished phone.");
@@ -1041,6 +1227,56 @@ function presentCard(pathwayId, label, decision, facts) {
  *   situationAnswers?: Parameters<typeof buildAdequacyInput>[0] | null,
  * }} [context]
  */
+/**
+ * @param {string | null} selectedId
+ */
+function modelIdentityChoices(selectedId) {
+  return [
+    ...APPROVED_SMARTPHONE_MODEL_RECORDS.map((record) => ({
+      id: record.record_id,
+      label: publicLine(record.public_label),
+      selected: selectedId === record.record_id,
+    })),
+    {
+      id: GENERIC_SMARTPHONE_MODEL_ID,
+      label: publicLine(GENERIC_SMARTPHONE_MODEL_LABEL),
+      selected: selectedId === GENERIC_SMARTPHONE_MODEL_ID,
+    },
+  ];
+}
+
+/**
+ * @param {(typeof APPROVED_SMARTPHONE_MODEL_RECORDS)[number]} record
+ * @returns {string[]}
+ */
+function historicalModelLines(record) {
+  const production = record.production.approximate
+    ? `about ${record.production.display}`
+    : record.production.display;
+  return [
+    `Historical source-model reference for the current phone: ${record.public_label}. ${record.configuration} This is not a measurement of this physical handset.`,
+    `Historical production is ${production} kg CO2e (GWP100). It stays outside any forward-looking keep or repair total and does not offset a new phone.`,
+    ...sourceReferenceLines({
+      total_display: record.total.display,
+      use_display: record.use_phase.display,
+      use_value_kind: record.use_phase.kind,
+      use_period_known: record.source_use_period_known,
+      use_period_years: record.source_use_period_years,
+      eol_value_kind: record.eol.kind,
+      eol_comparator: record.eol.comparator,
+      eol_bound_kg: record.eol.bound_kg,
+      eol_display: record.eol.display,
+    }),
+  ].map(publicLine);
+}
+
+/**
+ * @param {ComparisonState} state
+ * @param {{
+ *   inquiryReviewComplete?: boolean,
+ *   situationAnswers?: Parameters<typeof buildAdequacyInput>[0] | null,
+ * }} [context]
+ */
 export function describeComparison(state, context = {}) {
   const inquiryReady = context.inquiryReviewComplete === true;
   const answers = context.situationAnswers ?? null;
@@ -1056,6 +1292,8 @@ export function describeComparison(state, context = {}) {
     postRepairService: explicitServiceValue(state.postRepairServiceRaw, state.postRepairServiceNotSure),
     usedService: explicitServiceValue(state.usedServiceRaw, state.usedServiceNotSure),
     refurbishedService: explicitServiceValue(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
+    currentOwnedModelId: state.currentOwnedModelId,
+    candidateNewModelId: state.candidateNewModelId,
   };
 
   /** @type {ReturnType<typeof buildPathwayEvaluatorInput>[]} */
@@ -1077,6 +1315,7 @@ export function describeComparison(state, context = {}) {
           usedYears: explicitServiceValue(state.usedServiceRaw, state.usedServiceNotSure),
           refurbishedStatus: textServiceStatus(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
           refurbishedYears: explicitServiceValue(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
+          candidateModelId: state.candidateNewModelId,
         }),
       );
     }
@@ -1100,6 +1339,24 @@ export function describeComparison(state, context = {}) {
         )
       : null;
 
+  const ownedRecord = resolveApprovedModelRecord(state.currentOwnedModelId);
+  const candidateRecord = resolveApprovedModelRecord(state.candidateNewModelId);
+  const modelGuideNote =
+    ownedRecord || candidateRecord
+      ? publicLine(
+          "This lifecycle guide stays generic education. It is not a history of a matched source-model configuration, and it is not divided into stages for that record.",
+        )
+      : state.currentOwnedModelId === GENERIC_SMARTPHONE_MODEL_ID ||
+          state.candidateNewModelId === GENERIC_SMARTPHONE_MODEL_ID
+        ? publicLine("No exact phone is claimed. This guide remains generic smartphone evidence.")
+        : null;
+  const currentOwnedHistory = ownedRecord
+    ? {
+        label: publicLine(ownedRecord.public_label),
+        lines: historicalModelLines(ownedRecord),
+      }
+    : null;
+
   return {
     available,
     opening: COMPARISON_OPENING,
@@ -1113,6 +1370,23 @@ export function describeComparison(state, context = {}) {
     horizonRaw: state.horizonRaw,
     horizonYears,
     evaluated: canEvaluate,
+    modelGuideNote,
+    currentOwnedHistory,
+    currentOwnedField: {
+      legend: publicLine("Which phone do you already have?"),
+      helper: publicLine(
+        "Optional. An exact match is only a historical source-model reference. It does not judge adequacy, remaining life, repair, or the final decision. Nothing is selected for you.",
+      ),
+      choices: modelIdentityChoices(state.currentOwnedModelId),
+    },
+    candidateNewField: {
+      visible: state.selectedIds.includes("new"),
+      legend: publicLine("Which new phone is the candidate?"),
+      helper: publicLine(
+        "Optional, and only for the new-phone alternative. No exact model is selected for you. If you do not know, generic smartphone evidence stays available.",
+      ),
+      choices: modelIdentityChoices(state.candidateNewModelId),
+    },
     remainingServiceField: {
       visible: state.selectedIds.includes("keep") || state.selectedIds.includes("new"),
       label: publicLine(REMAINING_SERVICE_LABEL),

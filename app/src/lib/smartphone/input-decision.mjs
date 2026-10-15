@@ -1,3 +1,5 @@
+import { resolveApprovedModelRecord } from "./model-evidence.mjs";
+
 export const UNKNOWN = "unknown";
 export const USER_SITUATION_FACT = "user_situation_fact";
 export const RESEARCH_EVIDENCE_PARAMETER = "research_evidence_parameter";
@@ -212,6 +214,96 @@ function applyServiceSequence(result, input) {
 }
 
 /**
+ * The synthetic marker is not an accepted runtime record.
+ * Exact record ids and exact public labels resolve. Every other identity
+ * stays on the approved generic route and does not borrow caller numbers.
+ *
+ * @param {unknown} model
+ * @returns {"synthetic_marker" | "exact" | "generic_fallback"}
+ */
+function classifyNewModel(model) {
+  if (model === APPROVED_NEW_REGISTRY_MATCH) return "synthetic_marker";
+  if (resolveApprovedModelRecord(model)) return "exact";
+  return "generic_fallback";
+}
+
+/**
+ * @param {(typeof import("./model-evidence.mjs").APPROVED_SMARTPHONE_MODEL_RECORDS)[number]} record
+ */
+function exactNewPhase(record) {
+  return {
+    record_id: record.record_id,
+    public_label: record.public_label,
+    manufacturer: record.manufacturer,
+    model: record.model,
+    configuration: record.configuration,
+    provenance_scope: "model_specific",
+    status: record.status,
+    source_id: record.source_id,
+    source_year: record.source_year,
+    source_provenance: record.source_provenance,
+    package_provenance: record.package_provenance,
+    package_commit: record.package_commit,
+    metric: record.metric,
+    boundary: record.boundary,
+    production_CO2e_kg: record.production.magnitude_kg,
+    production_display: record.production.display,
+    production_value_kind: record.production.kind,
+    production_approximate: record.production.approximate,
+    distribution_CO2e_kg: record.distribution.magnitude_kg,
+    distribution_display: record.distribution.display,
+    distribution_value_kind: record.distribution.kind,
+    distribution_approximate: record.distribution.approximate,
+    distribution_phase_label: record.distribution.phase_label,
+    rounding_uncertainty: record.rounding_uncertainty,
+    source_model_reference: {
+      role: "source_model_reference",
+      not_substituted_into_user_horizon: true,
+      total_display: record.total.display,
+      total_magnitude_kg: record.total.magnitude_kg,
+      total_value_kind: record.total.kind,
+      use_display: record.use_phase.display,
+      use_magnitude_kg: record.use_phase.magnitude_kg,
+      use_value_kind: record.use_phase.kind,
+      use_period_years: record.source_use_period_known ? record.source_use_period_years : null,
+      use_period_known: record.source_use_period_known,
+      eol_display: record.eol.display,
+      eol_value_kind: record.eol.kind,
+      eol_magnitude_kg: record.eol.magnitude_kg,
+      eol_comparator: record.eol.comparator,
+      eol_bound_kg: record.eol.bound_kg,
+      boundary: record.boundary,
+      configuration: record.configuration,
+    },
+  };
+}
+
+/**
+ * @param {DecisionResult} result
+ * @param {SmartphoneInput} input
+ */
+function applyCurrentOwnedSourceModel(result, input) {
+  const fromId = resolveApprovedModelRecord(input["current_device.model_record_id"]);
+  const fromModel = resolveApprovedModelRecord(input["current_device.model"]);
+  if (fromId && fromModel && fromId.record_id !== fromModel.record_id) return;
+  const record = fromId ?? fromModel;
+  if (!record) return;
+  const phase = exactNewPhase(record);
+  result.current_owned_source_model = {
+    role: "historical_source_model_reference",
+    included_in_prospective_keep_or_repair: false,
+    avoided_production_credit: null,
+    record_id: phase.record_id,
+    public_label: phase.public_label,
+    production_CO2e_kg: phase.production_CO2e_kg,
+    production_display: phase.production_display,
+    production_value_kind: phase.production_value_kind,
+    production_approximate: phase.production_approximate,
+    source_model_reference: phase.source_model_reference,
+  };
+}
+
+/**
  * @param {DecisionResult} result
  * @param {SmartphoneInput} input
  */
@@ -233,9 +325,10 @@ function applyReplacementEvidence(result, input) {
 
   if (replacementType === "new") {
     const model = input["replacement.new.model"];
+    const route = classifyNewModel(model);
     const existingReplacement =
       result.replacement && typeof result.replacement === "object" ? result.replacement : {};
-    if (model === APPROVED_NEW_REGISTRY_MATCH) {
+    if (route === "synthetic_marker") {
       result.generic_range_used_as_primary = false;
       result.replacement = {
         ...existingReplacement,
@@ -243,7 +336,16 @@ function applyReplacementEvidence(result, input) {
           primary_climate_source: "model_specific",
         },
       };
-    } else if (isUnknown(model)) {
+    } else if (route === "exact") {
+      const record = resolveApprovedModelRecord(model);
+      if (record) {
+        result.generic_range_used_as_primary = false;
+        result.replacement = {
+          ...existingReplacement,
+          new: exactNewPhase(record),
+        };
+      }
+    } else {
       result.replacement = {
         ...existingReplacement,
         new: {
@@ -704,11 +806,38 @@ export function evaluateAdequacyAndUnknownState(input) {
     appendMissingField(result, "remaining_service.without_repair");
   }
 
+  const newRoute = replacementType === "new" ? classifyNewModel(input["replacement.new.model"]) : null;
+  const exactCandidate =
+    newRoute === "exact" ? resolveApprovedModelRecord(input["replacement.new.model"]) : null;
   if (
     replacementType === "new" &&
     adequacyStatus === "adequate" &&
     typeof horizon === "number" &&
-    input["replacement.new.model"] !== APPROVED_NEW_REGISTRY_MATCH
+    exactCandidate
+  ) {
+    const phase = exactNewPhase(exactCandidate);
+    result.new = {
+      record_id: phase.record_id,
+      public_label: phase.public_label,
+      provenance_scope: phase.provenance_scope,
+      production_CO2e_kg: phase.production_CO2e_kg,
+      production_display: phase.production_display,
+      production_value_kind: phase.production_value_kind,
+      production_approximate: phase.production_approximate,
+      distribution_CO2e_kg: phase.distribution_CO2e_kg,
+      distribution_display: phase.distribution_display,
+      distribution_value_kind: phase.distribution_value_kind,
+      distribution_approximate: phase.distribution_approximate,
+      distribution_phase_label: phase.distribution_phase_label,
+      source_model_reference: phase.source_model_reference,
+    };
+    result.generic_range_used_as_primary = false;
+    result.result_capability = "quantitative";
+  } else if (
+    replacementType === "new" &&
+    adequacyStatus === "adequate" &&
+    typeof horizon === "number" &&
+    newRoute === "generic_fallback"
   ) {
     result.new = {
       production_CO2e_kg: [...GENERIC_NEW_PRODUCTION_CO2E_KG],
@@ -722,6 +851,7 @@ export function evaluateAdequacyAndUnknownState(input) {
   applyRepairImpact(result, input);
   applyServiceSequence(result, input);
   applyReplacementEvidence(result, input);
+  applyCurrentOwnedSourceModel(result, input);
   applyOldDeviceFate(result, input);
   applyGenericEolBoundary(result);
   applyGenericRecyclingCreditBoundary(result);

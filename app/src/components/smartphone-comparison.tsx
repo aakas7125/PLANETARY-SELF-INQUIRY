@@ -75,6 +75,9 @@ export function SmartphoneComparison({
       </nav>
 
       <SmartphoneLifecycleGuide />
+      {view.modelGuideNote ? (
+        <p className="mt-3 break-words text-sm leading-relaxed text-foreground">{view.modelGuideNote}</p>
+      ) : null}
 
       <form
         className="mt-8 min-w-0 space-y-4"
@@ -120,6 +123,55 @@ export function SmartphoneComparison({
           </label>
           <p className="mt-2 text-sm leading-relaxed text-foreground">{view.horizonHelper}</p>
         </div>
+
+        <fieldset className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+          <legend className="font-display text-lg text-foreground">{view.currentOwnedField.legend}</legend>
+          <p className="mt-2 text-sm leading-relaxed text-foreground">{view.currentOwnedField.helper}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {view.currentOwnedField.choices.map((choice) => (
+              <Button
+                key={choice.label}
+                type="button"
+                variant={choice.selected ? "secondary" : "outline"}
+                aria-pressed={choice.selected}
+                className="h-auto min-h-11 whitespace-normal px-3 text-left"
+                onClick={() => dispatch({ type: "set_current_owned_model", modelId: choice.id })}
+              >
+                {choice.label}
+              </Button>
+            ))}
+          </div>
+          {view.currentOwnedHistory ? (
+            <div className="mt-3 space-y-2" aria-label="Current phone source-model history">
+              {view.currentOwnedHistory.lines.map((line) => (
+                <p key={line} className="break-words text-sm leading-relaxed text-foreground">
+                  {line}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </fieldset>
+
+        {view.candidateNewField.visible ? (
+          <fieldset className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+            <legend className="font-display text-lg text-foreground">{view.candidateNewField.legend}</legend>
+            <p className="mt-2 text-sm leading-relaxed text-foreground">{view.candidateNewField.helper}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {view.candidateNewField.choices.map((choice) => (
+                <Button
+                  key={choice.label}
+                  type="button"
+                  variant={choice.selected ? "secondary" : "outline"}
+                  aria-pressed={choice.selected}
+                  className="h-auto min-h-11 whitespace-normal px-3 text-left"
+                  onClick={() => dispatch({ type: "set_candidate_new_model", modelId: choice.id })}
+                >
+                  {choice.label}
+                </Button>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
 
         {view.remainingServiceField.visible ? (
           <div className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">

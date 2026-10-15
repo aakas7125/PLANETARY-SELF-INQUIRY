@@ -37,6 +37,8 @@ const COMPARISON_CLEAR_ACTIONS = new Set([
   "mark_used_not_sure",
   "set_refurbished_service",
   "mark_refurbished_not_sure",
+  "set_current_owned_model",
+  "set_candidate_new_model",
   "reset",
 ]);
 
