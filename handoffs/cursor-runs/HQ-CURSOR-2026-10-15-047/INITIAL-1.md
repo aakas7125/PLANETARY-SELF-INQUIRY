@@ -9,4 +9,5 @@ EVIDENCE_RETURN_HEAD: same commit as this lease update
 PR: https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/pull/147
 TASK_SPECIFIC_VALIDATION: generic new-production bridge tests passed; built app at 390 and 1280 showed the climate card with sources and limits, then cleared it after the new alternative was removed; overflow 0; no page errors
 ROUTINE_CI: PENDING
+VALIDATED_HEAD_CI: PASSED https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/actions/runs/38728588955
 Self-merge: NO

@@ -60,13 +60,17 @@ Rendered the built profile at `http://127.0.0.1:4173/smartphone` with system Chr
 
 ## Routine CI
 
-ROUTINE_CI: PENDING
+ROUTINE_CI: PENDING on the branch tip after this transport correction. The validated implementation head already passed.
 
-Validated implementation head run, in progress at return:
+Validated implementation head `5c84a2127ff39e486f689faf38895e42f8e6dbe1`, success:
 
 https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/actions/runs/38728588955
 
-The transport commit does not change the application tree. HQ rechecks routine CI without another Cursor wake.
+Earlier transport commit `2e8839b66fd7c82c9149c2defd627b70c5194f0c` had a pending run when this correction was written:
+
+https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/actions/runs/38728730012
+
+This correction does not change the application tree. HQ rechecks the branch-tip run without another Cursor wake.
 
 ## Preserved gaps
 
