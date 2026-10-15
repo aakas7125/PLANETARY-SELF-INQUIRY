@@ -7,11 +7,12 @@ GitHub Issues, exact PR heads and durable leases/returns are the current executi
 - #138 / PR #141: accepted and merged comparison-alternative clarity; completed.
 - #139 / PR #142: AP system-participation proposal received as specialist handoff; completed proposal delivery.
 - #140 / PR #143: Research smartphone/lifecycle proposal received at main `662c23b31a9177468ba5715f9af9a29fabb02719`; completed proposal delivery. HQ review 5532255813 records partial consumption and deferred semantics.
-- #144, `HQ-CURSOR-2026-10-15-047`, INITIAL-1: DISPATCHED_TO_CURSOR (wake 6190857058). Narrow accepted manufacturing subset: supported generic-new production evidence from current evaluated comparison → existing Climate Impact. No new AP metadata/gate, model lookup, lifecycle content or mining/e-waste inference. Inspect matching branch/lease/return before reporting active execution or considering another wake.
+- #144 / PR #147, `HQ-CURSOR-2026-10-15-047`, INITIAL-1: ACCEPTED and merged at `1a2008ca71d9edbb7924af2488d0cebe71cd9424` after exact-head CI and independent HQ review 5533310740. Returned lease is terminal; no wake/retry. Narrow generic-new manufacturing → Climate Impact only; other domain gates unchanged.
 - #145, `HQ-AP-2026-10-15-002`: READY_FOR_AP. Finalize optional system-participation anchor, evidence-gate consumption, skip/edit/reset and unchanged Protect My Four transition.
 - #146, `HQ-RE-2026-10-15-002`: READY_FOR_RESEARCH. Pin lifecycle statement/source map, exact accepted-model encoding and the empirical AP-facing support/extent interface. Coordinate with #145.
+- #148: non-executable, anonymous external-feedback case; PRELIMINARY. Initial triage aligns proposed question topics with existing APQ2/APQ4 and preserves the incomplete-review limit. No implementation/domain adoption, dispatch or project blocker. Later observations may be appended if supplied.
 
-Next dependency chain: independently review/accept #144 when returned; independently reconcile #145/#146 on return, then publish the smallest qualified Tier-2 model/generic/lifecycle and system-participation implementation slices. Do not ask Cursor to invent evidence or AP wording. No blanket adoption of the proposals, no silent service-horizon default, and no original-interview attribution until its exact source is pinned.
+Next dependency chain: independently reconcile #145/#146 on return, then publish the smallest qualified Tier-2 model/generic/lifecycle and system-participation implementation slices. Do not ask Cursor to invent evidence or AP wording. No blanket adoption of the proposals, no silent service-horizon default, and no original-interview attribution until its exact source is pinned.
 
 Before stopping, follow the bounded next-task discovery rule in `UNIVERSAL_ISSUE_CONTROL_PLANE.md`. Public unsolicited contributions are not work authority. Do not replay historical queue entries merely because they remain in old state documents.
 
