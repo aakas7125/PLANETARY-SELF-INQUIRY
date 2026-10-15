@@ -80,7 +80,8 @@ function sealRecord(record) {
       ? upperBound(record.eolBoundDisplay)
       : point(record.eolDisplay, record.eolKind),
     derived_values: record.derived_values,
-    rounding_uncertainty: record.rounding_uncertainty,
+    rounding_uncertainty:
+      record.rounding_uncertainty === true ? true : null,
     rounding_note: record.rounding_note,
     source_reported_shares: record.source_reported_shares ?? null,
     water_indicator_record: null,
@@ -116,7 +117,7 @@ const FAIRPHONE_5 = sealRecord({
   eolKind: "source_reported_point",
   eolBoundDisplay: null,
   derived_values: false,
-  rounding_uncertainty: false,
+  rounding_uncertainty: null,
   rounding_note: "Preserve the supplied precision. Do not add digits.",
 });
 
@@ -190,72 +191,77 @@ export const APPROVED_SMARTPHONE_MODEL_RECORDS = Object.freeze([
   IPHONE_16_128,
 ]);
 
+const REPAIR_INTERVENTION_BOUNDARY =
+  "Source-defined module/part production plus relevant additional transport and EOL activities.";
+
+/**
+ * Shared accepted provenance for every Fairphone 5 repair sub-record.
+ * The scenario stays the sub-record's own applicability. Nothing here
+ * selects a repair mode or applies the value.
+ *
+ * @param {{ field: string, display: string, scenario: string }} spec
+ */
+function fairphoneRepairSubrecord(spec) {
+  const magnitude = Number(spec.display);
+  if (!Number.isFinite(magnitude)) {
+    throw new Error("Fairphone repair display is not a finite number");
+  }
+  return Object.freeze({
+    field: spec.field,
+    display: spec.display,
+    magnitude_kg: magnitude,
+    unit: "kg CO2e",
+    source_id: "S2",
+    source_year: 2024,
+    source_provenance: "Fraunhofer IZM LCA, commissioned by Fairphone B.V.",
+    package_provenance: PACKAGE_PROVENANCE,
+    package_commit: PACKAGE_COMMIT,
+    intervention_boundary: REPAIR_INTERVENTION_BOUNDARY,
+    scenario: spec.scenario,
+    applicability: spec.scenario,
+    status: "APPROVED_MODEL_SPECIFIC",
+    reference_only: true,
+  });
+}
+
 /**
  * Source and scenario reference only. Nothing here selects a repair mode.
  */
 export const FAIRPHONE_5_REPAIR_SUBRECORDS = Object.freeze([
-  Object.freeze({
+  fairphoneRepairSubrecord({
     field: "repair.battery.diy",
     display: "0.568",
-    magnitude_kg: 0.568,
-    unit: "kg CO2e",
-    source_id: "S2",
-    status: "APPROVED_MODEL_SPECIFIC",
-    applicability: "Fairphone 5 battery, DIY scenario",
+    scenario: "Fairphone 5 battery, DIY scenario",
   }),
-  Object.freeze({
+  fairphoneRepairSubrecord({
     field: "repair.battery.repair_center",
     display: "0.617",
-    magnitude_kg: 0.617,
-    unit: "kg CO2e",
-    source_id: "S2",
-    status: "APPROVED_MODEL_SPECIFIC",
-    applicability: "Fairphone 5 battery, repair-centre scenario",
+    scenario: "Fairphone 5 battery, repair-centre scenario",
   }),
-  Object.freeze({
+  fairphoneRepairSubrecord({
     field: "repair.display.diy",
     display: "7.431",
-    magnitude_kg: 7.431,
-    unit: "kg CO2e",
-    source_id: "S2",
-    status: "APPROVED_MODEL_SPECIFIC",
-    applicability: "Fairphone 5 display module, DIY",
+    scenario: "Fairphone 5 display module, DIY",
   }),
-  Object.freeze({
+  fairphoneRepairSubrecord({
     field: "repair.display.repair_center",
     display: "7.493",
-    magnitude_kg: 7.493,
-    unit: "kg CO2e",
-    source_id: "S2",
-    status: "APPROVED_MODEL_SPECIFIC",
-    applicability: "Fairphone 5 display module, repair-centre",
+    scenario: "Fairphone 5 display module, repair-centre",
   }),
-  Object.freeze({
+  fairphoneRepairSubrecord({
     field: "repair.primary_pcba.full_module_diy",
     display: "17.840",
-    magnitude_kg: 17.84,
-    unit: "kg CO2e",
-    source_id: "S2",
-    status: "APPROVED_MODEL_SPECIFIC",
-    applicability: "Fairphone 5 only",
+    scenario: "Fairphone 5 only",
   }),
-  Object.freeze({
+  fairphoneRepairSubrecord({
     field: "repair.primary_pcba.full_module_repair_center",
     display: "17.909",
-    magnitude_kg: 17.909,
-    unit: "kg CO2e",
-    source_id: "S2",
-    status: "APPROVED_MODEL_SPECIFIC",
-    applicability: "Fairphone 5 only",
+    scenario: "Fairphone 5 only",
   }),
-  Object.freeze({
+  fairphoneRepairSubrecord({
     field: "repair.primary_pcba.board_level_part_repair_center",
     display: "6.959",
-    magnitude_kg: 6.959,
-    unit: "kg CO2e",
-    source_id: "S2",
-    status: "APPROVED_MODEL_SPECIFIC",
-    applicability: "Fairphone 5 only",
+    scenario: "Fairphone 5 only",
   }),
 ]);
 

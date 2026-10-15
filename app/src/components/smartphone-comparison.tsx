@@ -14,6 +14,27 @@ type ComparisonState = ReturnType<typeof createComparisonState>;
 type ComparisonAction = Parameters<typeof reduceComparison>[1];
 type ComparisonView = ReturnType<typeof describeComparison>;
 
+function SourcesAndLimits({
+  disclosure,
+}: {
+  disclosure: {
+    heading: string;
+    lines: string[];
+  } | null;
+}) {
+  if (!disclosure) return null;
+  return (
+    <section aria-label={disclosure.heading} className="mt-3 space-y-2 rounded-lg bg-background px-3 py-3">
+      <h4 className="text-sm font-medium text-foreground">{disclosure.heading}</h4>
+      {disclosure.lines.map((line) => (
+        <p key={line} className="break-words text-sm leading-relaxed text-foreground">
+          {line}
+        </p>
+      ))}
+    </section>
+  );
+}
+
 const choiceClass = (selected: boolean) =>
   cn(
     "flex min-h-11 min-w-0 cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-sm text-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-paper",
@@ -148,6 +169,7 @@ export function SmartphoneComparison({
                   {line}
                 </p>
               ))}
+              <SourcesAndLimits disclosure={view.currentOwnedHistory.sourcesAndLimits} />
             </div>
           ) : null}
         </fieldset>
@@ -412,6 +434,7 @@ export function SmartphoneComparison({
                       {line}
                     </p>
                   ))}
+                  <SourcesAndLimits disclosure={card.sourcesAndLimits} />
                 </div>
               </article>
             ))}

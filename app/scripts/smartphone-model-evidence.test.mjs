@@ -120,8 +120,11 @@ describe("controlled smartphone model evidence", () => {
     assert.equal(fairphone.eol.display, "0.041");
     assert.equal(fairphone.eol.kind, "source_reported_point");
     assert.equal(fairphone.derived_values, false);
+    assert.equal(fairphone.rounding_uncertainty, null);
+    assert.notEqual(fairphone.rounding_uncertainty, false);
     assert.equal(fairphone.water_indicator_record, null);
     assert.equal(fairphone.package_commit, PACKAGE_COMMIT);
+    assert.equal(fairphone.package_provenance, "R&E-V0-SMARTPHONE-0.3.0");
     assert.equal(fairphone.confidence, undefined);
 
     assert.equal(samsung.record_id, "MS-CLIMATE-GALAXY-S25-EUR-S3-V0");
@@ -152,6 +155,8 @@ describe("controlled smartphone model evidence", () => {
     assert.equal(iphone.eol.magnitude_kg, null);
     assert.equal(iphone.eol.bound_kg, 0.56);
     assert.notEqual(iphone.eol.magnitude_kg, 0.56);
+    assert.equal(iphone.rounding_uncertainty, true);
+    assert.equal(iphone.confidence, undefined);
 
     assert.deepEqual(
       FAIRPHONE_5_REPAIR_SUBRECORDS.map((item) => [item.field, item.display]),
@@ -167,7 +172,18 @@ describe("controlled smartphone model evidence", () => {
     );
     for (const item of FAIRPHONE_5_REPAIR_SUBRECORDS) {
       assert.equal(item.source_id, "S2");
+      assert.equal(item.source_year, 2024);
+      assert.equal(item.source_provenance, "Fraunhofer IZM LCA, commissioned by Fairphone B.V.");
+      assert.equal(item.package_provenance, "R&E-V0-SMARTPHONE-0.3.0");
+      assert.equal(item.package_commit, PACKAGE_COMMIT);
+      assert.equal(
+        item.intervention_boundary,
+        "Source-defined module/part production plus relevant additional transport and EOL activities.",
+      );
+      assert.equal(item.scenario, item.applicability);
+      assert.equal(item.reference_only, true);
       assert.equal(item.status, "APPROVED_MODEL_SPECIFIC");
+      assert.equal(item.confidence, undefined);
     }
   });
 
@@ -221,6 +237,14 @@ describe("controlled smartphone model evidence", () => {
     assert.equal(exact.replacement.new.production_CO2e_kg, 32.7);
     assert.notEqual(exact.replacement.new.production_CO2e_kg, fairphone.total.magnitude_kg);
     assert.equal(exact.replacement.new.source_model_reference.not_substituted_into_user_horizon, true);
+    assert.equal(exact.replacement.new.source_model_reference.source_id, "S2");
+    assert.equal(exact.replacement.new.source_model_reference.source_year, 2024);
+    assert.equal(
+      exact.replacement.new.source_model_reference.source_provenance,
+      "Fraunhofer IZM LCA, commissioned by Fairphone B.V.",
+    );
+    assert.equal(exact.replacement.new.source_model_reference.rounding_uncertainty, null);
+    assert.equal(exact.replacement.new.source_model_reference.package_commit, PACKAGE_COMMIT);
     assert.equal(exact.replacement.new.source_model_reference.use_magnitude_kg, 6.59);
     assert.equal(exact.charging_carbon_CO2e_kg, undefined);
     assert.notEqual(exact.charging_carbon_CO2e_kg, 6.59);
@@ -268,6 +292,14 @@ describe("controlled smartphone model evidence", () => {
     assert.equal(owned.current_owned_source_model.included_in_prospective_keep_or_repair, false);
     assert.equal(owned.current_owned_source_model.avoided_production_credit, null);
     assert.equal(owned.current_owned_source_model.production_display, "32.70");
+    assert.equal(owned.current_owned_source_model.source_id, "S2");
+    assert.equal(owned.current_owned_source_model.source_year, 2024);
+    assert.equal(
+      owned.current_owned_source_model.source_provenance,
+      "Fraunhofer IZM LCA, commissioned by Fairphone B.V.",
+    );
+    assert.equal(owned.current_owned_source_model.rounding_uncertainty, null);
+    assert.equal(owned.current_owned_source_model.source_model_reference.package_commit, PACKAGE_COMMIT);
     assert.equal(owned.historic_owned_production_included_in_prospective_keep_total, false);
     assert.equal(owned.avoided_manufacture_credit_from_owned_history, null);
     assert.deepEqual(owned.repair.climate_CO2e_kg, [0.3, 0.7]);
@@ -408,6 +440,77 @@ describe("controlled smartphone model evidence", () => {
     assert.equal(
       ownedView.cards.find((card) => card.id === "new").values.some((value) => value.display === "32.70"),
       false,
+    );
+  });
+
+  it("shows accepted source limits for the current phone and the exact candidate", () => {
+    const fairphone = recordByLabel("Fairphone 5");
+    const samsung = recordByLabel("Samsung Galaxy S25 EUR");
+    const iphone = recordByLabel("Apple iPhone 16 128 GB");
+    const view = comparisonWith(["new"], "4", (current) => {
+      let next = reduceComparison(current, { type: "set_remaining_service", text: "2.50" });
+      next = reduceComparison(next, { type: "set_current_owned_model", modelId: fairphone.record_id });
+      return reduceComparison(next, { type: "set_candidate_new_model", modelId: samsung.record_id });
+    });
+    const owned = view.currentOwnedHistory.sourcesAndLimits;
+    const card = view.cards.find((item) => item.id === "new");
+    const candidate = card.sourcesAndLimits;
+    assert.equal(owned.heading, "Sources and limits");
+    assert.equal(candidate.heading, "Sources and limits");
+    assert.equal(owned.sourceId, "S2");
+    assert.equal(owned.sourceYear, 2024);
+    assert.equal(owned.sourceProvenance, fairphone.source_provenance);
+    assert.match(owned.lines.join("\n"), /commissioned by Fairphone B\.V\./);
+    assert.equal(owned.boundary, fairphone.boundary);
+    assert.equal(owned.sourceUsePeriodKnown, true);
+    assert.equal(owned.sourceUsePeriodYears, 3);
+    assert.equal(owned.roundingUncertainty, null);
+    assert.match(owned.lines.join("\n"), /No rounding-uncertainty flag is recorded/);
+    assert.doesNotMatch(owned.lines.join("\n"), /rounding uncertainty is false/i);
+    assert.equal(owned.packageProvenance, "R&E-V0-SMARTPHONE-0.3.0");
+    assert.equal(owned.packageCommit, PACKAGE_COMMIT);
+    assert.match(owned.lines.join("\n"), /source-reported point/);
+    assert.match(owned.lines.join("\n"), /outside the horizon/);
+
+    assert.equal(candidate.sourceId, "S3");
+    assert.equal(candidate.sourceYear, 2025);
+    assert.equal(candidate.sourceProvenance, samsung.source_provenance);
+    assert.match(candidate.lines.join("\n"), /Samsung manufacturer product environmental report/);
+    assert.equal(candidate.manufacturer, "Samsung");
+    assert.equal(candidate.boundary, samsung.boundary);
+    assert.equal(candidate.configuration, samsung.configuration);
+    assert.equal(candidate.sourceUsePeriodKnown, false);
+    assert.equal(candidate.sourceUsePeriodYears, null);
+    assert.match(candidate.lines.join("\n"), /source use period remains unknown/);
+    assert.equal(candidate.roundingUncertainty, true);
+    assert.match(candidate.lines.join("\n"), /Rounding uncertainty is recorded/);
+    assert.match(candidate.lines.join("\n"), /approximate derived point/);
+    assert.equal(candidate.packageCommit, PACKAGE_COMMIT);
+    assert.equal(card.decision.replacement.new.production_display, "40.22");
+    assert.doesNotMatch(
+      [...owned.lines, ...candidate.lines].join("\n"),
+      SNAKE_CASE_TOKEN,
+    );
+
+    const iphoneView = comparisonWith(["new"], "4", (current) => {
+      let next = reduceComparison(current, { type: "set_remaining_service", text: "2.50" });
+      next = reduceComparison(next, { type: "set_current_owned_model", modelId: samsung.record_id });
+      return reduceComparison(next, { type: "set_candidate_new_model", modelId: iphone.record_id });
+    });
+    const iphoneLimits = iphoneView.cards.find((item) => item.id === "new").sourcesAndLimits;
+    const samsungOwned = iphoneView.currentOwnedHistory.sourcesAndLimits;
+    assert.equal(iphoneLimits.sourceId, "S4");
+    assert.equal(iphoneLimits.sourceProvenance, iphone.source_provenance);
+    assert.match(iphoneLimits.lines.join("\n"), /Apple manufacturer product environmental report/);
+    assert.match(iphoneLimits.lines.join("\n"), /inequality, not an exact amount/);
+    assert.equal(iphoneLimits.sourceUsePeriodYears, 3);
+    assert.equal(samsungOwned.sourceUsePeriodKnown, false);
+    assert.match(samsungOwned.lines.join("\n"), /remains unknown/);
+    assert.equal(
+      comparisonWith(["new"], "4", (current) =>
+        reduceComparison(current, { type: "set_remaining_service", text: "2.50" }),
+      ).cards.find((item) => item.id === "new").sourcesAndLimits,
+      null,
     );
   });
 

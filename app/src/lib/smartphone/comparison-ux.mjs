@@ -787,6 +787,105 @@ function newClimateValues(decision) {
 }
 
 /**
+ * Compact public provenance for one accepted source-model record.
+ * Unstated rounding stays unknown. No confidence rating is created.
+ *
+ * @param {Record<string, unknown>} meta
+ * @returns {{
+ *   heading: string,
+ *   sourceId: string,
+ *   sourceYear: number,
+ *   sourceProvenance: string,
+ *   manufacturer: string,
+ *   boundary: string,
+ *   configuration: string,
+ *   sourceUsePeriodKnown: boolean,
+ *   sourceUsePeriodYears: number | null,
+ *   roundingUncertainty: true | null | unknown,
+ *   packageProvenance: string,
+ *   packageCommit: string,
+ *   lines: string[],
+ * } | null}
+ */
+function sourcesAndLimitsDisclosure(meta) {
+  if (
+    typeof meta.source_id !== "string" ||
+    typeof meta.source_year !== "number" ||
+    typeof meta.source_provenance !== "string" ||
+    typeof meta.manufacturer !== "string" ||
+    typeof meta.boundary !== "string" ||
+    typeof meta.configuration !== "string" ||
+    typeof meta.package_provenance !== "string" ||
+    typeof meta.package_commit !== "string"
+  ) {
+    return null;
+  }
+  const useKnown = meta.use_period_known === true && typeof meta.use_period_years === "number";
+  /** @type {string[]} */
+  const lines = [
+    `Source ${meta.source_id}, ${meta.source_year}. ${meta.source_provenance}.`,
+    `Manufacturer: ${meta.manufacturer}. Configuration: ${meta.configuration}`,
+    `Source boundary: ${meta.boundary}.`,
+    useKnown
+      ? `Source time assumption: ${meta.use_period_years} years. That source period is not the horizon entered here.`
+      : "The source use period remains unknown. It is not replaced with a number of years.",
+    "Source whole-life, use, and end-of-life values remain references outside the horizon entered here.",
+  ];
+  if (meta.production_value_kind === "source_reported_point") {
+    lines.push("Production used from this record is a source-reported point.");
+  } else if (meta.production_value_kind === "approximate_derived_point") {
+    lines.push("Production used from this record is an approximate derived point.");
+  }
+  if (meta.eol_value_kind === "upper_bound") {
+    lines.push("End of life is recorded as an inequality, not an exact amount.");
+  }
+  if (meta.rounding_uncertainty === true) {
+    lines.push("Rounding uncertainty is recorded for the approximate phase values.");
+  } else if (meta.rounding_uncertainty == null) {
+    lines.push(
+      "No rounding-uncertainty flag is recorded. The supplied precision is kept, and no confidence rating is added.",
+    );
+  }
+  lines.push(`Accepted package ${meta.package_provenance}. Package reference ${meta.package_commit}.`);
+  return {
+    heading: "Sources and limits",
+    sourceId: meta.source_id,
+    sourceYear: meta.source_year,
+    sourceProvenance: meta.source_provenance,
+    manufacturer: meta.manufacturer,
+    boundary: meta.boundary,
+    configuration: meta.configuration,
+    sourceUsePeriodKnown: useKnown,
+    sourceUsePeriodYears: useKnown ? /** @type {number} */ (meta.use_period_years) : null,
+    roundingUncertainty: meta.rounding_uncertainty === true ? true : meta.rounding_uncertainty ?? null,
+    packageProvenance: meta.package_provenance,
+    packageCommit: meta.package_commit,
+    lines: lines.map(publicLine),
+  };
+}
+
+/**
+ * @param {(typeof APPROVED_SMARTPHONE_MODEL_RECORDS)[number]} record
+ */
+function sourcesAndLimitsFromRecord(record) {
+  return sourcesAndLimitsDisclosure({
+    source_id: record.source_id,
+    source_year: record.source_year,
+    source_provenance: record.source_provenance,
+    manufacturer: record.manufacturer,
+    boundary: record.boundary,
+    configuration: record.configuration,
+    use_period_known: record.source_use_period_known,
+    use_period_years: record.source_use_period_years,
+    production_value_kind: record.production.kind,
+    eol_value_kind: record.eol.kind,
+    rounding_uncertainty: record.rounding_uncertainty,
+    package_provenance: record.package_provenance,
+    package_commit: record.package_commit,
+  });
+}
+
+/**
  * @param {Record<string, unknown>} reference
  * @returns {string[]}
  */
@@ -1052,6 +1151,8 @@ function presentCard(pathwayId, label, decision, facts) {
   const values = [];
   const capability = typeof decision.result_capability === "string" ? decision.result_capability : null;
   const namedCapability = capabilityLabel(decision);
+  /** @type {ReturnType<typeof sourcesAndLimitsDisclosure>} */
+  let sourcesAndLimits = null;
 
   if (pathwayId === "keep") {
     const keep = decision.keep_as_is;
@@ -1148,6 +1249,9 @@ function presentCard(pathwayId, label, decision, facts) {
     if (reference?.not_substituted_into_user_horizon === true) {
       lines.push(...sourceReferenceLines(reference));
     }
+    if (candidate && scoped?.provenance_scope === "model_specific" && reference) {
+      sourcesAndLimits = sourcesAndLimitsDisclosure(reference);
+    }
     lines.push(...inputBoundaryLines(decision));
   } else if (pathwayId === "used_secondhand") {
     lines.push("This is a used or second-hand phone. It is not treated as a refurbished phone.");
@@ -1205,6 +1309,7 @@ function presentCard(pathwayId, label, decision, facts) {
     missingFields: Array.isArray(decision.missing_required_fields)
       ? decision.missing_required_fields
       : [],
+    sourcesAndLimits,
     rankingPermitted: decision.definitive_comparative_ranking_permitted === true,
     unifiedHarmScore:
       "unified_harm_score" in decision ? decision.unified_harm_score : null,
@@ -1354,6 +1459,7 @@ export function describeComparison(state, context = {}) {
     ? {
         label: publicLine(ownedRecord.public_label),
         lines: historicalModelLines(ownedRecord),
+        sourcesAndLimits: sourcesAndLimitsFromRecord(ownedRecord),
       }
     : null;
 

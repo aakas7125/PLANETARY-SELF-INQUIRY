@@ -274,6 +274,14 @@ function exactNewPhase(record) {
       eol_bound_kg: record.eol.bound_kg,
       boundary: record.boundary,
       configuration: record.configuration,
+      source_id: record.source_id,
+      source_year: record.source_year,
+      source_provenance: record.source_provenance,
+      manufacturer: record.manufacturer,
+      package_provenance: record.package_provenance,
+      package_commit: record.package_commit,
+      rounding_uncertainty: record.rounding_uncertainty,
+      production_value_kind: record.production.kind,
     },
   };
 }
@@ -299,6 +307,15 @@ function applyCurrentOwnedSourceModel(result, input) {
     production_display: phase.production_display,
     production_value_kind: phase.production_value_kind,
     production_approximate: phase.production_approximate,
+    source_id: phase.source_id,
+    source_year: phase.source_year,
+    source_provenance: phase.source_provenance,
+    manufacturer: phase.manufacturer,
+    boundary: phase.boundary,
+    configuration: phase.configuration,
+    package_provenance: phase.package_provenance,
+    package_commit: phase.package_commit,
+    rounding_uncertainty: phase.rounding_uncertainty,
     source_model_reference: phase.source_model_reference,
   };
 }
