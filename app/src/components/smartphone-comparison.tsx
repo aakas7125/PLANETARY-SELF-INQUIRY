@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { SmartphoneLifecycleGuide } from "@/components/smartphone-lifecycle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -72,6 +73,8 @@ export function SmartphoneComparison({
           ))}
         </ol>
       </nav>
+
+      <SmartphoneLifecycleGuide />
 
       <form
         className="mt-8 min-w-0 space-y-4"
