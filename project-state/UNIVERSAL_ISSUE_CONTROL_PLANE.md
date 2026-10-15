@@ -134,6 +134,50 @@ HQ itself has authority to perform the next step.
 Status reporting comes after currently actionable owner-independent execution,
 not instead of it.
 
+### HQ next-task discovery and queue-continuity rule
+
+Completing the currently visible Issue, PR, review, merge, reconciliation, or
+dispatch does not by itself establish that no actionable work remains.
+
+Before Project HQ stops under the condition "no meaningful actionable work
+remains", HQ must perform a fresh bounded project intake and determine whether
+the next owner-independent task can be derived from accepted project state.
+
+That intake must inspect, as relevant:
+
+1. current explicit Owner directions not yet durably routed;
+2. authorized open Issues, PRs, run leases, return artifacts and handoffs;
+3. accepted project-state records, including the task queue, workstream status,
+   known limitations, decision records and applicable accepted roadmap/build
+   direction;
+4. unresolved accepted dependencies or gaps exposed by the work just completed;
+5. bounded Research, AP, implementation, validation or governance work whose
+   necessity is already determined by accepted state.
+
+"No open Issues" is not evidence that no actionable project work remains.
+
+When that intake identifies a bounded owner-independent next task, HQ must in
+the same Work run, where possible:
+
+- define the smallest coherent task;
+- publish the appropriate executable Issue or handoff;
+- route it to the correct workstream;
+- post the required dispatch/wake when the executor requires one; and
+- continue progression until an actual stopping condition is reached.
+
+If the next step requires new scientific, AP, product or owner-level semantics,
+HQ must route the bounded question to the appropriate authority rather than
+inventing the answer.
+
+HQ must not create artificial work merely to remain active. If, after the
+bounded intake above, no justified owner-independent action exists, HQ may stop
+and report what was inspected and why no next task was authorized.
+
+If a Work run is interrupted by runtime, quota, credit or tool limits, the next
+HQ continuation run must re-fetch current repository state and resume the
+unfinished orchestration chain rather than treating the prior partial report as
+completion.
+
 ## Cursor event-driven dispatch
 
 A native Cursor Automation may listen for GitHub Issue comments containing the exact marker `[CURSOR-DISPATCH]`. The comment is a transport and wake signal only. It never creates, expands, or substitutes for execution authority; the Issue remains the sole authoritative task record.
