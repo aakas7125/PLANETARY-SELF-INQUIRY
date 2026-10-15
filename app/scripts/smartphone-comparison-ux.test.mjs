@@ -22,6 +22,10 @@ import {
   parseExplicitHorizon,
   reduceComparison,
 } from "../src/lib/smartphone/comparison-ux.mjs";
+import {
+  createFinalChoiceState,
+  finalChoiceStateAfterComparisonAction,
+} from "../src/lib/smartphone/final-choice-ux.mjs";
 import { evaluateAdequacyAndUnknownState } from "../src/lib/smartphone/input-decision.mjs";
 import { evaluateSecondaryPathwayCase } from "../src/lib/smartphone/secondary-pathway.mjs";
 import {
@@ -154,6 +158,60 @@ describe("smartphone comparison entry", () => {
         .join(","),
       "impact-dependency,protect-four-otherness,user-choice",
     );
+  });
+
+  it("explains that checkboxes compare alternatives and does not record a final decision", () => {
+    const view = readyComparison(["used_secondhand", "refurbished"], "2.50");
+    const component = readApp("src/components/smartphone-comparison.tsx");
+
+    assert.equal(
+      COMPARISON_CHROME.pathwayLegend,
+      "Which alternatives do you want to compare?",
+    );
+    assert.match(component, /COMPARISON_CHROME\.pathwayLegend/);
+    assert.match(component, /view\.selectionNote/);
+    assert.match(component, /type="checkbox"/);
+    assert.doesNotMatch(component, /type="radio"/);
+    assert.match(
+      view.selectionNote,
+      /Select the possibilities you want to compare side by side\. Selecting more than one does not mean you intend to do all of them\./,
+    );
+    assert.match(view.selectionNote, /The actual decision is recorded later, at the user choice stage\./);
+    assert.match(view.selectionNote, /No pathway is preselected/);
+    assert.match(
+      view.selectionNote,
+      /does not mean it is adequate, available, preferable, or supported by complete evidence/,
+    );
+    assert.match(view.selectionNote, /A choice from the inquiry does not select these pathways/);
+    assert.match(view.boundary, /does not rank the pathways/);
+    assert.equal(view.opening.includes("Pathways to inspect"), false);
+
+    const used = view.pathways.find((pathway) => pathway.id === "used_secondhand");
+    const refurbished = view.pathways.find((pathway) => pathway.id === "refurbished");
+    assert.equal(used?.selected, true);
+    assert.equal(refurbished?.selected, true);
+    assert.notEqual(used?.label, refurbished?.label);
+    assert.equal(view.horizonRaw, "2.50");
+    assert.equal(view.horizonYears, 2.5);
+    assert.deepEqual(
+      view.cards.map((card) => card.id),
+      ["used_secondhand", "refurbished"],
+    );
+    assert.equal(view.evaluatorInputs[0].replacement.pathway_user_selection, "used_secondhand");
+    assert.equal(view.evaluatorInputs[1].replacement.pathway_user_selection, "refurbished");
+    assert.equal(view.evaluatorInputs[0].comparison.common_service_horizon_years, 2.5);
+    assert.equal(view.evaluatorInputs[1].comparison.common_service_horizon_years, 2.5);
+    assert.notEqual(
+      view.evaluatorInputs[0].replacement.pathway_user_selection,
+      view.evaluatorInputs[1].replacement.pathway_user_selection,
+    );
+
+    const untouched = createFinalChoiceState();
+    const afterToggle = finalChoiceStateAfterComparisonAction("toggle", untouched);
+    assert.equal(afterToggle.selection, null);
+    assert.equal(afterToggle.opened, false);
+    assert.deepEqual(afterToggle, untouched);
+    assert.equal(view.rankingPermitted, false);
   });
 
   it("does not let an AP Q6 choice preselect or rank an empirical pathway", () => {
