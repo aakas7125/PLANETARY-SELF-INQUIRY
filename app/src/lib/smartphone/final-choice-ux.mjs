@@ -300,6 +300,24 @@ export function finalChoiceStateAfterOthernessAction(actionType, state) {
 }
 
 /**
+ * Editing a system-participation answer drops a stale final choice.
+ * Opening, skipping, or continuing that reflection does not.
+ *
+ * @param {string} actionType
+ * @param {FinalChoiceState} state
+ * @returns {FinalChoiceState}
+ */
+export function finalChoiceStateAfterParticipationAction(actionType, state) {
+  return clearUnlessUnchanged(
+    actionType === "clear" ||
+      actionType === "set_qsp1" ||
+      actionType === "set_qsp2" ||
+      actionType === "set_qsp3",
+    state,
+  );
+}
+
+/**
  * Going back to the otherness stage keeps the final choice.
  *
  * @param {FinalChoiceState} state

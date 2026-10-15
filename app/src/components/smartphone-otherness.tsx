@@ -61,9 +61,12 @@ export function SmartphoneOtherness({
 
       {view.available ? (
         <section aria-label="Protect Four and otherness inquiry" className="mt-8 min-w-0">
+          {view.empiricalAnchor ? (
+            <p className="break-words text-sm leading-relaxed text-foreground">{view.empiricalAnchor}</p>
+          ) : null}
           {view.activated && view.question ? (
             <div className="min-w-0">
-              <p className="text-sm leading-relaxed text-foreground">{view.classificationLine}</p>
+              <p className="mt-4 text-sm leading-relaxed text-foreground">{view.classificationLine}</p>
               <h2 className="mt-4 break-words font-display text-2xl leading-snug text-foreground">
                 {view.question}
               </h2>

@@ -3,6 +3,7 @@ import { SmartphoneLifecycleGuide } from "@/components/smartphone-lifecycle";
 import { Button } from "@/components/ui/button";
 import { OTHERNESS_CHROME } from "@/lib/smartphone/ap-otherness-ux.mjs";
 import { IMPACT_CHROME, describeImpact } from "@/lib/smartphone/impact-pathways-ux.mjs";
+import { SYSTEM_PARTICIPATION_CHROME } from "@/lib/smartphone/system-participation-ux.mjs";
 
 type ImpactView = ReturnType<typeof describeImpact>;
 
@@ -10,10 +11,16 @@ export function SmartphoneImpact({
   view,
   onBackToComparison,
   onContinueToOtherness,
+  systemParticipation = null,
+  onReflect,
+  onSkipReflection,
 }: {
   view: ImpactView;
   onBackToComparison: () => void;
   onContinueToOtherness?: () => void;
+  systemParticipation?: { anchor: string } | null;
+  onReflect?: () => void;
+  onSkipReflection?: () => void;
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -115,7 +122,28 @@ export function SmartphoneImpact({
             ))}
           </div>
           <p className="mt-4 text-sm leading-relaxed text-foreground">{view.boundary}</p>
-          {onContinueToOtherness ? (
+          {systemParticipation && onReflect && onSkipReflection ? (
+            <div className="mt-4 space-y-3">
+              <p className="break-words text-sm leading-relaxed text-foreground">{systemParticipation.anchor}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  className="h-auto min-h-11 whitespace-normal px-4 py-2 text-center"
+                  onClick={onReflect}
+                >
+                  {SYSTEM_PARTICIPATION_CHROME.reflect}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-auto min-h-11 whitespace-normal px-4 py-2 text-center"
+                  onClick={onSkipReflection}
+                >
+                  {SYSTEM_PARTICIPATION_CHROME.skip}
+                </Button>
+              </div>
+            </div>
+          ) : onContinueToOtherness ? (
             <div className="mt-4">
               <Button type="button" onClick={onContinueToOtherness}>
                 {OTHERNESS_CHROME.continueFromImpact}

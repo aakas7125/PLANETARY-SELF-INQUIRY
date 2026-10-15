@@ -11,8 +11,10 @@ import {
   SUPPORT_STATUS_UNSUPPORTED,
   buildOthernessInquiry,
 } from "./ap-otherness.mjs";
+import { isCompleteEmpiricalConsequenceRecord } from "./empirical-consequence.mjs";
 import { IMPACT_CHROME } from "./impact-pathways-ux.mjs";
 import { SMARTPHONE_JOURNEY_STAGES } from "./situation-ux.mjs";
+import { SYSTEM_PARTICIPATION_ANCHOR } from "./system-participation-ux.mjs";
 
 /**
  * Presentation for the post-evidence Protect Four / otherness inquiry.
@@ -410,6 +412,8 @@ function disclosureFromPayload(payload) {
  *   displayedRecords?: unknown,
  *   apOnlyClaims?: unknown,
  *   apAttributionAsEmpiricalSupport?: unknown,
+ *   requireFullResearchRecord?: boolean,
+ *   empiricalAnchor?: unknown,
  * }} [context]
  */
 export function describeOtherness(state, context = {}) {
@@ -433,12 +437,21 @@ export function describeOtherness(state, context = {}) {
       stages,
       disclosure: null,
       inspection: null,
+      empiricalAnchor: null,
+      empiricalConsequenceRecords: [],
     };
   }
 
+  const fullRecords =
+    context.requireFullResearchRecord === true && Array.isArray(context.displayedRecords)
+      ? context.displayedRecords.filter((record) => isCompleteEmpiricalConsequenceRecord(record))
+      : [];
   /** @type {Record<string, unknown>} */
   const gateInput = {
-    displayed_consequences: displayedConsequenceReferences(context.displayedRecords),
+    displayed_consequences:
+      context.requireFullResearchRecord === true
+        ? fullRecords
+        : displayedConsequenceReferences(context.displayedRecords),
   };
   if (Object.prototype.hasOwnProperty.call(context, "apOnlyClaims")) {
     gateInput.ap_only_claims = context.apOnlyClaims;
@@ -448,6 +461,13 @@ export function describeOtherness(state, context = {}) {
   }
   const built = buildOthernessInquiry(gateInput);
   const activated = built.activated === true;
+  if (fullRecords.length > 0 && !activated) {
+    throw new Error("A complete empirical consequence record did not pass the unchanged otherness gate");
+  }
+  const empiricalAnchor =
+    activated && fullRecords.length > 0 && context.empiricalAnchor === SYSTEM_PARTICIPATION_ANCHOR
+      ? SYSTEM_PARTICIPATION_ANCHOR
+      : null;
 
   if (!activated) {
     const unavailable =
@@ -469,6 +489,8 @@ export function describeOtherness(state, context = {}) {
       boundary: publicLine(OTHERNESS_BOUNDARY),
       stages,
       disclosure: null,
+      empiricalAnchor,
+      empiricalConsequenceRecords: fullRecords,
       inspection: {
         reasonCode: built.reason_code,
         qualifyingConsequenceRefs: built.qualifying_consequence_refs,
@@ -526,6 +548,8 @@ export function describeOtherness(state, context = {}) {
     boundary: publicLine(OTHERNESS_BOUNDARY),
     stages,
     disclosure: disclosureFromPayload(/** @type {Record<string, unknown>} */ (payload)),
+    empiricalAnchor,
+    empiricalConsequenceRecords: fullRecords,
     inspection: {
       reasonCode: built.reason_code,
       qualifyingConsequenceRefs: built.qualifying_consequence_refs,
