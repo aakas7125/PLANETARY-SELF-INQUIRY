@@ -44,6 +44,7 @@ import {
   canEnterImpact,
   createImpactState,
   describeImpact,
+  impactContextFromComparison,
   impactStateAfterComparisonAction,
   impactStateAfterInquiryAction,
   impactStateAfterSituationAction,
@@ -73,14 +74,10 @@ export function SmartphoneSituation() {
     inquiryReviewComplete: canEnterComparison(inquiry),
     situationAnswers: state.submitted ? state.answers : null,
   });
-  const impactView = describeImpact(impact, {
-    comparisonAvailable: comparisonView.available,
-    comparisonEntered,
-    comparisonEvaluated: comparisonView.evaluated,
-    inspectedPathways: comparisonView.cards.map((card) => ({
-      label: card.label,
-    })),
-  });
+  const impactView = describeImpact(
+    impact,
+    impactContextFromComparison(comparisonView, { comparisonEntered }),
+  );
   const othernessView = describeOtherness(otherness, {
     impactAvailable: impactView.available,
     displayedRecords: impactView.domains,

@@ -40,8 +40,12 @@ import {
  * Presentation for conditional impact and dependency pathways.
  *
  * Each domain is requested from its existing resolver with the pinned claim
- * identity and the authorized output kind. A selected comparison pathway is
- * not a condition. Cards render only from an authorized emission.
+ * identity and the authorized output kind. A selected comparison label is
+ * not a condition. The one production exception is the accepted generic
+ * new-phone manufacturing record already present on the current evaluated
+ * comparison card: that record can establish the existing climate condition
+ * for the modelled new alternative. Cards render only from an authorized
+ * emission.
  */
 
 const SNAKE_CASE_TOKEN = /[a-z0-9]+_[a-z0-9_]+/;
@@ -66,6 +70,9 @@ export const IMPACT_CLOSED_NOTE =
 
 export const IMPACT_LIMIT_LINE =
   "This is conditional. It is not proof that one phone caused a particular harm, and the pathway you chose does not prove or avoid it.";
+
+export const GENERIC_NEW_MANUFACTURING_NOTE =
+  "This relates to the generic manufacturing evidence for the new-phone alternative being compared. It is not proof of harm from this user's phone or a final choice.";
 
 export const IMPACT_CHROME = Object.freeze({
   eyebrow: "Phone inquiry",
@@ -651,6 +658,156 @@ function presentDomain(domain, decision) {
   };
 }
 
+/** @type {readonly [25, 70]} */
+const ACCEPTED_GENERIC_NEW_PRODUCTION_KG = Object.freeze([25, 70]);
+
+/**
+ * The accepted generic new-production fallback is exactly this positive range.
+ * A matching number is not enough on its own; the current evaluator record
+ * must also carry the generic-fallback scope and the comparison must display
+ * that same production value.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isAcceptedGenericProductionRange(value) {
+  return (
+    Array.isArray(value) &&
+    value.length === 2 &&
+    value[0] === ACCEPTED_GENERIC_NEW_PRODUCTION_KG[0] &&
+    value[1] === ACCEPTED_GENERIC_NEW_PRODUCTION_KG[1] &&
+    value.every((part) => typeof part === "number" && Number.isFinite(part) && part > 0)
+  );
+}
+
+/**
+ * Display and the evaluator both prefer replacement.new when it is present.
+ * decision.new is only the parallel numeric channel. It may be absent when
+ * service facts are incomplete. When it is present, its production range must
+ * agree. A conflict, a synthetic model marker, or distribution without this
+ * production record does not qualify.
+ *
+ * @param {unknown} card
+ * @returns {boolean}
+ */
+function cardCarriesAcceptedGenericNewProduction(card) {
+  if (!card || typeof card !== "object") return false;
+  const recordCard = /** @type {Record<string, unknown>} */ (card);
+  if (recordCard.id !== "new") return false;
+  const decision = recordCard.decision;
+  if (!decision || typeof decision !== "object") return false;
+  const decisionRecord = /** @type {Record<string, unknown>} */ (decision);
+  const replacement = decisionRecord.replacement;
+  if (!replacement || typeof replacement !== "object") return false;
+  const scoped = /** @type {Record<string, unknown>} */ (replacement).new;
+  if (!scoped || typeof scoped !== "object" || Array.isArray(scoped)) return false;
+  const production = /** @type {Record<string, unknown>} */ (scoped);
+  if (production.provenance_scope !== "generic_fallback") return false;
+  if (production.primary_climate_source != null) return false;
+  if (!isAcceptedGenericProductionRange(production.production_CO2e_kg)) return false;
+
+  const parallel = decisionRecord.new;
+  if (parallel != null) {
+    if (typeof parallel !== "object" || Array.isArray(parallel)) return false;
+    const parallelRecord = /** @type {Record<string, unknown>} */ (parallel);
+    if (
+      Object.prototype.hasOwnProperty.call(parallelRecord, "production_CO2e_kg") &&
+      !isAcceptedGenericProductionRange(parallelRecord.production_CO2e_kg)
+    ) {
+      return false;
+    }
+  }
+
+  if (!Array.isArray(recordCard.values)) return false;
+  const shown = recordCard.values.filter(
+    (value) => value && typeof value === "object" && value.name === "Production",
+  );
+  if (shown.length !== 1) return false;
+  const displayed = /** @type {Record<string, unknown>} */ (shown[0]);
+  return (
+    displayed.scope === "generic_fallback" &&
+    displayed.unit === "kg CO2e" &&
+    isAcceptedGenericProductionRange(displayed.exactValue)
+  );
+}
+
+/**
+ * @param {unknown} cards
+ * @returns {Readonly<{
+ *   pathwayId: "new",
+ *   scenarioRef: "replacement.new",
+ *   field: "production_CO2e_kg",
+ *   valueRange: readonly [25, 70],
+ *   unit: "kg CO2e",
+ *   provenanceScope: "generic_fallback",
+ *   acceptedFallbackStatus: "APPROVED_V0_FALLBACK",
+ *   contractRef: "EMPIRICAL_SMARTPHONE_V0",
+ *   claimId: string,
+ *   claimVersion: string,
+ *   prospective: true,
+ * }> | null}
+ */
+function genericNewManufacturingBasis(cards) {
+  if (!Array.isArray(cards)) return null;
+  const newCards = cards.filter((card) => card && typeof card === "object" && card.id === "new");
+  if (newCards.length !== 1 || !cardCarriesAcceptedGenericNewProduction(newCards[0])) return null;
+  return Object.freeze({
+    pathwayId: "new",
+    scenarioRef: "replacement.new",
+    field: "production_CO2e_kg",
+    valueRange: ACCEPTED_GENERIC_NEW_PRODUCTION_KG,
+    unit: "kg CO2e",
+    provenanceScope: "generic_fallback",
+    acceptedFallbackStatus: "APPROVED_V0_FALLBACK",
+    contractRef: "EMPIRICAL_SMARTPHONE_V0",
+    claimId: CLIMATE_CLAIM_ID,
+    claimVersion: CLIMATE_CLAIM_PACKAGE_COMMIT,
+    prospective: true,
+  });
+}
+
+/**
+ * Production Impact context. Comparison labels stay non-authoritative.
+ * The current evaluated cards are passed through so the climate condition
+ * can be derived from the generic new-production record when it is present.
+ *
+ * @param {{
+ *   available?: boolean,
+ *   evaluated?: boolean,
+ *   cards?: readonly { label?: string }[],
+ * } | null | undefined} comparisonView
+ * @param {{ comparisonEntered?: boolean }} [options]
+ */
+export function impactContextFromComparison(comparisonView, options = {}) {
+  const cards = Array.isArray(comparisonView?.cards) ? comparisonView.cards : [];
+  return {
+    comparisonAvailable: comparisonView?.available === true,
+    comparisonEntered: options.comparisonEntered === true,
+    comparisonEvaluated: comparisonView?.evaluated === true,
+    inspectedPathways: cards.map((card) => ({ label: card?.label })),
+    comparisonCards: cards,
+  };
+}
+
+/**
+ * @param {ReturnType<typeof presentDomain>} domain
+ * @param {NonNullable<ReturnType<typeof genericNewManufacturingBasis>>} basis
+ */
+function attachManufacturingBasis(domain, basis) {
+  const note = publicLine(GENERIC_NEW_MANUFACTURING_NOTE);
+  return {
+    ...domain,
+    lines: [...domain.lines, note],
+    disclosure: domain.disclosure
+      ? {
+          ...domain.disclosure,
+          lines: [...domain.disclosure.lines, note],
+        }
+      : domain.disclosure,
+    manufacturingBasis: basis,
+  };
+}
+
 /**
  * @param {ImpactState} state
  * @param {{
@@ -658,6 +815,7 @@ function presentDomain(domain, decision) {
  *   comparisonEntered?: boolean,
  *   comparisonEvaluated?: boolean,
  *   inspectedPathways?: readonly { label?: string, capabilityLine?: string | null }[],
+ *   comparisonCards?: readonly unknown[],
  *   resolverOverrides?: Partial<Record<(typeof IMPACT_DOMAINS)[number]["id"], Record<string, unknown>>>,
  * }} [context]
  */
@@ -675,6 +833,7 @@ export function describeImpact(state, context = {}) {
       boundary: null,
       inspectedLabels: [],
       capabilityLines: [],
+      manufacturingBasis: null,
       stages,
       domains: [],
     };
@@ -682,9 +841,24 @@ export function describeImpact(state, context = {}) {
 
   const inspection = presentInspection(context.inspectedPathways);
   const overrides = context.resolverOverrides ?? {};
-  const domains = IMPACT_DOMAINS.map((domain) =>
-    presentDomain(domain, domain.resolve(resolverRequest(domain, overrides[domain.id]))),
-  );
+  const manufacturingBasis = genericNewManufacturingBasis(context.comparisonCards);
+  const domains = IMPACT_DOMAINS.map((domain) => {
+    const fromManufacturing =
+      domain.id === "climate" && manufacturingBasis
+        ? { scenario_produces_ghg_emissions: true }
+        : null;
+    const override = overrides[domain.id];
+    const requestFields =
+      fromManufacturing || override ? { ...fromManufacturing, ...override } : undefined;
+    const presented = presentDomain(domain, domain.resolve(resolverRequest(domain, requestFields)));
+    if (domain.id === "climate" && manufacturingBasis && presented.emitted === true) {
+      return attachManufacturingBasis(presented, manufacturingBasis);
+    }
+    return presented;
+  });
+  const climate = domains.find((domain) => domain.id === "climate");
+  const establishedBasis =
+    manufacturingBasis && climate?.emitted === true ? manufacturingBasis : null;
 
   return {
     available: true,
@@ -696,6 +870,7 @@ export function describeImpact(state, context = {}) {
     boundary: publicLine(IMPACT_BOUNDARY),
     inspectedLabels: inspection.labels,
     capabilityLines: inspection.capabilities,
+    manufacturingBasis: establishedBasis,
     stages,
     domains,
   };
