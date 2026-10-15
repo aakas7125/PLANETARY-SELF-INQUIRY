@@ -14,6 +14,27 @@ type ComparisonState = ReturnType<typeof createComparisonState>;
 type ComparisonAction = Parameters<typeof reduceComparison>[1];
 type ComparisonView = ReturnType<typeof describeComparison>;
 
+function SourcesAndLimits({
+  disclosure,
+}: {
+  disclosure: {
+    heading: string;
+    lines: string[];
+  } | null;
+}) {
+  if (!disclosure) return null;
+  return (
+    <section aria-label={disclosure.heading} className="mt-3 space-y-2 rounded-lg bg-background px-3 py-3">
+      <h4 className="text-sm font-medium text-foreground">{disclosure.heading}</h4>
+      {disclosure.lines.map((line) => (
+        <p key={line} className="break-words text-sm leading-relaxed text-foreground">
+          {line}
+        </p>
+      ))}
+    </section>
+  );
+}
+
 const choiceClass = (selected: boolean) =>
   cn(
     "flex min-h-11 min-w-0 cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-sm text-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-paper",
@@ -75,6 +96,9 @@ export function SmartphoneComparison({
       </nav>
 
       <SmartphoneLifecycleGuide />
+      {view.modelGuideNote ? (
+        <p className="mt-3 break-words text-sm leading-relaxed text-foreground">{view.modelGuideNote}</p>
+      ) : null}
 
       <form
         className="mt-8 min-w-0 space-y-4"
@@ -120,6 +144,56 @@ export function SmartphoneComparison({
           </label>
           <p className="mt-2 text-sm leading-relaxed text-foreground">{view.horizonHelper}</p>
         </div>
+
+        <fieldset className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+          <legend className="font-display text-lg text-foreground">{view.currentOwnedField.legend}</legend>
+          <p className="mt-2 text-sm leading-relaxed text-foreground">{view.currentOwnedField.helper}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {view.currentOwnedField.choices.map((choice) => (
+              <Button
+                key={choice.label}
+                type="button"
+                variant={choice.selected ? "secondary" : "outline"}
+                aria-pressed={choice.selected}
+                className="h-auto min-h-11 whitespace-normal px-3 text-left"
+                onClick={() => dispatch({ type: "set_current_owned_model", modelId: choice.id })}
+              >
+                {choice.label}
+              </Button>
+            ))}
+          </div>
+          {view.currentOwnedHistory ? (
+            <div className="mt-3 space-y-2" aria-label="Current phone source-model history">
+              {view.currentOwnedHistory.lines.map((line) => (
+                <p key={line} className="break-words text-sm leading-relaxed text-foreground">
+                  {line}
+                </p>
+              ))}
+              <SourcesAndLimits disclosure={view.currentOwnedHistory.sourcesAndLimits} />
+            </div>
+          ) : null}
+        </fieldset>
+
+        {view.candidateNewField.visible ? (
+          <fieldset className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
+            <legend className="font-display text-lg text-foreground">{view.candidateNewField.legend}</legend>
+            <p className="mt-2 text-sm leading-relaxed text-foreground">{view.candidateNewField.helper}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {view.candidateNewField.choices.map((choice) => (
+                <Button
+                  key={choice.label}
+                  type="button"
+                  variant={choice.selected ? "secondary" : "outline"}
+                  aria-pressed={choice.selected}
+                  className="h-auto min-h-11 whitespace-normal px-3 text-left"
+                  onClick={() => dispatch({ type: "set_candidate_new_model", modelId: choice.id })}
+                >
+                  {choice.label}
+                </Button>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
 
         {view.remainingServiceField.visible ? (
           <div className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
@@ -360,6 +434,7 @@ export function SmartphoneComparison({
                       {line}
                     </p>
                   ))}
+                  <SourcesAndLimits disclosure={card.sourcesAndLimits} />
                 </div>
               </article>
             ))}
