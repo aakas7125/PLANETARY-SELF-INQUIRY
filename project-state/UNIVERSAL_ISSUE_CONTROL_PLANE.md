@@ -153,6 +153,10 @@ HQ itself has authority to perform the next step.
 Status reporting comes after currently actionable owner-independent execution,
 not instead of it.
 
+### Exhausted queue and Owner direction
+
+When the authorized owner-independent queue is exhausted and continued project progression depends on Owner direction or prioritization, HQ must state that boundary, identify the smallest concrete Owner decision(s) grounded in accepted state or durable backlog, and ask specifically for that decision. An exhausted queue does not mean the project has no meaningful next direction. Do not invent the Owner's answer, manufacture work, treat optional possibilities as blockers, or ask again for direction already supplied. Complete all authorized preparation first; once direction arrives, record it and resume normal routing/progression.
+
 ### HQ next-task discovery and queue-continuity rule
 
 Completing the currently visible Issue, PR, review, merge, reconciliation, or
