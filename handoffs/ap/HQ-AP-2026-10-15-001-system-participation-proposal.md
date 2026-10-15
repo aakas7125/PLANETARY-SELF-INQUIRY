@@ -195,19 +195,26 @@ No corpus change is required for this proposal.
 
 ## 9. Scooter / Fortuner interview source check
 
-The Owner direction referenced a scooter/Fortuner interview example as inspiration but supplied no exact source.
+The Owner direction referenced a scooter/Fortuner YouTube interview example as inspiration but supplied no exact source.
 
-A bounded official-source search found an official AP article, **“Things You DON'T Need to Have a Great Life”**, containing a Fortuner example in a broader discussion of consumption and values:
+**Owner attestation added 2026-10-15:** the Owner states that they personally watched the YouTube video and guarantee that the speaker was Acharya Prashant himself. The transcript available to the Owner was YouTube auto-generated/self-generated transcript text.
+
+This materially improves **speaker authenticity confidence**, but it does not yet establish the exact original video identity, timestamp, transcript accuracy, or exact wording/context required for a versioned Direct AP claim.
+
+A bounded official-source search also found an official AP article, **“Things You DON'T Need to Have a Great Life”**, containing a Fortuner example in a broader discussion of consumption and values:
 https://acharyaprashant.org/en/articles/things-you-dont-need-to-have-a-great-life-1_7641b74
 
-This does **not** authenticate the specific scooter/Fortuner interview, exact segment, context or quotation referenced by the Owner. Therefore:
+That article may offer an independently usable analogy if HQ/AP later chooses it, but it must not be silently treated as the source of the Owner-remembered scooter/Fortuner passage.
 
-- no Direct AP claim is derived from the Owner's remembered example;
-- no interview title, timestamp or speaker meaning is guessed;
-- no unrelated clip is substituted;
-- philosophical-source disclosure for that specific interview should be omitted unless the exact official source is later verified.
+Current classification:
 
-This unresolved source does not block the proposed interaction because the interaction can be classified entirely as Project Interpretation.
+- speaker identity for the remembered video: **Owner-attested Acharya Prashant**;
+- transcript: **YouTube auto-generated/self-generated transcript**, useful for discovery/context but not authoritative claim text by itself;
+- exact video URL/title/timestamp: unresolved;
+- Direct AP claim status for the remembered analogy: **not yet approved**;
+- no quotation or precise meaning should be attributed until the original source is pinned and context checked.
+
+This unresolved source does not block the proposed interaction because the interaction remains fully classifiable as Project Interpretation.
 
 ## 10. Research interface required from Issue #140
 
