@@ -50,14 +50,14 @@ export function SiteNav() {
             <a
               key={l.href}
               href={l.href}
-              className="rounded-md px-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground sm:px-3 sm:text-sm"
+              className="rounded-md px-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-3 sm:text-sm"
             >
               {l.label}
             </a>
           ))}
           <a
             href="/journey"
-            className="rounded-md px-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground sm:px-3 sm:text-sm"
+            className="rounded-md px-1.5 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-3 sm:text-sm"
           >
             Journey
           </a>
@@ -65,11 +65,21 @@ export function SiteNav() {
             href="/smartphone"
             aria-current={pathname === "/smartphone" ? "page" : undefined}
             className={cn(
-              "rounded-md px-1.5 py-2 text-xs transition-colors hover:text-foreground sm:px-3 sm:text-sm",
+              "rounded-md px-1.5 py-2 text-xs transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-3 sm:text-sm",
               pathname === "/smartphone" ? "text-foreground" : "text-muted-foreground",
             )}
           >
             Phone inquiry
+          </a>
+          <a
+            href="/constitution"
+            aria-current={pathname === "/constitution" ? "page" : undefined}
+            className={cn(
+              "rounded-md px-1.5 py-2 text-xs transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-3 sm:text-sm",
+              pathname === "/constitution" ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            Principles
           </a>
         </nav>
       </div>
