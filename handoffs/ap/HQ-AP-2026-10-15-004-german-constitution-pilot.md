@@ -4,10 +4,12 @@
 **Task ID:** HQ-AP-2026-10-15-004  
 **Workstream:** AP Framework & Corpus  
 **Execution class:** Tier 3 — semantic localization / public-product wording  
-**Cycle:** INITIAL-1  
+**Cycle:** CORRECTION-1 (INITIAL-1 returned; amended after HQ review 5541108946)  
 **Deterministic branch:** ap/hq-ap-2026-10-15-004-german-constitution-pilot  
 **Named accepted English baseline:** 5b4942383f6c109768bd3782ffaa9635faf997be  
-**Actual execution-start main:** e27aea1da5b18f0dd74467964fff8ea382990bd0  
+**Actual execution-start main (INITIAL-1):** e27aea1da5b18f0dd74467964fff8ea382990bd0  
+**Actual correction-start main (CORRECTION-1):** 34081aa668e99b864ae09edf35965bb7566e16ce  
+**Prior reviewed proposal head:** a48b067d242961e7541151d19c01abe5a3b32c67  
 **Canonical language:** English  
 **Proposal language:** German  
 **Status:** localization proposal for independent HQ review; not adopted/launched  
@@ -115,7 +117,7 @@ PSI stellt Fragen, statt dir zu sagen, was „tief in dir drin“ vor sich geht.
 
 PSI zeigt, was durch die Belege gestützt ist, welche Annahmen verwendet werden und was weiterhin unbekannt ist. Unbekannt wird nicht zu null, „keine Auswirkung“ oder Gewissheit, nur weil eine Zahl fehlt.
 
-Wichtige Aussagen, Quellen, Grenzen, Vertrauensniveau und Modellierungsgrenzen sollen nachvollziehbar bleiben.
+Wichtige Aussagen, Quellen, Grenzen, die Einschätzung, wie gut die Aussagen durch Belege gestützt sind, und Modellierungsgrenzen sollen einsehbar bleiben.
 
 Verschiedene Arten von Folgen – etwa Klima, Materialien, Wasser, Abfall, Menschen und Ökosysteme – bleiben getrennt, statt zu einer einzigen Umwelt- oder Moralbewertung zusammengefasst zu werden.
 
@@ -147,7 +149,7 @@ Die endgültige Entscheidung liegt bei dir. PSI trifft sie nicht für dich.
 
 ## Privatsphäre in dieser öffentlichen Beta
 
-Für diese öffentliche Beta ist das freigegebene Profil anonym: kein Konto und kein Login, keine Analyse- oder Tracking-Funktionen, keine nicht notwendigen Cookies und kein persistenter Speicher für Nutzerdaten.
+Für diese öffentliche Beta ist das freigegebene Profil anonym: kein Konto und kein Login, keine Analyse des Nutzungsverhaltens und kein Tracking, keine nicht notwendigen Cookies und kein persistenter Speicher für Nutzerdaten.
 
 Das ist bewusst enger gefasst als das Versprechen, dass jede Antwort immer nur auf deinem Gerät bleibt, dass Daten automatisch gelöscht werden oder dass jede mögliche Bereitstellung dieselben Datenschutzeigenschaften hat. Weitergehende Datenschutzversprechen sollte PSI nur machen, wenn die tatsächlich veröffentlichte Implementierung nachweislich dafür verifiziert wurde.
 
@@ -170,7 +172,7 @@ English remains canonical. The German text below is proposed localization, not a
 | PC-OPEN-01 | Planetary Self-Inquiry is built to help you look more clearly at an ordinary decision without deciding for you. It brings together your own answers, evidence and modelling, and a clearly labelled philosophical lens — then returns the choice to you. | Planetary Self-Inquiry soll dir helfen, eine alltägliche Entscheidung klarer zu betrachten, ohne sie für dich zu treffen. PSI bringt deine eigenen Antworten, Belege und Modellierung sowie eine klar gekennzeichnete philosophische Perspektive zusammen – und gibt die Entscheidung dann an dich zurück. | “look more clearly” → “klarer betrachten”; no enlightenment claim. “philosophical lens” → “philosophische Perspektive”, not doctrine. | PC-OPEN-01 authority unchanged; faithful proposal. |
 | PC-RAW-01 | PSI asks questions rather than telling you what is happening “deep down.” Your raw answers remain the authority. If you are unsure or disagree, that uncertainty or disagreement can remain exactly that. | PSI stellt Fragen, statt dir zu sagen, was „tief in dir drin“ vor sich geht. Deine Antworten im Originalwortlaut bleiben maßgeblich. Wenn du unsicher bist oder widersprichst, darf diese Unsicherheit oder dieser Widerspruch genau so bestehen bleiben. | Back: raw answers “in original wording” remain authoritative; uncertainty/disagreement may remain as such. “maßgeblich” avoids implying legal authority. | AP raw-answer/non-diagnosis boundary; faithful. |
 | PC-EVID-01 | PSI shows what the evidence supports, the assumptions being used, and what is still unknown. Unknown does not become zero, “no impact,” or certainty just because a number is missing. | PSI zeigt, was durch die Belege gestützt ist, welche Annahmen verwendet werden und was weiterhin unbekannt ist. Unbekannt wird nicht zu null, „keine Auswirkung“ oder Gewissheit, nur weil eine Zahl fehlt. | “Belege” is public-language rendering of evidence; unknown/zero/absence/certainty distinction preserved. | Empirical uncertainty boundary; faithful. |
-| PC-EVID-02 | Important claims, sources, limits, confidence and modelling boundaries should remain inspectable. | Wichtige Aussagen, Quellen, Grenzen, Vertrauensniveau und Modellierungsgrenzen sollen nachvollziehbar bleiben. | “inspectable” → “nachvollziehbar”; “confidence” → “Vertrauensniveau”, not certainty. | Inspectable provenance/presentation; faithful with vocabulary review note. |
+| PC-EVID-02 | Important claims, sources, limits, confidence and modelling boundaries should remain inspectable. | Wichtige Aussagen, Quellen, Grenzen, die Einschätzung, wie gut die Aussagen durch Belege gestützt sind, und Modellierungsgrenzen sollen einsehbar bleiben. | Back: important claims, sources, limits, the assessment of how well the claims are supported by evidence, and modelling boundaries should remain available for inspection. “einsehbar” explicitly retains access for inspection; confidence concerns evidential support, not a statistical level/interval or certainty. | Constitution P10 / canonical PC-EVID-02; corrected in CORRECTION-1, pending independent HQ review. |
 | PC-EVID-03 | Different kinds of consequences — such as climate, materials, water, waste, people and ecosystems — stay distinct rather than being collapsed into one environmental or moral score. | Verschiedene Arten von Folgen – etwa Klima, Materialien, Wasser, Abfall, Menschen und Ökosysteme – bleiben getrennt, statt zu einer einzigen Umwelt- oder Moralbewertung zusammengefasst zu werden. | “score” generalized to “Bewertung”; prohibition on one collapsed moral/environmental metric remains. | Constitution P8; faithful. |
 | PC-SEPARATE-01 | Evidence, modelling assumptions and philosophical interpretation stay distinguishable. A philosophical source, including Acharya Prashant, is not treated as scientific proof. | Belege, Modellannahmen und philosophische Interpretation bleiben voneinander unterscheidbar. Eine philosophische Quelle, auch Acharya Prashant, wird nicht als wissenschaftlicher Beweis behandelt. | Direct separation preserved; AP not scientific proof. | Constitution P1–P2 / AP category separation; faithful. |
 | PC-PMF-01 | “Protect My Four” is PSI’s Project Interpretation, not a direct Acharya Prashant claim. | „Protect My Four“ ist eine Projektinterpretation von PSI, keine direkte Aussage von Acharya Prashant. | Protect My Four remains identifiable and untranslated; “Projektinterpretation” retains category. | Constitution P11 / INV-AP-18; faithful. |
@@ -182,7 +184,7 @@ English remains canonical. The German text below is proposed localization, not a
 | PC-INQUIRY-01 | PSI’s intended intervention is inquiry and clearer seeing. It does not promise enlightenment, psychological change, a smaller footprint, or any particular behaviour. | PSI setzt auf Selbstbefragung und klareres Hinschauen. Es verspricht weder Erleuchtung noch psychologische Veränderung, einen kleineren ökologischen Fußabdruck oder ein bestimmtes Verhalten. | “Selbstbefragung” is inquiry, not interrogation or diagnosis; “klareres Hinschauen” avoids a claim of enlightenment. | D-006 / autonomy; faithful; key term review recommended. |
 | PC-CHOICE-01 | There is no hidden correct purchase and no moral score. Keep, repair, used or second-hand, refurbished, new, investigate further and unclear can all remain legitimate where applicable. | Es gibt keinen versteckten „richtigen“ Kauf und keine moralische Bewertung. Behalten, reparieren, gebraucht bzw. Secondhand kaufen, refurbished bzw. aufbereitet kaufen, neu kaufen, weiter prüfen und unklar können – wo anwendbar – alles legitime Ergebnisse bleiben. | Used/Secondhand and refurbished/aufbereitet remain visibly distinct; “wo anwendbar” preserves where applicable. | Constitution P3–P4/P8; faithful. |
 | PC-CHOICE-02 | The final choice is yours. PSI does not select it for you. | Die endgültige Entscheidung liegt bei dir. PSI trifft sie nicht für dich. | Direct autonomy preserved. | Constitution P16; faithful. |
-| PC-PRIV-01 | For this public beta, the accepted profile is anonymous: no account or login, no analytics or tracking, no non-essential cookies, and no persistent user-data store. | Für diese öffentliche Beta ist das freigegebene Profil anonym: kein Konto und kein Login, keine Analyse- oder Tracking-Funktionen, keine nicht notwendigen Cookies und kein persistenter Speicher für Nutzerdaten. | Narrow profile facts only. “anonym” remains scoped to accepted beta profile. | PUBLIC_BETA_PROFILE; faithful, release verification still required. |
+| PC-PRIV-01 | For this public beta, the accepted profile is anonymous: no account or login, no analytics or tracking, no non-essential cookies, and no persistent user-data store. | Für diese öffentliche Beta ist das freigegebene Profil anonym: kein Konto und kein Login, keine Analyse des Nutzungsverhaltens und kein Tracking, keine nicht notwendigen Cookies und kein persistenter Speicher für Nutzerdaten. | Back: for this public beta the accepted profile is anonymous: no account/login, no analysis of usage behaviour and no tracking, no non-essential cookies, no persistent user-data store. The analytics restriction concerns usage behaviour; it does not prohibit PSI evidence/model analysis. “anonym” remains scoped to the accepted beta profile. | PUBLIC_BETA_PROFILE / canonical PC-PRIV-01; corrected in CORRECTION-1, release verification still required. |
 | PC-PRIV-02 | That is deliberately narrower than promising that every answer always stays only on your device, that data is automatically deleted, or that every possible deployment has identical privacy properties. PSI should make broader privacy claims only when the released implementation has actually been verified to support them. | Das ist bewusst enger gefasst als das Versprechen, dass jede Antwort immer nur auf deinem Gerät bleibt, dass Daten automatisch gelöscht werden oder dass jede mögliche Bereitstellung dieselben Datenschutzeigenschaften hat. Weitergehende Datenschutzversprechen sollte PSI nur machen, wenn die tatsächlich veröffentlichte Implementierung nachweislich dafür verifiziert wurde. | Explicitly refuses device-only, deletion and universal-deployment guarantees. | D-006/D-007 privacy restraint; faithful. |
 | PC-ACCOUNT-01 | If PSI’s wording, evidence or behaviour seems to break these commitments, you can raise it in the public project issue tracker. | Wenn dir auffällt, dass Formulierungen, Belege oder Verhalten von PSI gegen diese Zusagen zu verstoßen scheinen, kannst du das im öffentlichen Issue-Tracker des Projekts ansprechen. | Public tracker only; no private support promise. Link stays https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/issues. | D-007; faithful. |
 | PC-ACCOUNT-02 | GitHub issues are public. Please do not post private answers, sensitive information or personal details there. | GitHub-Issues sind öffentlich. Bitte poste dort keine privaten Antworten, sensiblen Informationen oder persönlichen Daten. | Warning must remain before/beside external tracker link. | D-007 / feedback privacy boundary; faithful. |
@@ -223,6 +225,8 @@ Public German proposal:
 - scientific proof → **wissenschaftlicher Beweis**.
 
 “Evidenz” is technically possible in German but can sound specialist or be misunderstood. “Belege” is chosen for ordinary public language. It must still refer to the accepted empirical layer, not mere anecdotes or persuasion.
+
+For PC-EVID-02, **einsehbar bleiben** preserves that claims, sources, limits, confidence and modelling boundaries remain available for inspection; comprehensibility alone would be weaker. Empirical confidence is rendered as **die Einschätzung, wie gut die Aussagen durch Belege gestützt sind**: an assessment of evidential support, without a statistical confidence level/interval, numerical precision or certainty. The prior rendering “Vertrauensniveau” is withdrawn as a semantic correction required by HQ, not deferred editorial polish.
 
 ### 4.4 Conditional/modelled pathway vs realized harm
 
@@ -304,7 +308,7 @@ not:
 
 ### 4.11 Privacy facts vs device-only/deletion claims
 
-PC-PRIV-01 may state only the accepted public-beta profile facts.
+PC-PRIV-01 may state only the accepted public-beta profile facts. **Keine Analyse des Nutzungsverhaltens und kein Tracking** restricts usage analytics and tracking; it leaves PSI’s ordinary evidence/model analysis intact. The prior general prohibition on analysis functions is withdrawn as a semantic correction, not an optional style choice.
 
 PC-PRIV-02 must continue to refuse unsupported promises such as:
 - “Alle Antworten bleiben auf deinem Gerät”;
@@ -359,6 +363,8 @@ Before German wording can be accepted, review must confirm:
 - [x] all constitution-page-local visible illustration/caption/source/back-link labels are inventoried;
 - [x] “Planetary Self-Inquiry”, “PSI”, “Acharya Prashant” and “Protect My Four” remain identifiable;
 - [x] evidence/model/philosophical interpretation remain distinct;
+- [x] PC-EVID-02 explicitly retains inspectability for all five listed items, including confidence as an assessment of evidential support without statistical precision/certainty;
+- [x] PC-PRIV-01 restricts usage analytics/tracking without prohibiting evidence/model analysis; §2 and §3 use identical corrected wording;
 - [x] AP attribution is not scientific proof;
 - [x] unknown does not become zero/no-effect/certainty;
 - [x] modelled/conditional pathway does not become realized individual harm;
@@ -380,7 +386,9 @@ Performed:
 - direct source-to-translation comparison against the merged English data file;
 - semantic cross-check against D-005/D-006/D-007, Project Constitution, AP invariants, empirical boundaries and public-beta privacy profile;
 - self-generated back-translation for the most consequence-sensitive units;
-- vocabulary consistency review across all repeated page labels.
+- vocabulary consistency review across all repeated page labels;
+- CORRECTION-1: re-read the canonical PC-EVID-02 and PC-PRIV-01 at the named English baseline, Constitution P10 and the public-beta profile; compared corrected §2/§3 German text and self-back-translations against each source clause;
+- CORRECTION-1: checked all 21 English mapping cells and unrelated German copy/IDs/labels remain unchanged, PC-PRIV-02 remains verbatim, and tracker href/public warning remain intact.
 
 Not performed / not claimed:
 - independent professional translation;
@@ -393,14 +401,13 @@ Not performed / not claimed:
 
 The self-generated back-translation is only a review aid.
 
-### Remaining language-review ambiguity
+### Semantic corrections versus remaining editorial review
 
-No semantic blocker was found, but two terms merit a later qualified German-language/editorial pass before public launch:
+INITIAL-1 incorrectly described the confidence wording as faithful and only an editorial concern. HQ review 5541108946 found that wording and two other semantic problems. CORRECTION-1 supersedes that assessment: PC-EVID-02 now explicitly retains inspectability and describes confidence as assessed evidential support; PC-PRIV-01 now restricts usage analytics/tracking specifically. These changes address meaning, not optional polish. Independent HQ review of the amended exact content/head is still required; AP does not claim HQ acceptance.
 
-1. **Selbstbefragung** for “inquiry”: semantically safe here but can sound more interrogative than the English. “Selbsterkundung” or “Nachfragen” may read more naturally; any change must preserve the non-diagnostic, non-enlightenment meaning.
-2. **Vertrauensniveau** for empirical “confidence”: faithful but technical. A domain/language reviewer could prefer “Einschätzung der Aussagekraft” or another plain-language term, provided it does not become “certainty”.
+**Selbstbefragung** for “inquiry” remains a tone question for a qualified German editorial pass before launch. It can sound more interrogative than the English. “Selbsterkundung” or “Nachfragen” may read more naturally, but any change must preserve the non-diagnostic, non-enlightenment meaning. This correction does not alter that unrelated copy.
 
-These are wording-quality questions, not new product/AP/scientific decisions and need not block HQ review of the proposal. A qualified German editorial review is recommended before public German launch; it is not claimed to have happened here.
+Qualified editorial review may also improve the fluency of the corrected evidential-support phrase while retaining its meaning. No new product/AP/scientific or Owner-level decision is identified. Native/professional certification and user comprehension testing remain unperformed; a self-generated back-translation is not independent validation.
 
 ## 8. Smallest later Tier-2 implementation boundary
 
@@ -428,7 +435,7 @@ No genuine Owner-level meaning/policy question is currently required to complete
 
 ## 9. Scope verification
 
-Only this new handoff is authorized to change.
+Only this handoff is authorized to change; CORRECTION-1 amends the existing task handoff.
 
 No changes are made to:
 - English public Constitution source;
@@ -447,6 +454,10 @@ No new scientific number/claim, Direct AP claim, external philosophy or purchase
 
 ## 10. Return
 
-**AP specialist result:** VERIFIED_FOR_HQ_REVIEW
+**AP specialist result:** VERIFIED_FOR_HQ_REVIEW — CORRECTION-1
+
+Correction scope: PC-EVID-02 and PC-PRIV-01 in §2/§3, their back-translations/authority notes, related vocabulary/checklist/review notes and cycle metadata only. Unrelated public copy, English source cells, all stable IDs and label inventories are preserved. No new semantic authority is introduced. No discrepancy remains identified by AP within the three requested corrections; HQ review remains pending.
+
+Correction starting main: `34081aa668e99b864ae09edf35965bb7566e16ce`. Prior reviewed head: `a48b067d242961e7541151d19c01abe5a3b32c67`. The exact amended head and measured one-file diff are returned on the existing Issue #162 / PR #163 after publication. No application build/render or repository-wide regression was required or performed for this Markdown-only cycle. Self-merge: NO.
 
 The German copy is a bounded semantic-localization proposal. Receiving or merging this handoff does not adopt or launch German UI. HQ must independently review the exact content/head before any separately authorized Tier-2 implementation.
