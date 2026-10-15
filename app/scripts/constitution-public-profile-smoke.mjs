@@ -125,23 +125,31 @@ async function readConstitution(page, label) {
   await assertNoOverflow(page, `${label} constitution`);
 }
 
+async function scrollBelowNav(locator) {
+  await locator.evaluate((element) => {
+    const top = element.getBoundingClientRect().top + window.scrollY - 150;
+    window.scrollTo(0, Math.max(0, top));
+  });
+}
+
 async function captureScenes(page, label) {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, `INITIAL-1-${label}-top`);
   for (const [index, scene] of PUBLIC_CONSTITUTION_SCENES.entries()) {
     const section = page.locator(`#constitution-${scene.id}`);
-    const heading = page.getByRole("heading", { level: 2, name: scene.title });
-    await heading.evaluate((element) => element.scrollIntoView({ block: "start" }));
+    await scrollBelowNav(section);
     await assertNoOverflow(page, `${label} ${scene.id}`);
     await shot(page, `INITIAL-1-${label}-scene-${index + 1}`);
     const figure = section.locator("figure");
     if ((await figure.count()) > 0) {
-      await figure.evaluate((element) => element.scrollIntoView({ block: "start" }));
+      await scrollBelowNav(figure);
       await assertNoOverflow(page, `${label} ${scene.id} diagram`);
       await shot(page, `INITIAL-1-${label}-scene-${index + 1}-diagram`);
     }
   }
-  await page.getByRole("heading", { level: 3, name: "Privacy in this public beta" }).scrollIntoViewIfNeeded();
+  await scrollBelowNav(page.getByRole("heading", { level: 3, name: "Privacy in this public beta" }));
   await shot(page, `INITIAL-1-${label}-privacy`);
-  await page.getByRole("heading", { level: 3, name: "Hold us to these promises" }).scrollIntoViewIfNeeded();
+  await scrollBelowNav(page.getByRole("heading", { level: 3, name: "Hold us to these promises" }));
   await shot(page, `INITIAL-1-${label}-accountability`);
 }
 
