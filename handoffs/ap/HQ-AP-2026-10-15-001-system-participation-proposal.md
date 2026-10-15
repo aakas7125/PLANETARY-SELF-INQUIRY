@@ -349,7 +349,7 @@ Expected: bridge no longer active and cannot keep presenting the previous conseq
 1. **Placement choice:** this proposal places the bridge immediately before existing Protect My Four. If Research #140 produces a multi-stage journey where only some stages yield qualifying consequences, HQ must decide which displayed consequence(s) are carried forward.
 2. **QSP3 scope:** asking about action beyond the purchase is product-semantic expansion, though explicitly requested by Owner direction. HQ should accept the exact wording before implementation.
 3. **History behavior:** this proposal defines current-state invalidation but does not add a longitudinal historical reflection feature.
-4. **Source disclosure:** the specific scooter/Fortuner interview remains unresolved and should be omitted unless authenticated.
+4. **Source disclosure:** speaker identity for the remembered scooter/Fortuner video is now Owner-attested as Acharya Prashant. What remains unresolved is the exact video URL/title/timestamp and transcript/context verification required for a pinned Direct AP claim. Until those are recovered, use the analogy only as Owner-attested contextual inspiration, not as a quoted/versioned AP source.
 5. **No corpus amendment required:** the proposal uses existing frozen philosophical claims as background and introduces only Project Interpretation. If HQ later wants any sentence presented as Direct AP, a separately versioned corpus amendment/review would be required.
 
 ## 15. Smallest future Tier-2 implementation slice if accepted
@@ -379,7 +379,7 @@ Examined at starting main `a7c24939f9ef43f58c6854199d7e5282d1b6efb4`:
 - `app/src/lib/smartphone/impact-pathways-ux.mjs`
 - Issue #140 interface requirements (coordination only; no Research authority inherited)
 
-Official-source search limitation recorded above.
+Official-source search limitation and Owner speaker-identity attestation recorded above.
 
 ## 17. Return status
 
