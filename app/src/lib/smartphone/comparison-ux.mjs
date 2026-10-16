@@ -64,6 +64,78 @@ export const COMPARISON_CHROME = Object.freeze({
 });
 
 /**
+ * English source for the optional anticipated old-phone-fate annotation.
+ * Canonical values stay internal. These strings are the adopted Research copy.
+ */
+export const OLD_PHONE_FATE_QUESTION =
+  "If you ended up getting another phone, what do you think would happen to your current phone next?";
+
+export const OLD_PHONE_FATE_HELPER =
+  "Optional and hypothetical. This does not mean you have decided to replace your phone. Choose what you currently expect. If it would depend on the option or you do not know, choose “I’m not sure.”";
+
+export const OLD_PHONE_FATE_UNANSWERED =
+  "No old-phone fate has been supplied. No route is assumed.";
+
+export const OLD_PHONE_FATE_ANSWERED =
+  "This is what you currently expect in a hypothetical replacement scenario. It is not a verified event or downstream route.";
+
+export const OLD_PHONE_FATE_EXPLICIT_UNKNOWN =
+  "You’re not sure what would happen. No route is assumed.";
+
+export const OLD_PHONE_FATE_LIMIT =
+  "This answer does not establish unsafe handling, a disposal site, a recycling probability, avoided production, or harm to a particular person or ecosystem.";
+
+export const OLD_PHONE_FATE_CLEAR_LABEL = "Clear answer";
+
+export const OLD_PHONE_FATE_CONTENT = Object.freeze({
+  field: "anticipated-old-phone-fate",
+  question: "anticipated-old-phone-fate.question",
+  helper: "anticipated-old-phone-fate.helper",
+  unanswered: "anticipated-old-phone-fate.status.unanswered",
+  answered: "anticipated-old-phone-fate.status.answered",
+  explicitUnknown: "anticipated-old-phone-fate.status.explicit-unknown",
+  limit: "anticipated-old-phone-fate.limit",
+  clear: "anticipated-old-phone-fate.clear",
+});
+
+/**
+ * Canonical anticipated fates in accepted neutral order.
+ * Legacy evaluator strings are not members of this list.
+ *
+ * @type {readonly { id: AnticipatedOldPhoneFate, label: string }[]}
+ */
+export const ANTICIPATED_OLD_PHONE_FATES = Object.freeze([
+  Object.freeze({
+    id: "continue_use",
+    label: "Keep it in active use (for example, as a backup)",
+  }),
+  Object.freeze({
+    id: "sell_or_gift_for_reuse",
+    label: "Sell it or give it to someone else to use",
+  }),
+  Object.freeze({
+    id: "trade_in_unknown_next_use",
+    label: "Trade it in; I don’t know what happens after that",
+  }),
+  Object.freeze({
+    id: "store_in_drawer",
+    label: "Keep it stored or in a drawer",
+  }),
+  Object.freeze({
+    id: "formal_recycling",
+    label: "Send it for formal e-waste recycling",
+  }),
+  Object.freeze({
+    id: "discard_general_waste",
+    label: "Throw it away with general household waste",
+  }),
+  Object.freeze({
+    id: "unknown",
+    label: "I’m not sure",
+  }),
+]);
+
+/**
  * Ordinary labels for the accepted empirical pathways.
  * Ids are evaluator inputs or presentation keys. They are not AP Q6 values.
  *
@@ -177,7 +249,12 @@ const SCOPE_LABELS = Object.freeze({
  *   refurbishedServiceNotSure: boolean,
  *   currentOwnedModelId: string | null,
  *   candidateNewModelId: string | null,
+ *   anticipatedOldPhoneFate: AnticipatedOldPhoneFate | null,
  * }} ComparisonState
+ */
+
+/**
+ * @typedef {"continue_use" | "sell_or_gift_for_reuse" | "trade_in_unknown_next_use" | "store_in_drawer" | "formal_recycling" | "discard_general_waste" | "unknown"} AnticipatedOldPhoneFate
  */
 
 /**
@@ -206,6 +283,8 @@ const SCOPE_LABELS = Object.freeze({
  *   | { type: "mark_refurbished_not_sure" }
  *   | { type: "set_current_owned_model", modelId: string }
  *   | { type: "set_candidate_new_model", modelId: string }
+ *   | { type: "set_anticipated_old_phone_fate", fate: string }
+ *   | { type: "clear_anticipated_old_phone_fate" }
  *   | { type: "reset" }} ComparisonAction
  */
 
@@ -266,6 +345,24 @@ function usedServiceActive(state) {
  */
 function refurbishedServiceActive(state) {
   return state.selectedIds.includes("refurbished");
+}
+
+const REPLACEMENT_PATHWAY_IDS = ["used_secondhand", "refurbished", "new"];
+
+/**
+ * @param {ComparisonState} state
+ * @returns {boolean}
+ */
+function replacementFateActive(state) {
+  return state.selectedIds.some((id) => REPLACEMENT_PATHWAY_IDS.includes(id));
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is AnticipatedOldPhoneFate}
+ */
+export function isAnticipatedOldPhoneFate(value) {
+  return ANTICIPATED_OLD_PHONE_FATES.some((fate) => fate.id === value);
 }
 
 /**
@@ -392,6 +489,7 @@ export function createComparisonState() {
     refurbishedServiceNotSure: false,
     currentOwnedModelId: null,
     candidateNewModelId: null,
+    anticipatedOldPhoneFate: null,
   };
 }
 
@@ -503,6 +601,23 @@ export function reduceComparison(state, action) {
         ...state,
         selectedIds: [...state.selectedIds],
         candidateNewModelId: state.candidateNewModelId === action.modelId ? null : action.modelId,
+      };
+    }
+    case "set_anticipated_old_phone_fate": {
+      if (!replacementFateActive(state) || !isAnticipatedOldPhoneFate(action.fate)) return state;
+      if (state.anticipatedOldPhoneFate === action.fate) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        anticipatedOldPhoneFate: action.fate,
+      };
+    }
+    case "clear_anticipated_old_phone_fate": {
+      if (!replacementFateActive(state) || state.anticipatedOldPhoneFate == null) return state;
+      return {
+        ...state,
+        selectedIds: [...state.selectedIds],
+        anticipatedOldPhoneFate: null,
       };
     }
     case "reset":
@@ -1376,6 +1491,106 @@ function historicalModelLines(record) {
 }
 
 /**
+ * Derived annotation only. The stored answer is not an evaluator input.
+ * Inactive comparisons keep the raw answer on state and publish nothing here.
+ *
+ * @param {ComparisonState} state
+ */
+function presentOldPhoneFate(state) {
+  const active = replacementFateActive(state);
+  const anticipated = isAnticipatedOldPhoneFate(state.anticipatedOldPhoneFate)
+    ? state.anticipatedOldPhoneFate
+    : null;
+  const selected = ANTICIPATED_OLD_PHONE_FATES.find((fate) => fate.id === anticipated) ?? null;
+  const choices = ANTICIPATED_OLD_PHONE_FATES.map((fate) => ({
+    id: fate.id,
+    contentId: `${OLD_PHONE_FATE_CONTENT.field}.choice.${fate.id}`,
+    label: publicLine(fate.label),
+    selected: active && fate.id === anticipated,
+  }));
+  if (!active) {
+    return {
+      active: false,
+      visible: false,
+      contentId: OLD_PHONE_FATE_CONTENT.field,
+      question: {
+        id: OLD_PHONE_FATE_CONTENT.question,
+        text: publicLine(OLD_PHONE_FATE_QUESTION),
+      },
+      helper: {
+        id: OLD_PHONE_FATE_CONTENT.helper,
+        text: publicLine(OLD_PHONE_FATE_HELPER),
+      },
+      choices: choices.map((choice) => ({ ...choice, selected: false })),
+      status: null,
+      limit: null,
+      clearLabel: publicLine(OLD_PHONE_FATE_CLEAR_LABEL),
+      clearContentId: OLD_PHONE_FATE_CONTENT.clear,
+      replacementPathwayIds: [],
+      annotation: null,
+    };
+  }
+
+  const explicitUnknown = anticipated === "unknown";
+  const status = anticipated == null
+    ? {
+        id: OLD_PHONE_FATE_CONTENT.unanswered,
+        text: publicLine(OLD_PHONE_FATE_UNANSWERED),
+      }
+    : explicitUnknown
+      ? {
+          id: OLD_PHONE_FATE_CONTENT.explicitUnknown,
+          text: publicLine(OLD_PHONE_FATE_EXPLICIT_UNKNOWN),
+        }
+      : {
+          id: OLD_PHONE_FATE_CONTENT.answered,
+          text: publicLine(OLD_PHONE_FATE_ANSWERED),
+        };
+  const replacementPathwayIds = COMPARISON_PATHWAYS.filter(
+    (pathway) =>
+      REPLACEMENT_PATHWAY_IDS.includes(pathway.id) && state.selectedIds.includes(pathway.id),
+  ).map((pathway) => pathway.id);
+
+  return {
+    active: true,
+    visible: true,
+    contentId: OLD_PHONE_FATE_CONTENT.field,
+    question: {
+      id: OLD_PHONE_FATE_CONTENT.question,
+      text: publicLine(OLD_PHONE_FATE_QUESTION),
+    },
+    helper: {
+      id: OLD_PHONE_FATE_CONTENT.helper,
+      text: publicLine(OLD_PHONE_FATE_HELPER),
+    },
+    choices,
+    status,
+    limit: anticipated == null
+      ? null
+      : {
+          id: OLD_PHONE_FATE_CONTENT.limit,
+          text: publicLine(OLD_PHONE_FATE_LIMIT),
+        },
+    clearLabel: publicLine(OLD_PHONE_FATE_CLEAR_LABEL),
+    clearContentId: OLD_PHONE_FATE_CONTENT.clear,
+    replacementPathwayIds,
+    annotation: {
+      active: true,
+      answer_status: anticipated == null ? "unanswered" : "answered",
+      anticipated_fate: anticipated,
+      public_label: selected ? publicLine(selected.label) : null,
+      evidence_class: anticipated == null ? null : "user_anticipated_hypothetical",
+      applies_to: "replacement_scenario_set",
+      actual_event_established: false,
+      actual_route_established: false,
+      actual_event_status: "unknown",
+      actual_route_status: "unknown",
+      actual_event_time: null,
+    },
+  };
+}
+
+/**
  * @param {ComparisonState} state
  * @param {{
  *   inquiryReviewComplete?: boolean,
@@ -1544,6 +1759,7 @@ export function describeComparison(state, context = {}) {
       notSure: state.refurbishedServiceNotSure === true,
       parsedYears: explicitServiceValue(state.refurbishedServiceRaw, state.refurbishedServiceNotSure),
     },
+    oldPhoneFate: presentOldPhoneFate(state),
     pathways: COMPARISON_PATHWAYS.map((pathway) => ({
       id: pathway.id,
       label: pathway.label,

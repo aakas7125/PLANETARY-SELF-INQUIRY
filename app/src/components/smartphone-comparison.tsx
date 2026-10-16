@@ -397,6 +397,80 @@ export function SmartphoneComparison({
           </div>
         ) : null}
 
+        {view.oldPhoneFate.visible ? (
+          <fieldset
+            className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]"
+            data-content-id={view.oldPhoneFate.contentId}
+          >
+            <legend
+              id="anticipated-old-phone-fate-legend"
+              className="font-display text-lg text-foreground"
+              data-content-id={view.oldPhoneFate.question.id}
+            >
+              {view.oldPhoneFate.question.text}
+            </legend>
+            <p
+              id="anticipated-old-phone-fate-helper"
+              className="mt-2 break-words text-sm leading-relaxed text-foreground"
+              data-content-id={view.oldPhoneFate.helper.id}
+            >
+              {view.oldPhoneFate.helper.text}
+            </p>
+            <div
+              className="mt-3 space-y-2"
+              role="radiogroup"
+              aria-labelledby="anticipated-old-phone-fate-legend"
+              aria-describedby="anticipated-old-phone-fate-helper"
+            >
+              {view.oldPhoneFate.choices.map((choice) => (
+                <label key={choice.label} className={choiceClass(choice.selected)}>
+                  <input
+                    type="radio"
+                    name="anticipated-old-phone-fate"
+                    value={choice.label}
+                    checked={choice.selected}
+                    data-content-id={choice.contentId}
+                    onChange={() =>
+                      dispatch({ type: "set_anticipated_old_phone_fate", fate: choice.id })
+                    }
+                    className="mt-0.5 size-4 shrink-0 accent-pine"
+                  />
+                  <span className="min-w-0 break-words">{choice.label}</span>
+                </label>
+              ))}
+            </div>
+            {view.oldPhoneFate.status ? (
+              <p
+                className="mt-3 break-words text-sm leading-relaxed text-foreground"
+                data-content-id={view.oldPhoneFate.status.id}
+              >
+                {view.oldPhoneFate.status.text}
+              </p>
+            ) : null}
+            {view.oldPhoneFate.limit ? (
+              <p
+                className="mt-2 break-words text-sm leading-relaxed text-foreground"
+                data-content-id={view.oldPhoneFate.limit.id}
+              >
+                {view.oldPhoneFate.limit.text}
+              </p>
+            ) : null}
+            {state.anticipatedOldPhoneFate != null ? (
+              <div className="mt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  data-content-id={view.oldPhoneFate.clearContentId}
+                  className="h-auto min-h-11 whitespace-normal text-left"
+                  onClick={() => dispatch({ type: "clear_anticipated_old_phone_fate" })}
+                >
+                  {view.oldPhoneFate.clearLabel}
+                </Button>
+              </div>
+            ) : null}
+          </fieldset>
+        ) : null}
+
         {view.pendingNote ? (
           <p className="text-sm leading-relaxed text-foreground">{view.pendingNote}</p>
         ) : null}

@@ -258,7 +258,9 @@ describe("smartphone primary pathway facts", () => {
     assert.equal(adapter.includes("17.84"), false);
     assert.equal(component.includes("0.3"), false);
     assert.equal(component.includes("17.84"), false);
-    assert.equal(component.includes('type="radio"'), false);
+    assert.equal(component.includes('name="comparison-pathway"'), true);
+    assert.equal(component.includes('name="anticipated-old-phone-fate"'), true);
+    assert.equal(component.includes("set_repair_category"), true);
   });
 
   it("leaves generic major-board impact null and unsupported", () => {
