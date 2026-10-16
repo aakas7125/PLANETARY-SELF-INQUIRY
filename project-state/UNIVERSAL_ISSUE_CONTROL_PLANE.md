@@ -217,6 +217,19 @@ The dispatch comment is a wake signal only. Inspect the Issue itself and execute
 
 HQ must not post a duplicate dispatch for the same uninterrupted `READY_FOR_CURSOR` transition. It must not dispatch a task currently marked `IN_PROGRESS`, `VERIFIED_FOR_HQ_REVIEW`, `BLOCKED`, `ACCEPTED`, `RESOLVED`, or `SUPERSEDED`. If HQ legitimately returns a task to `READY_FOR_CURSOR` after a blocked or review state, that new transition requires a new dispatch comment.
 
+### Cursor model selection — Owner clarification 2026-10-16
+
+Default: **Grok 4.7 Medium**. Additional usage spending is disabled, as reported by the Owner. HQ cannot change the selected Cursor Agent model directly and must not enable spending or assume another model/allowance is available.
+
+Ordinary tasks use the default without a model-switch checkpoint. Only when a different model is materially justified:
+1. Publish the bounded, authorized Issue with the exact recommended model and reasoning effort (or the applicable available/default setting), brief task-specific justification, and allowance/availability limits.
+2. Keep the Issue **BLOCKED — MODEL_SELECTION_PENDING**, with execution scope authorized but not ready for intake. Record the separate model-confirmation gate; do not use READY_FOR_CURSOR, post a wake, or imply dispatch. This prevents ordinary polling from starting a published but model-gated task.
+3. Ask the Owner to make the manual selection in Cursor. Wait for explicit confirmation that the correct model/setting is selected; elapsed time, Issue publication or silence is not confirmation.
+4. After confirmation, record it, recheck all task/cycle/identity/lease/return/concurrency gates, transition to READY_FOR_CURSOR and post the single required dispatch. If a matching run is already active or returned, reconcile it instead of duplicating it.
+5. After the exceptional task, recommend returning to Grok 4.7 Medium where appropriate; do not claim HQ changed the setting.
+
+Candidate exception: one bounded smartphone lifecycle visual-implementation task using **Claude Sonnet**, only if materially justified, available within the existing allowance and explicitly confirmed by the Owner before dispatch. This is not a permanent model rule, permission for extra spending, or authority to create/replay a visual task merely to change models. An already-running cycle is not interrupted or duplicated just to retrofit selection; review its actual returned work before deciding whether further bounded execution is necessary.
+
 ### Cursor active-run lease — owner direction 2026-10-13
 
 Cursor records the exact cycle's run state in `handoffs/cursor-runs/<TASK-ID>/<CYCLE>.md`: `CURSOR_WORKING`, `RETURNED_FOR_HQ_REVIEW`, or `BLOCKED`. This metadata-only path is permitted for an already-authorized cycle; it adds no execution or semantic authority. Issues remain task authority.
