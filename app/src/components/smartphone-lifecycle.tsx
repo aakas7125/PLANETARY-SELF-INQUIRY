@@ -193,6 +193,40 @@ export function SmartphoneLifecycleGuide() {
                       ))}
                     </div>
                   </div>
+                  {stage.widerContext ? (
+                    <section
+                      aria-labelledby={`lifecycle-${stage.widerContext.id}-heading`}
+                      className="min-w-0 rounded-xl bg-muted px-3 py-3"
+                    >
+                      <h4
+                        id={`lifecycle-${stage.widerContext.id}-heading`}
+                        className="text-sm font-medium text-foreground"
+                      >
+                        {stage.widerContext.heading}
+                      </h4>
+                      <div className="mt-3 space-y-4">
+                        {stage.widerContext.records.map((record) => (
+                          <article key={record.id} aria-labelledby={`lifecycle-${record.id}-label`} className="min-w-0">
+                            <h5 id={`lifecycle-${record.id}-label`} className="text-sm font-medium text-foreground">
+                              {record.label}
+                            </h5>
+                            <p className="mt-1 break-words text-sm leading-relaxed text-foreground">{record.scopeLabel}</p>
+                            <p className="mt-2 break-words text-sm leading-relaxed text-foreground">{record.fact}</p>
+                            <p className="mt-2 break-words text-sm leading-relaxed text-foreground">{record.limit}</p>
+                            <a
+                              href={record.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`${record.linkLabel}. ${record.label}`}
+                              className="mt-2 inline-block max-w-full break-words text-sm font-medium text-foreground underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+                            >
+                              {record.linkLabel}
+                            </a>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  ) : null}
                   <div>
                     <h4 className="text-sm font-medium text-foreground">{stage.sourcesHeading}</h4>
                     <div className="mt-1 space-y-2">
