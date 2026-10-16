@@ -45,8 +45,8 @@ Toolchain: Node v22.14.0, npm 11.19.0 via corepack, TypeScript 5.9.3.
 - `npm run typecheck` exit 0
 - `npm run build` exit 0
 
-Routine hosted CI owns the full pinned test, lint, typecheck, and build. It was queued for the validated implementation head: https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/actions/runs/38894116521
-Status at return: PENDING. HQ rechecks it.
+Routine hosted CI owns the full pinned test, lint, typecheck, and build. On the validated implementation head it passed: https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/actions/runs/38894116521
+A later evidence-only commit can start another run. HQ rechecks that run if it is still going.
 
 ## Built profile
 

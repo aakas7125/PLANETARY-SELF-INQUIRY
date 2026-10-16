@@ -8,5 +8,5 @@ VALIDATED_IMPLEMENTATION_HEAD: 803976bd2ca507896d8029a0b3c3778032b1819b
 EVIDENCE_RETURN_HEAD: the commit that updates this lease and adds the INITIAL-1 return
 PR: https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/pull/176
 TASK_SPECIFIC_VALIDATION: fate state tests passed; built profile at 390 and 1280 showed the question, seven labels, unknown versus clear, keep/repair absence, closed e-waste cards, preserved QSP text, and an unselected final choice
-ROUTINE_CI: PENDING
+ROUTINE_CI: PASSED on VALIDATED_IMPLEMENTATION_HEAD https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/actions/runs/38894116521
 Self-merge: NO
