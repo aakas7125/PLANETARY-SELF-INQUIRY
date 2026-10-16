@@ -3,6 +3,7 @@
  * Source: handoffs/ap/HQ-AP-2026-10-15-003-public-constitution.md §§1–4.
  * Adoption: project-state/DECISIONS.md D-007.
  * D-007 changes only the accountability href, from /issues/new to the public tracker landing page.
+ * Page-local labels are the accepted English surface. German lives in public-constitution-de.mjs.
  */
 
 export const PUBLIC_CONSTITUTION_SOURCE = {
@@ -11,35 +12,108 @@ export const PUBLIC_CONSTITUTION_SOURCE = {
   decision: "D-007",
 };
 
-export const PUBLIC_CONSTITUTION_PAGE_TITLE = "What PSI promises you";
-
 export const PUBLIC_CONSTITUTION_ACCOUNTABILITY_HREF =
   "https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/issues";
 
-export const PUBLIC_CONSTITUTION_SECTION_HEADINGS = [
-  "Your words stay yours",
-  "Evidence should show its limits",
-  "Consequences without blame",
-  "Design should clarify, not steer",
-  "Inquiry, not a verdict",
-  "Privacy in this public beta",
-  "Hold us to these promises",
+export const PUBLIC_CONSTITUTION_LABELS = {
+  "LBL-PAGE-TITLE": "What PSI promises you",
+  "LBL-EYEBROW": "Principles",
+  "LBL-SEC-RAW": "Your words stay yours",
+  "LBL-SEC-EVID": "Evidence should show its limits",
+  "LBL-SEC-CAUSE": "Consequences without blame",
+  "LBL-SEC-DESIGN": "Design should clarify, not steer",
+  "LBL-SEC-INQUIRY": "Inquiry, not a verdict",
+  "LBL-SEC-PRIV": "Privacy in this public beta",
+  "LBL-SEC-ACCOUNT": "Hold us to these promises",
+  "LBL-SCENE-1": "Your life is where the question starts",
+  "LBL-SCENE-2": "Ordinary choices repeat",
+  "LBL-SCENE-3": "Choices sit inside wider systems",
+  "LBL-SCENE-4": "Evidence has edges",
+  "LBL-SCENE-5": "Questions, not judgement",
+  "LBL-SCENE-6": "The choice returns to you",
+  "LBL-BACK-HOME": "Back to home",
+  "LBL-NAV-PRINCIPLES": "Principles",
+  "LBL-SOURCES-SUMMARY": "Sources for these promises",
+  "LBL-SOURCES-INTRO": "The sentences above are the accepted English public copy. These links open the project Constitution, the adopted public-copy handoff, and the public beta profile.",
+  "LBL-SOURCE-CONSTITUTION": "Project Constitution",
+  "LBL-SOURCE-HANDOFF": "English public-copy handoff",
+  "LBL-SOURCE-BETA": "Public beta profile",
+  "LBL-CHOICE-KEEP": "Keep",
+  "LBL-CHOICE-REPAIR": "Repair",
+  "LBL-CHOICE-USED": "Used or second-hand",
+  "LBL-CHOICE-REFURB": "Refurbished",
+  "LBL-CHOICE-NEW": "New",
+  "LBL-CHOICE-INVESTIGATE": "Investigate further",
+  "LBL-CHOICE-UNCLEAR": "Unclear",
+  "LBL-SYSTEM-MATERIALS": "Materials",
+  "LBL-SYSTEM-PROCESSING": "Processing",
+  "LBL-SYSTEM-COMPONENTS": "Components",
+  "LBL-SYSTEM-TRANSPORT": "Transport",
+  "LBL-SYSTEM-USE-REPAIR": "Use / repair",
+  "LBL-SYSTEM-SECOND-LIFE": "Second life",
+  "LBL-SYSTEM-EOL": "End of life",
+  "LBL-SYSTEM-PEOPLE": "People",
+  "LBL-SYSTEM-ECOSYSTEMS": "Ecosystems",
+  "LBL-EVID-CLIMATE": "Climate",
+  "LBL-EVID-MATERIALS": "Materials",
+  "LBL-EVID-WATER": "Water",
+  "LBL-EVID-WASTE": "Waste",
+  "LBL-EVID-PEOPLE": "People",
+  "LBL-EVID-ECOSYSTEMS": "Ecosystems",
+  "LBL-EVID-UNKNOWN": "Unknown",
+  "LBL-EVID-MODELLED": "Modelled or conditional",
+  "LBL-LIFE-CAPTION": "A phone among ordinary things, and people nearby.",
+  "LBL-CHOICE-CAPTION": "Side by side. None is marked as the better purchase.",
+  "LBL-SYSTEM-CAPTION": "Illustrative. Not a measurement or a causal model.",
+  "LBL-EVID-CAPTION": "Separate domains. No single score.",
+  "LBL-NOT-SURE": "“I’m not sure”",
+  "LBL-QUESTION-CAPTION": "A literal answer, left as written.",
+  "LBL-RETURN-CAPTION": "Nothing in this panel is selected.",
+};
+
+export const PUBLIC_CONSTITUTION_PAGE_TITLE = PUBLIC_CONSTITUTION_LABELS["LBL-PAGE-TITLE"];
+
+export const PUBLIC_CONSTITUTION_SECTION_HEADING_IDS = [
+  "LBL-SEC-RAW",
+  "LBL-SEC-EVID",
+  "LBL-SEC-CAUSE",
+  "LBL-SEC-DESIGN",
+  "LBL-SEC-INQUIRY",
+  "LBL-SEC-PRIV",
+  "LBL-SEC-ACCOUNT",
 ];
 
-export const PUBLIC_CONSTITUTION_REVIEW_LINKS = [
+/** @param {string} id */
+function englishLabel(id) {
+  const labels = /** @type {Record<string, string>} */ (PUBLIC_CONSTITUTION_LABELS);
+  const text = labels[id];
+  if (typeof text !== "string") throw new Error(`Missing constitution label ${id}`);
+  return text;
+}
+
+export const PUBLIC_CONSTITUTION_SECTION_HEADINGS = PUBLIC_CONSTITUTION_SECTION_HEADING_IDS.map((id) =>
+  englishLabel(id),
+);
+
+export const PUBLIC_CONSTITUTION_REVIEW_LINK_IDS = [
   {
-    label: "Project Constitution",
+    labelId: "LBL-SOURCE-CONSTITUTION",
     href: "https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/blob/main/PROJECT_CONSTITUTION.md",
   },
   {
-    label: "English public-copy handoff",
+    labelId: "LBL-SOURCE-HANDOFF",
     href: "https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/blob/main/handoffs/ap/HQ-AP-2026-10-15-003-public-constitution.md",
   },
   {
-    label: "Public beta profile",
+    labelId: "LBL-SOURCE-BETA",
     href: "https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/blob/main/project-state/PUBLIC_BETA_PROFILE.md",
   },
 ];
+
+export const PUBLIC_CONSTITUTION_REVIEW_LINKS = PUBLIC_CONSTITUTION_REVIEW_LINK_IDS.map((link) => ({
+  label: englishLabel(link.labelId),
+  href: link.href,
+}));
 
 /** Internal authority notes. Not rendered as the public story. */
 export const PUBLIC_CONSTITUTION_AUTHORITY = {
@@ -65,6 +139,7 @@ export const PUBLIC_CONSTITUTION_AUTHORITY = {
   "PC-ACCOUNT-03": "Feedback is not automatic scientific, philosophical, or product authority",
   "PC-CONFLICT-01": "Constitution conflict rule; P13–P14",
 };
+
 
 export const PUBLIC_CONSTITUTION_UNITS = {
   "PC-OPEN-01": {
@@ -155,65 +230,76 @@ export const PUBLIC_CONSTITUTION_UNITS = {
   },
 };
 
-export const PUBLIC_CONSTITUTION_SCENES = [
+
+export const PUBLIC_CONSTITUTION_SCENE_STRUCTURE = [
   {
     id: "life",
-    title: "Your life is where the question starts",
+    titleId: "LBL-SCENE-1",
     visual: "life",
     blocks: [
       { unitIds: ["PC-OPEN-01"] },
-      { heading: "Your words stay yours", unitIds: ["PC-RAW-01"] },
+      { headingId: "LBL-SEC-RAW", unitIds: ["PC-RAW-01"] },
     ],
   },
   {
     id: "choices",
-    title: "Ordinary choices repeat",
+    titleId: "LBL-SCENE-2",
     visual: "choices",
-    blocks: [{ unitIds: ["PC-CHOICE-01", "PC-INPUT-01"] }],
+    blocks: [{ headingId: null, unitIds: ["PC-CHOICE-01", "PC-INPUT-01"] }],
   },
   {
     id: "systems",
-    title: "Choices sit inside wider systems",
+    titleId: "LBL-SCENE-3",
     visual: "systems",
-    blocks: [
-      { heading: "Consequences without blame", unitIds: ["PC-CAUSE-01", "PC-PMF-01"] },
-    ],
+    blocks: [{ headingId: "LBL-SEC-CAUSE", unitIds: ["PC-CAUSE-01", "PC-PMF-01"] }],
   },
   {
     id: "evidence",
-    title: "Evidence has edges",
+    titleId: "LBL-SCENE-4",
     visual: "evidence",
     blocks: [
       {
-        heading: "Evidence should show its limits",
+        headingId: "LBL-SEC-EVID",
         unitIds: ["PC-EVID-01", "PC-EVID-02", "PC-EVID-03", "PC-SEPARATE-01", "PC-DISTINCT-01"],
       },
     ],
   },
   {
     id: "questions",
-    title: "Questions, not judgement",
+    titleId: "LBL-SCENE-5",
     visual: "questions",
     blocks: [
-      { unitIds: ["PC-RAW-01"] },
-      { heading: "Design should clarify, not steer", unitIds: ["PC-DESIGN-01", "PC-DESIGN-02"] },
-      { heading: "Inquiry, not a verdict", unitIds: ["PC-INQUIRY-01"] },
+      { headingId: null, unitIds: ["PC-RAW-01"] },
+      { headingId: "LBL-SEC-DESIGN", unitIds: ["PC-DESIGN-01", "PC-DESIGN-02"] },
+      { headingId: "LBL-SEC-INQUIRY", unitIds: ["PC-INQUIRY-01"] },
     ],
   },
   {
     id: "return",
-    title: "The choice returns to you",
+    titleId: "LBL-SCENE-6",
     visual: "return",
     blocks: [
-      { unitIds: ["PC-CHOICE-02"] },
-      { heading: "Privacy in this public beta", unitIds: ["PC-PRIV-01", "PC-PRIV-02"] },
+      { headingId: null, unitIds: ["PC-CHOICE-02"] },
+      { headingId: "LBL-SEC-PRIV", unitIds: ["PC-PRIV-01", "PC-PRIV-02"] },
       {
-        heading: "Hold us to these promises",
+        headingId: "LBL-SEC-ACCOUNT",
         unitIds: ["PC-ACCOUNT-02", "PC-ACCOUNT-01", "PC-ACCOUNT-03", "PC-CONFLICT-01"],
       },
     ],
   },
 ];
+
+export const PUBLIC_CONSTITUTION_SCENES = PUBLIC_CONSTITUTION_SCENE_STRUCTURE.map((scene) => ({
+  id: scene.id,
+  titleId: scene.titleId,
+  title: englishLabel(scene.titleId),
+  visual: scene.visual,
+  blocks: scene.blocks.map((block) => ({
+    headingId: block.headingId,
+    heading: block.headingId ? englishLabel(block.headingId) : undefined,
+    unitIds: block.unitIds,
+  })),
+}));
 
 export function listConstitutionUnitIdsInSectionOrder() {
   return Object.keys(PUBLIC_CONSTITUTION_UNITS);

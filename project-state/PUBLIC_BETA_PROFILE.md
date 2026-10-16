@@ -91,6 +91,9 @@ PREVIEW_URL=http://127.0.0.1:8081 node scripts/constitution-public-profile-smoke
 That check opens `/constitution` directly and from Home, reloads it, follows
 Principles and existing navigation to home and the phone inquiry, and checks
 cookies, storage, and prohibited requests. It does not submit a GitHub issue.
+`/constitution` and `/constitution?lang=en` remain English. `/constitution?lang=de`
+selects the adopted German pilot on that page only. Any other `lang` value stays
+in the URL and shows the English page. The locale is not stored or inferred.
 Privacy and data limits in this profile are unchanged.
 
 ## Exclusions
