@@ -2,7 +2,7 @@
 
 **Issue:** #170  
 **Task ID:** `HQ-RE-2026-10-16-001`  
-**Cycle:** `INITIAL-1`  
+**Cycle:** `INITIAL-1` (returned), `CORRECTION-1` (current bounded review correction)  
 **Workstream:** Research & Evidence  
 **Execution class:** Tier 3 — empirical / product input semantics  
 **Branch:** `research/hq-re-2026-10-16-001-old-phone-fate-and-context`  
@@ -22,6 +22,8 @@ It must not be presented as:
 - a final purchase commitment;
 - evidence of unsafe/informal handling;
 - evidence of an unsound e-waste site;
+- an actual discard/recycling event, actual route, or event timing;
+- a new discarded/EOL/scenario mass quantity, including when an exact phone mass is known;
 - avoided e-waste, avoided production, market displacement or recycling credit.
 
 The accepted seven fate categories remain authoritative. The new work is only:
@@ -74,7 +76,7 @@ No AP interaction change is required by this Research result.
 - `sell_or_gift_for_reuse`: second life, no immediate e-waste, no avoided-new credit absent displacement evidence;
 - `trade_in_unknown_next_use`: downstream fate unknown, no avoided-production credit;
 - `store_in_drawer`: dormant/retired, not formal recycling;
-- `formal_recycling`: physical mass only if exact mass known; global rate not applied to the individual;
+- `formal_recycling`: physical mass is available only where both exact mass **and a known actual route/event** are established; global rate is never applied to the individual. An anticipated route alone qualifies for neither actual EOL event nor discarded mass;
 - `discard_general_waste`: conditional pollution/e-waste explanation allowed; no inferred informal destination/probability;
 - `unknown`: no silent recycling/dumping/reuse/storage assumption.
 
@@ -229,8 +231,11 @@ OldPhoneFateInput {
     null | "user_anticipated_hypothetical"
 
   applies_to: "replacement_scenario_set"
-  actual_event_occurred: false
-  actual_route_verified: false
+  actual_event_established: false
+  actual_route_established: false
+  actual_event_status: "unknown"
+  actual_route_status: "unknown"
+  actual_event_time: null
 }
 ```
 
@@ -240,6 +245,8 @@ Important distinction:
 - `anticipated_fate = unknown` = user explicitly said they do not know.
 
 Neither may be silently converted into another category.
+
+**Actual-state truth condition:** `actual_event_established=false` and `actual_route_established=false` mean **no observed/verified actual event or route has been established by this input**; they do **not** assert that an event or route did not occur. The event and route themselves remain `unknown`, including their timing. The user’s anticipated answer is not an observation. A Tier-2 implementation must not reinterpret these establishment flags as `actual_event_occurred=false`, `actual_recycling_occurred=false`, a negative disposal finding, or a known route.
 
 ---
 
@@ -253,11 +260,11 @@ A Tier-2 implementation should make the canonical enum the public/runtime author
 | `sell_or_gift_for_reuse` | `reuse_by_other` | immediate e-waste false; displacement credit null | compatibility mapping is semantically safe if explicit |
 | `trade_in_unknown_next_use` | `trade_in_unknown` | immediate e-waste unknown; next use unknown; displacement credit null | compatibility mapping is semantically safe if explicit |
 | `store_in_drawer` | `stored` | immediate e-waste false; dormant/retired | compatibility mapping is semantically safe if explicit |
-| `formal_recycling` | `formal_recycling` | immediate e-waste true; exact mass only if known | same string; keep scenario/hypothetical label |
+| `formal_recycling` | `formal_recycling` | **historical actual-route fixture:** immediate e-waste true, exact mass only with an actual known route | same literal enum, but hypothetical UI input is annotation-only; never call or promote the event-shaped evaluator branch as evidence of actual recycling, e-waste-now or discarded mass |
 | `discard_general_waste` | none | no direct current evaluator branch | add canonical scenario handling; no inferred landfill/unsafe route |
 | `unknown` | none in current `applyOldDeviceFate` branch | no fate derivatives created | preserve explicit unknown and derivatives as unknown |
 
-Do not expose legacy strings in UI or new contracts.
+Do not expose legacy strings in UI or new contracts. **Compatibility boundary:** the legacy evaluator’s `immediate_e_waste`, `discarded_mass_g`, `next_use` and related event-shaped results belong to their separately evidenced actual-route fixtures. For this optional *anticipated* fate input, the adapter must not feed the answer to an event-shaped evaluator path or project its event outputs as real-world facts. Keep the existing T19–T23 behavior untouched. Only non-quantitative anticipated annotations and fail-closed context are authorized for this first slice.
 
 ---
 
@@ -272,8 +279,8 @@ All rows below describe an **anticipated hypothetical fate**, not an observed ev
 | **sell_or_gift_for_reuse** | “Expected second life with another user.” | non-establishing for unsafe/unsound handling; contradictory to same-record e-waste processing claim | no generic transfer burden; no displacement credit | no 1:1 avoided new phone, no immediate e-waste, no market displacement inference |
 | **trade_in_unknown_next_use** | “Expected trade-in; what happens afterwards is unknown.” | fate remains non-establishing; independent handling evidence would still be required | no route probability; no credit | do not assume reuse, recycling, export, landfill or disposal |
 | **store_in_drawer** | “Expected to be stored/dormant.” | non-establishing and contradictory to same-record unsafe/unsound handling | no recycling/EOL quantity | storage ≠ recycling; storage ≠ environmentally recovered; not automatically generated e-waste |
-| **formal_recycling** | “Expected to enter a formal recycling route.” Always label as hypothetical/user-anticipated. | does not establish unsafe/unsound handling; same-record unsafe/unsound assertion is contradictory | exact device/component mass may be shown only as a **conditional scenario mass** if an exact accepted mass is available and the route occurs; otherwise null | no global-rate probability; no recovery percentage; no recycling credit; no generic EOL CO₂e |
-| **discard_general_waste** | may show an accepted **conditional** pollution/e-waste explanation: downstream handling is not known | fate alone does not set `unsafe_or_informal_handling_established` or `unsound_site_handling_established` | exact scenario hardware mass only if separately supported; no generic mass | no landfill claim, no informal-processing destination, no probability, no person/site attribution |
+| **formal_recycling** | “Expected to enter a formal recycling route.” Always label as hypothetical/user-anticipated. | does not establish unsafe/unsound handling; same-record unsafe/unsound assertion is contradictory | **no discarded/EOL/scenario mass or actual route/event value from this answer, even with an exact known phone mass** | no mass derivation; no global-rate probability, recovery percentage, recycling credit or generic EOL CO₂e |
+| **discard_general_waste** | may show an accepted **conditional** pollution/e-waste explanation: downstream handling is not known | fate alone does not set `unsafe_or_informal_handling_established` or `unsound_site_handling_established` | **no discarded/EOL/scenario mass from this hypothetical answer, even when exact device mass is known** | no landfill claim, informal-processing destination, probability, person/site attribution or mass inference |
 | **unknown** | “You’re not sure what would happen.” | non-establishing; no route; no AP consequence | none | no recycling/dumping/reuse/storage assumption |
 
 ## 5.1 Exact resolver predicates
@@ -333,6 +340,8 @@ Unless another accepted exact record supplies them:
 
 Unknown remains unknown, not zero.
 
+**Actual-route quantity gate:** `EMPIRICAL_SMARTPHONE_V0` and immutable core §E permit discarded physical mass only when an exact device/component mass **and a known actual discard or recycling route/event** are established. The optional hypothetical fate question supplies neither an actual route nor event timing. It creates **no new discarded, EOL or “if it happens” scenario mass channel**, even if an exact model mass is independently available. The existing actual-route evaluator cases T21/T22 remain separately valid and unchanged; they are not supplied by this hypothetical input.
+
 ---
 
 # 6. Comparison, lifecycle and AP boundaries
@@ -342,7 +351,7 @@ Unknown remains unknown, not zero.
 The fate answer may:
 - annotate replacement scenario cards with the same hypothetical old-phone fate;
 - show supported scenario-state facts such as second-life, dormant, or route unknown;
-- show exact mass only under the strict formal-recycling scenario rule if an exact accepted device/component mass exists.
+- show **no new discarded/EOL/scenario mass** from this anticipated answer, even where exact device/component mass is available. A known mass without a known *actual* route does not pass the accepted quantity gate.
 
 It must not:
 - change adequacy;
@@ -352,7 +361,7 @@ It must not:
 - add generic EOL climate;
 - add a recycling/displacement credit.
 
-Keep/repair cards must not inherit a replacement-triggered fate event.
+Keep/repair cards must not inherit a replacement-triggered fate event. Replacement cards must not acquire an actual event either: the optional fate answer is a prospective narrative annotation, not an event-shaped evaluator input.
 
 ## 6.2 Lifecycle guide
 
@@ -406,8 +415,8 @@ No such new gate is created here.
 | re-add a replacement alternative in same comparison session | question active again; show the retained raw answer visibly so user can revise; do not silently hide/rebind it | recompute | recompute | unchanged |
 | comparison reset | clear fate answer with comparison state | clear | clear | existing accepted downstream reset behavior applies |
 | upstream situation/inquiry edit/back that resets comparison | clear fate answer with comparison state | clear | clear | existing accepted downstream invalidation applies |
-| current-phone exact model changes | fate answer itself unchanged; any exact-mass annotation recomputes | stale mass removed/replaced | no new route condition | unchanged |
-| evidence/source/reference changes | fate raw answer unchanged; derived annotations recompute | stale source-derived quantity removed | no silent claim rebinding | D-005 material-basis rule applies only if a qualifying consequence basis changed |
+| current-phone exact model changes | fate answer itself unchanged | **no hypothetical discarded/EOL mass annotation exists to recompute; no new amount emerges from exact model mass** | no new route condition | unchanged |
+| evidence/source/reference changes | fate raw answer unchanged; qualitative context/source labels may be re-evaluated | no hypothetical discarded/EOL quantity exists; no silent event or claim rebinding | no new condition | D-005 material-basis rule applies only if a qualifying consequence basis changed |
 
 The “raw answer may remain while inactive” rule is safe because:
 - it is not candidate-bound;
@@ -596,19 +605,21 @@ A later Tier-2 implementation should cover at least:
 | FATE-05 | sell/gift | second-life annotation; no immediate e-waste/displacement credit |
 | FATE-06 | storage | dormant/storage annotation; not formal recycling |
 | FATE-07 | trade-in unknown | downstream route unknown; no reuse/recycling assumption |
-| FATE-08 | formal recycling + exact accepted mass | conditional scenario mass may display; no global probability/recovery/credit |
-| FATE-09 | formal recycling + no exact mass | no generic mass |
-| FATE-10 | general waste | conditional context only; unsafe/informal and unsound-site predicates remain unset |
+| FATE-08 | hypothetical formal recycling + exact accepted mass | **no discarded/EOL/scenario mass and no actual recycling event**; no global probability/recovery/credit |
+| FATE-09 | hypothetical formal recycling + no exact mass | no discarded/EOL/scenario mass; no generic mass or actual event |
+| FATE-10 | hypothetical general waste **with or without exact known model mass** | conditional qualitative context only; **no discarded/EOL/scenario mass or actual event**; unsafe/informal and unsound-site predicates remain unset |
 | FATE-11 | any fate + no independent handling evidence | e-waste people/ecosystem resolver does not emit |
 | FATE-12 | continue/reuse/store/formal recycle + injected same-record unsafe/unsound flag | resolver fails closed as contradictory |
 | FATE-13 | edit/clear answer | previous fate annotation/context removed immediately |
 | FATE-14 | remove all replacement alternatives | fate question/context inactive; no stale display/Impact record |
 | FATE-15 | comparison reset/upstream edit | fate state cleared with comparison; no stale downstream evidence |
-| FATE-16 | exact current-phone model changes | raw fate answer retained; exact-mass annotation recomputed/cleared |
+| FATE-16 | exact current-phone model changes | raw fate answer retained; **no discarded/EOL/scenario mass to recompute or clear**; hypothetical fate cannot derive an event from model identity |
 | FATE-17 | global context displayed | no probability applied to user/device; no AP trigger |
 | FATE-18 | Eurostat context displayed | labels EU/2024/individuals/self-report; no normalization or individual inference |
 | FATE-19 | QSP/Otherness answers already exist | fate annotation edit alone does not silently rebind or rewrite them |
 | FATE-20 | future actual qualifying e-waste basis removed | existing D-005 material-basis invalidation required; not implemented by this task |
+| FATE-21 | optional answer set to formal recycling or general waste, no actual-route proof | `actual_event_established=false` / `actual_route_established=false` mean **not established**, while real-world event/route remain `unknown`; neither flag means proven nonoccurrence |
+| FATE-22 | existing T21/T22 actual-route evaluator fixtures | accepted exact-mass-plus-known-actual-route behavior remains unchanged; no historical regression or global prohibition on actual evidenced mass |
 
 No broad app regression/build/render is required for this docs-only specialist task.
 
@@ -647,7 +658,7 @@ The minimal wording change from “if you stop using” to “if you ended up ge
 
 ## Implementation discrepancy for HQ/Cursor
 
-Before Tier-2 implementation, HQ should explicitly require canonical fate values at the UI/context boundary and a tested compatibility/normalization path for the historical evaluator strings.
+Before Tier-2 implementation, HQ should explicitly require canonical fate values at the UI/context boundary and a tested compatibility/normalization path for the historical evaluator strings. The first optional-question implementation must remain annotation-only: `applyOldDeviceFate` must not turn anticipated formal recycling into `immediate_e_waste=true` or `discarded_mass_g`, or anticipated reuse/storage into proven present events. Existing actual-route evaluator/test semantics are unchanged.
 
 Do not let Cursor choose ad hoc mappings.
 
@@ -689,6 +700,11 @@ No app, contract, invariant, registry, source-package, corpus, Owner-control or 
 
 ## Return
 
-**Research result: VERIFIED_FOR_HQ_REVIEW**
+**Research result: VERIFIED_FOR_HQ_REVIEW — CORRECTION-1**
+
+**CORRECTION-1 review map (HQ review 5546746739):**
+- §3.6 now uses establishment-named fields plus explicit unknown actual event/route/timing; `false` means *not established*, not proof that an event did not occur.
+- §2.2, §4, §5, §6.1, §7, §§10–12 and FATE-08/09/10/16/21/22 now exclude hypothetical discarded/EOL/scenario mass even with an exact model mass, separate anticipated annotation from legacy event-shaped output, and preserve actual-route T21/T22.
+- No scientific sources, public question/labels, external contextual-statistic candidates, resolver gates or accepted code/contract/package changed. #173 remains independently blocked pending HQ disposition.
 
 **Self-merge: NO**
