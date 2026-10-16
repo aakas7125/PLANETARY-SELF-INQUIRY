@@ -237,6 +237,16 @@ describe("generic smartphone lifecycle presentation", () => {
     assert.equal(componentSource.includes("horizon"), false);
     assert.match(componentSource, /describeLifecycleGuide\(\)/);
     assert.doesNotMatch(componentSource, /<SmartphoneLifecycleGuide [^>]*>/);
+    assert.match(componentSource, /guide\.stages\.map/);
+    assert.match(componentSource, /guide\.production\.lines/);
+    assert.match(componentSource, /<svg/);
+    assert.equal(componentSource.includes("25–70"), false);
+    assert.equal(componentSource.includes("2–4"), false);
+    assert.equal(componentSource.includes("0.3–0.7"), false);
+    assert.equal(componentSource.includes("3–8"), false);
+    assert.equal(componentSource.includes("7.61"), false);
+    assert.equal(componentSource.includes("old phone"), false);
+    assert.equal(componentSource.includes("avoided"), false);
 
     const guideMount = comparisonSource.indexOf("<SmartphoneLifecycleGuide />");
     const horizonMount = comparisonSource.indexOf('id="comparison-horizon"');
