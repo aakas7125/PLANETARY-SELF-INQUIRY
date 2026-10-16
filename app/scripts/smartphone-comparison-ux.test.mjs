@@ -171,7 +171,8 @@ describe("smartphone comparison entry", () => {
     assert.match(component, /COMPARISON_CHROME\.pathwayLegend/);
     assert.match(component, /view\.selectionNote/);
     assert.match(component, /type="checkbox"/);
-    assert.doesNotMatch(component, /type="radio"/);
+    assert.match(component, /name="comparison-pathway"/);
+    assert.doesNotMatch(component, /name="comparison-pathway"[\s\S]{0,80}type="radio"/);
     assert.match(
       view.selectionNote,
       /Select the possibilities you want to compare side by side\. Selecting more than one does not mean you intend to do all of them\./,
@@ -442,7 +443,8 @@ describe("smartphone comparison entry", () => {
     assert.match(situationComponent, /disabled=\{!view\.canSubmit\}/);
     assert.match(situationComponent, /canEnterInquiry\(view\.result\)/);
     assert.match(comparisonComponent, /type="checkbox"/);
-    assert.doesNotMatch(comparisonComponent, /type="radio"/);
+    assert.match(comparisonComponent, /name="comparison-pathway"/);
+    assert.match(comparisonComponent, /name="anticipated-old-phone-fate"/);
     assert.doesNotMatch(comparisonComponent, /defaultValue|defaultChecked/);
     assert.doesNotMatch(comparisonComponent, />\{pathway\.id\}<|>\{card\.id\}</);
     assert.match(comparisonComponent, /\{pathway\.label\}/);
