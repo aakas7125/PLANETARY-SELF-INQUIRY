@@ -67,6 +67,68 @@ const WHO_EWASTE = Object.freeze({
   href: "https://www.who.int/news-room/questions-and-answers/item/children-and-digital-dumpsites-e-waste-and-health",
 });
 
+const WIDER_CONTEXT_HEADING = "Wider context";
+const WIDER_CONTEXT_SCOPE = "Global · 2022 · annual mass flow";
+const WIDER_CONTEXT_SOURCE = "Institutional source: ITU/UNITAR, Global E-waste Monitor 2024";
+
+/**
+ * Accepted S7 aggregate education already present in the immutable smartphone
+ * package. This is one presentation record. It is not a new claim, a phone
+ * fate, or a probability.
+ *
+ * @type {Readonly<{
+ *   id: string,
+ *   heading: string,
+ *   provenance: Readonly<{ source: string, packageId: string, research: string }>,
+ *   records: readonly Readonly<{
+ *     id: string,
+ *     label: string,
+ *     scopeLabel: string,
+ *     fact: string,
+ *     limit: string,
+ *     href: string,
+ *     linkLabel: string,
+ *   }>[],
+ * }>}
+ */
+const END_OF_LIFE_WIDER_CONTEXT = Object.freeze({
+  id: "wider-context",
+  heading: publicLine(WIDER_CONTEXT_HEADING),
+  provenance: Object.freeze({
+    source: "S7",
+    packageId: "R&E-V0-SMARTPHONE-0.3.0",
+    research: "§8 Candidates 1–2",
+  }),
+  records: Object.freeze([
+    Object.freeze({
+      id: "global-e-waste",
+      label: publicLine("Global e-waste"),
+      scopeLabel: publicLine(WIDER_CONTEXT_SCOPE),
+      fact: publicLine(
+        "Globally, 62 billion kg of e-waste was generated in 2022. About 22.3% of that mass was documented as formally collected and recycled.",
+      ),
+      limit: publicLine(
+        "This covers all e-waste, not phones alone, and it is not the probability that your phone will be recycled. The undocumented share must not be labelled “landfill.”",
+      ),
+      href: "https://www.itu.int/en/ITU-D/Environment/Pages/Publications/The-Global-E-Waste-Monitor-2024.aspx",
+      linkLabel: publicLine(WIDER_CONTEXT_SOURCE),
+    }),
+    Object.freeze({
+      id: "small-it-telecommunication",
+      label: publicLine("Small IT and telecommunication equipment"),
+      scopeLabel: publicLine(WIDER_CONTEXT_SCOPE),
+      fact: publicLine(
+        "Small IT and telecommunication equipment — a category that includes mobile phones alongside laptops, routers and other devices — generated 4.6 billion kg of e-waste globally in 2022. About 22% of that category was documented as collected and recycled.",
+      ),
+      limit: publicLine(
+        "This is a mixed equipment category, not a smartphone-only rate and not an individual route probability.",
+      ),
+      href: "https://unitar.org/about/news-stories/press/global-e-waste-monitor-2024-electronic-waste-rising-five-times-faster-documented-e-waste-recycling",
+      linkLabel: publicLine(WIDER_CONTEXT_SOURCE),
+    }),
+  ]),
+});
+
 /**
  * @param {string} text
  * @returns {string}
@@ -113,6 +175,7 @@ function explore(explainers) {
  *   thisPhone: readonly string[],
  *   sources: readonly string[],
  *   explainers?: readonly { label: string, provenance: string, href: string }[],
+ *   widerContext?: typeof END_OF_LIFE_WIDER_CONTEXT | null,
  * }} stageRecord
  */
 function stage(stageRecord) {
@@ -124,6 +187,7 @@ function stage(stageRecord) {
     generally: publicLine(stageRecord.generally),
     thisPhoneHeading: publicLine(SECTION.thisPhone),
     thisPhoneLines: Object.freeze(stageRecord.thisPhone.map(publicLine)),
+    widerContext: stageRecord.widerContext ?? null,
     sourcesHeading: publicLine(SECTION.sources),
     sourceLines: Object.freeze(stageRecord.sources.map(publicLine)),
     explore: explainers.length > 0 ? explore(explainers) : null,
@@ -270,6 +334,7 @@ const STAGES = Object.freeze([
       "Source S12. Systematic review of environmental heavy-metal contamination at e-waste sites. 59 studies / 8,286 measurements.",
       "R&E-V0-SMARTPHONE-0.3.0, old-device fate, waste, and conditional pathways. Empirical smartphone contract, old-device fate, waste, materials and water.",
     ],
+    widerContext: END_OF_LIFE_WIDER_CONTEXT,
     explainers: [E_WASTE_MONITOR, WHO_EWASTE],
   }),
 ]);
@@ -316,6 +381,20 @@ const PRODUCTION_DISCLOSURE = Object.freeze([
  *     generally: string,
  *     thisPhoneHeading: string,
  *     thisPhoneLines: readonly string[],
+ *     widerContext: null | Readonly<{
+ *       id: string,
+ *       heading: string,
+ *       provenance: Readonly<{ source: string, packageId: string, research: string }>,
+ *       records: readonly Readonly<{
+ *         id: string,
+ *         label: string,
+ *         scopeLabel: string,
+ *         fact: string,
+ *         limit: string,
+ *         href: string,
+ *         linkLabel: string,
+ *       }>[],
+ *     }>,
  *     sourcesHeading: string,
  *     sourceLines: readonly string[],
  *     explore: null | Readonly<{ heading: string, note: string, links: readonly Readonly<{ label: string, provenance: string, href: string }>[] }>,
