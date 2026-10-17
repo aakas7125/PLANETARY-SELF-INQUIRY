@@ -5,7 +5,7 @@ Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs a
 | Workstream | Current disposition |
 |---|---|
 | Project HQ | Independent PR207 review/correction routing and PR208 Research acceptance/merge complete; queue reconciled |
-| Cursor | #199/PR#202 accepted; #206/PR#207 task064 CORRECTION-1 RETRY-1 dispatched (recovery wake6240037643) after Owner-confirmed prior no-action duplicate-cycle stand-down; correct-cycle lease/return not yet observed |
+| Cursor | #199/PR#202 accepted; #206/PR#207 task064 CORRECTION-1 RETRY-1 CURSOR_WORKING / IN_PROGRESS: correct-cycle lease observed at1a081096; recovery wake6240037643 succeeded; return pending |
 | Research & Evidence | #200/PR#204 and #205/PR#208 accepted/closed; visual-source delta merged61c6e939; no automatic scientific/product adoption |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
