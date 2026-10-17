@@ -104,12 +104,22 @@ function StageGlyph({ id }: { id: string }) {
   );
 }
 
-export function SmartphoneLifecycleGuide() {
+export function SmartphoneLifecycleGuide({ headingId }: { headingId?: string } = {}) {
   const guide = describeLifecycleGuide();
 
   return (
     <section aria-label={guide.sectionLabel} className="mt-8 min-w-0 scroll-mt-32">
-      <h2 className="break-words font-display text-2xl text-foreground sm:text-3xl">{guide.summary}</h2>
+      <h2
+        id={headingId}
+        tabIndex={headingId ? -1 : undefined}
+        className={
+          headingId
+            ? "scroll-mt-32 break-words rounded-md font-display text-2xl text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-paper sm:text-3xl"
+            : "break-words font-display text-2xl text-foreground sm:text-3xl"
+        }
+      >
+        {guide.summary}
+      </h2>
       <p className="mt-3 break-words text-sm leading-relaxed text-foreground">{guide.roleNote}</p>
       <p className="mt-3 break-words text-sm leading-relaxed text-foreground">{guide.inquiryBoundary}</p>
 

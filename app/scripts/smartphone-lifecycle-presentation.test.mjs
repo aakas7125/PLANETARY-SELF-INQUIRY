@@ -266,12 +266,34 @@ describe("generic smartphone lifecycle presentation", () => {
     assert.equal(componentSource.includes("old phone"), false);
     assert.equal(componentSource.includes("avoided"), false);
 
-    const guideMount = comparisonSource.indexOf("<SmartphoneLifecycleGuide />");
+    const guideMountTag = "<SmartphoneLifecycleGuide headingId={GUIDE_TARGET_ID} />";
+    const guideMounts = comparisonSource.split("<SmartphoneLifecycleGuide").length - 1;
+    const guideMount = comparisonSource.indexOf(guideMountTag);
     const horizonMount = comparisonSource.indexOf('id="comparison-horizon"');
     const evaluatedMount = comparisonSource.indexOf("{view.evaluated ? (");
+    const continueMount = comparisonSource.indexOf("IMPACT_CHROME.continueFromComparison");
+    const guideNoteMount = comparisonSource.indexOf("{view.modelGuideNote ? (");
+    assert.equal(guideMounts, 1);
     assert.ok(guideMount > 0);
-    assert.ok(guideMount < horizonMount);
-    assert.ok(guideMount < evaluatedMount);
+    assert.ok(horizonMount > 0 && horizonMount < guideMount);
+    assert.ok(evaluatedMount > horizonMount && evaluatedMount < guideMount);
+    assert.ok(continueMount > evaluatedMount && continueMount < guideMount);
+    assert.ok(guideMount < guideNoteMount);
+    assert.equal(comparisonSource.split("{view.modelGuideNote ? (").length - 1, 1);
+
+    const topLink = comparisonSource.indexOf("href={`#${GUIDE_TARGET_ID}`}");
+    const backLink = comparisonSource.indexOf("href={`#${INPUTS_TARGET_ID}`}");
+    const stageList = comparisonSource.indexOf('aria-label="Smartphone inquiry stages"');
+    const inputsTarget = comparisonSource.indexOf("id={INPUTS_TARGET_ID}");
+    const pathwayLegend = comparisonSource.indexOf("COMPARISON_CHROME.pathwayLegend");
+    assert.ok(topLink > 0 && topLink < stageList);
+    assert.ok(backLink > guideNoteMount);
+    assert.ok(inputsTarget > 0 && inputsTarget < pathwayLegend && pathwayLegend < horizonMount);
+    assert.match(comparisonSource, /GUIDE_LINK_LABEL = "Explore the phone lifecycle and sources"/);
+    assert.match(comparisonSource, /INPUTS_LINK_LABEL = "Back to comparison inputs"/);
+    assert.equal(comparisonSource.split("{GUIDE_LINK_LABEL}").length - 1, 1);
+    assert.equal(comparisonSource.split("{INPUTS_LINK_LABEL}").length - 1, 1);
+    assert.match(componentSource, /headingId/);
 
     const impactGuide = impactSource.indexOf("<SmartphoneLifecycleGuide />");
     const impactCards = impactSource.indexOf('aria-label="Impact and dependency pathways"');
