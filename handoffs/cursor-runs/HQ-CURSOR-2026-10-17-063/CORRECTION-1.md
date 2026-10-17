@@ -1,4 +1,4 @@
-STATE: CURSOR_WORKING
+STATE: RETURNED_FOR_HQ_REVIEW
 TASK_ID: HQ-CURSOR-2026-10-17-063
 ISSUE: 199
 CYCLE: CORRECTION-1
@@ -6,3 +6,8 @@ STARTING_MAIN: d8a1c16002a1ca6d9bec588ed54f423ce656c39c
 PRIOR_REVIEWED_HEAD: ba5c6c805f46dd1da86ed33d72b56dec4233d569
 BRANCH: cursor/hq-cursor-2026-10-17-063-navigation-focus
 Self-merge: NO
+VALIDATED_IMPLEMENTATION_HEAD: fbaa9c39fd64037c8b972916487827da4e35853f
+EVIDENCE_RETURN_HEAD: see PR head
+PR: https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/pull/202
+TASK_SPECIFIC_VALIDATION: baseline vs candidate probe at 390/1280/320/640 x normal/reduced motion passed with 0 assertion failures; states identical; see return file
+ROUTINE_CI: PENDING
