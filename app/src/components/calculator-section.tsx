@@ -42,6 +42,13 @@ function Stat({
   );
 }
 
+const EV_ROAD_SHARE_NAME = "Household road kilometres travelled by electric vehicle (%)";
+const EV_ROAD_SHARE_INSTRUCTION_ID = "ledger-ev-road-share-instruction";
+const EV_ROAD_SHARE_INSTRUCTION =
+  "Of your household’s road travel entered above for one year, what percentage is travelled in an electric vehicle? 0% means none of those kilometres; 100% means all of them.";
+const EV_ROAD_SHARE_CONTEXT =
+  "An electric kilometre still carries the local grid. Quieter is not the same as disconnected.";
+
 function FieldLabel({
   title,
   value,
@@ -158,19 +165,22 @@ export function CalculatorSection() {
               </div>
 
               <div>
-                <FieldLabel title="Share of those kilometres electric" value={`${state.evShare}%`} />
+                <FieldLabel title={EV_ROAD_SHARE_NAME} value={`${state.evShare}%`} />
                 <Slider
                   min={0}
                   max={100}
                   step={5}
                   value={[state.evShare]}
                   onValueChange={([v]) => state.setField("evShare", v ?? 0)}
-                  aria-label="Electric vehicle share"
+                  thumbProps={{
+                    "aria-label": EV_ROAD_SHARE_NAME,
+                    "aria-describedby": EV_ROAD_SHARE_INSTRUCTION_ID,
+                  }}
                 />
-                <p className="text-xs text-muted-foreground">
-                  An electric kilometre still carries the local grid. Quieter is not the same as
-                  disconnected.
+                <p id={EV_ROAD_SHARE_INSTRUCTION_ID} className="text-xs text-muted-foreground">
+                  {EV_ROAD_SHARE_INSTRUCTION}
                 </p>
+                <p className="mt-1 text-xs text-muted-foreground">{EV_ROAD_SHARE_CONTEXT}</p>
               </div>
 
               <div>
