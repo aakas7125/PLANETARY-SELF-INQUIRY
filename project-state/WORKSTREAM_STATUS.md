@@ -4,8 +4,8 @@ Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs a
 
 | Workstream | Current disposition |
 |---|---|
-| Project HQ | D-024 recorded; #212/PR214 accepted/merged/postmergeCIpass; #213 serial release and sole wake complete |
-| Cursor | #213/task066 INITIAL-1 dispatched (wake6240938362), claim/return not yet observed; #212/214 accepted/closed |
+| Project HQ | PR215 source/tests/CI/eight images reviewed; bounded settled-chart evidence correction requested/routed |
+| Cursor | #213/PR215 CORRECTION-1 dispatched (wake6241964148); current-cycle claim/return not yet observed; no initial replay |
 | Research & Evidence | #210/PR211 accepted/closed; no active Research task, no goods calibration adopted |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
