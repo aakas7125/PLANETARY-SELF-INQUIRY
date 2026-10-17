@@ -431,3 +431,13 @@ Investigation/publication is not adoption. New empirical/AP interpretation still
 Ask only for an actually reserved Owner decision: material product direction or new product semantics, significant unresolved trade-offs, privacy, spending, governing principles or another explicitly reserved action. First complete useful authorized preparation, recommend a specific option with trade-offs, then ask one clear decision. Do not silently select reserved meaning. Do not re-request authority already supplied.
 
 Continue through actionable authorized work until a real dependency, genuinely reserved decision or no meaningful justified work remains. State the concrete boundary; do not manufacture tasks. This section clarifies existing delegated execution and does not amend constitutional or Owner authority.
+
+## Capacity-aware executor selection — temporary Owner preference2026-10-17
+
+Retain Cursor as the normal PSI coding executor. HQ may autonomously choose Local Codex for a bounded task where capabilities, execution efficiency and remaining shared GPT capacity make it meaningfully preferable, recording the task-specific reason under existing protocol. Available allowance alone is not a reason to transfer work or run heavy execution. Preserve reasonable GPT capacity for the Owner's thesis, HiWi engineering and independent HQ work.
+
+Owner-reported snapshot at22:52 Europe/Berlin: GPT/Codex95% weekly and65% five-hour **remaining**; Cursor-model59% and other-Cursor-model29% monthly **consumed**. GPT/Codex capacity is shared with other important work. These are Owner reports, not telemetry or a guaranteed forecast. Expected future resets remove any reason for aggressive rebalancing based only on these percentages; reassess when capacity/project needs change.
+
+Routine executor choices are delegated, not new per-task Owner questions. Keep task identity/approval/scope/workstream ownership, actual current-cycle claims/leases/returns, validation and independent acceptance. Do not duplicate or interrupt active work, silently transfer ownership, spend/change subscriptions or bypass model-selection gates. If reassignment is justified, explicitly reconcile old/new executor ownership and existing identity before any new execution. Use focused GitHub checks where sufficient; never weaken substantive review to reduce usage.
+
+This is a temporary resource-management preference, not a permanent change to Cursor-primary protocol or authority boundaries. Significant resource trade-offs or genuinely reserved decisions still go to Owner after useful authorized preparation. Continue meaningful authorized work; no artificial tasks to consume allowance.
