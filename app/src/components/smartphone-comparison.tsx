@@ -35,6 +35,40 @@ function SourcesAndLimits({
   );
 }
 
+type ComparisonCardView = ComparisonView["cards"][number];
+
+function ComparisonCard({ card }: { card: ComparisonCardView }) {
+  const valueLines = new Set<string>();
+  for (const value of card.values as { line?: unknown }[]) {
+    if (typeof value.line === "string") valueLines.add(value.line);
+  }
+  return (
+    <article
+      aria-label={card.label}
+      className="min-w-0 rounded-2xl border-l-4 border-pine bg-paper px-4 py-4"
+    >
+      <h3 className="break-words border-b border-border pb-3 font-display text-xl text-foreground">
+        {card.label}
+      </h3>
+      <div className="mt-4 max-w-prose space-y-3">
+        {card.publicLines.map((line, index) => (
+          <p
+            key={line}
+            className={cn(
+              "break-words text-base leading-relaxed text-foreground",
+              index === 0 && "font-medium",
+              valueLines.has(line) && "rounded-md border-l-2 border-border bg-background px-3 py-2",
+            )}
+          >
+            {line}
+          </p>
+        ))}
+        <SourcesAndLimits disclosure={card.sourcesAndLimits} />
+      </div>
+    </article>
+  );
+}
+
 const GUIDE_TARGET_ID = "comparison-lifecycle-guide";
 const INPUTS_TARGET_ID = "comparison-inputs";
 const GUIDE_LINK_LABEL = "Explore the phone lifecycle and sources";
@@ -508,21 +542,7 @@ export function SmartphoneComparison({
           ) : null}
           <div className="mt-4 space-y-3">
             {view.cards.map((card) => (
-              <article
-                key={card.label}
-                aria-label={card.label}
-                className="min-w-0 rounded-2xl border-l-4 border-pine bg-paper px-4 py-4"
-              >
-                <h3 className="break-words font-display text-xl text-foreground">{card.label}</h3>
-                <div className="mt-2 space-y-2">
-                  {card.publicLines.map((line) => (
-                    <p key={line} className="break-words text-sm leading-relaxed text-foreground">
-                      {line}
-                    </p>
-                  ))}
-                  <SourcesAndLimits disclosure={card.sourcesAndLimits} />
-                </div>
-              </article>
+              <ComparisonCard key={card.label} card={card} />
             ))}
           </div>
           <p className="mt-4 text-sm leading-relaxed text-foreground">{view.boundary}</p>
