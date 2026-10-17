@@ -9,16 +9,15 @@ import { useHousehold } from "@/store/household";
 import { cn } from "@/lib/utils";
 
 const LEDGER_QUALIFICATION =
-  "This is an illustrative household estimate, not a complete audited footprint.";
+  "This illustrative estimate excludes goods impacts, which are unquantified; it is not a complete audited footprint.";
 
-const SLICE_COLORS = [
-  "var(--color-pine)",
-  "var(--color-primary)",
-  "var(--color-clay)",
-  "var(--color-heat)",
-  "var(--color-muted-foreground)",
-  "var(--color-border)",
-];
+const SLICE_COLORS: Record<string, string> = {
+  diet: "var(--color-pine)",
+  flights: "var(--color-primary)",
+  car: "var(--color-clay)",
+  home: "var(--color-heat)",
+  services: "var(--color-border)",
+};
 
 function Stat({
   label,
@@ -197,18 +196,6 @@ export function CalculatorSection() {
                   aria-label="Home electricity"
                 />
               </div>
-
-              <div>
-                <FieldLabel title="Goods, fashion, devices" value={`${state.goods} / 10`} />
-                <Slider
-                  min={0}
-                  max={10}
-                  step={1}
-                  value={[state.goods]}
-                  onValueChange={([v]) => state.setField("goods", v ?? 0)}
-                  aria-label="Goods intensity"
-                />
-              </div>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button type="button" variant="secondary" onClick={() => state.reset()}>
@@ -265,8 +252,8 @@ export function CalculatorSection() {
                       paddingAngle={2}
                       stroke="none"
                     >
-                      {pie.map((_, i) => (
-                        <Cell key={i} fill={SLICE_COLORS[i % SLICE_COLORS.length]} />
+                      {result.slices.map((s) => (
+                        <Cell key={s.id} fill={SLICE_COLORS[s.id]} />
                       ))}
                     </Pie>
                     <RTooltip
@@ -282,11 +269,11 @@ export function CalculatorSection() {
                 </ResponsiveContainer>
               </div>
               <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                {result.slices.map((s, i) => (
+                {result.slices.map((s) => (
                   <li key={s.id} className="flex items-center gap-2">
                     <span
                       className="size-2 shrink-0 rounded-full"
-                      style={{ background: SLICE_COLORS[i % SLICE_COLORS.length] }}
+                      style={{ background: SLICE_COLORS[s.id] }}
                     />
                     {s.label} {formatT(s.t)} t
                   </li>

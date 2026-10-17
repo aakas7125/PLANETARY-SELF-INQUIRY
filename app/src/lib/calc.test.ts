@@ -1,7 +1,13 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { computeHousehold, defaultHousehold, dietOptions, type HouseholdInput } from "./calc.ts";
+import {
+  computeHousehold,
+  defaultHousehold,
+  dietFootprint,
+  dietOptions,
+  type HouseholdInput,
+} from "./calc.ts";
 import { getPlace, places } from "./places.ts";
 
 const SUSPENDED_RESULT_KEYS = ["earths", "budgetHours", "lifetimeSharePct"];
@@ -104,8 +110,15 @@ describe("Ledger suspended cooling add-on and unsupported metrics are excluded",
     }
     const flying = computeHousehold({ ...defaultHousehold, flightsLhe: 2 }).seeing;
     assert.ok(flying.some((line) => line.startsWith("Flying is among")));
-    const goods = computeHousehold({ ...defaultHousehold, goods: 7 }).seeing;
-    assert.ok(goods.some((line) => line.startsWith("Parcels are a large line")));
+    const parcels =
+      "Parcels are a large line in this ledger. What are they doing in the life of the four?";
+    for (const goods of [0, 7, 10]) {
+      const lines = computeHousehold(withSuppliedExtraField(defaultHousehold, "goods", goods)).seeing;
+      assert.equal(
+        lines.some((line) => line.startsWith(parcels)),
+        false,
+      );
+    }
   });
 
   it("retains the Home energy slice and its non-cooling-trigger prose", () => {
@@ -115,6 +128,85 @@ describe("Ledger suspended cooling add-on and unsupported metrics are excluded",
   });
 });
 
+describe("Ledger uncalibrated goods input is excluded", () => {
+  // Former index term and totals are the pre-removal code expectations for the
+  // current default inputs. They are not validated footprints.
+  const formerGoodsTerm: Record<number, number> = {
+    0: 0.35,
+    3: 1.37,
+    5: 2.05,
+    6: 2.39,
+    7: 2.73,
+    10: 3.75,
+  };
+  const formerTotal: Record<number, number> = {
+    0: 17.695,
+    3: 18.715,
+    5: 19.395,
+    6: 19.735,
+    7: 20.075,
+    10: 21.095,
+  };
+
+  it("drops the goods field, slice, and index, and keeps one goods-independent result", () => {
+    assert.equal("goods" in defaultHousehold, false);
+    const calcSource = readFileSync(new URL("./calc.ts", import.meta.url), "utf8");
+    assert.equal(calcSource.includes("input.goods"), false);
+    assert.equal(calcSource.includes("0.35 + (input.goods / 10) * 3.4"), false);
+    assert.equal(calcSource.includes('id: "goods"'), false);
+
+    const base = computeHousehold(defaultHousehold);
+    assert.equal(
+      base.slices.some((slice) => slice.id === "goods" || slice.label === "Goods"),
+      false,
+    );
+    assert.ok(Math.abs(base.totalT - sumOfSlices(defaultHousehold)) < 1e-9);
+    assert.equal(base.perPersonT, base.totalT / 4);
+    assert.ok(Math.abs(base.totalT - 17.345) < 1e-9);
+    assert.ok(Math.abs(base.perPersonT - 4.33625) < 1e-9);
+    assert.equal(base.landM2, 9600);
+
+    for (const goods of [0, 3, 5, 6, 7, 10]) {
+      const result = computeHousehold(withSuppliedExtraField(defaultHousehold, "goods", goods));
+      assert.deepEqual(result, base);
+      assert.ok(Math.abs(formerTotal[goods] - formerGoodsTerm[goods] - base.totalT) < 1e-9);
+      assert.ok(Math.abs(base.totalT - (formerTotal[5] - formerGoodsTerm[5])) < 1e-9);
+    }
+  });
+
+  it("keeps diet-only land and remaining component movement independent of a goods index", () => {
+    for (const diet of dietOptions) {
+      for (const goods of [0, 3, 5, 6, 7, 10]) {
+        const result = computeHousehold(
+          withSuppliedExtraField({ ...defaultHousehold, diet }, "goods", goods),
+        );
+        assert.equal(result.landM2, dietFootprint[diet].land * 4);
+        assert.equal(
+          result.seeing.some((line) => line.startsWith("Parcels are a large line")),
+          false,
+        );
+      }
+    }
+
+    const contrasts: HouseholdInput[] = [
+      { ...defaultHousehold, diet: "vegan", flightsLhe: 0, carKm: 0, evShare: 0, homeKwh: 500 },
+      { ...defaultHousehold, diet: "high-meat", flightsLhe: 4, carKm: 8000, evShare: 100, homeKwh: 12000 },
+      { ...defaultHousehold, placeId: "london", carKm: 8000, evShare: 50 },
+    ];
+    for (const input of contrasts) {
+      const result = computeHousehold(input);
+      const supplied = computeHousehold(withSuppliedExtraField(input, "goods", 10));
+      assert.deepEqual(supplied, result);
+      assert.equal(result.slices.some((slice) => slice.id === "goods"), false);
+      assert.ok(Math.abs(result.totalT - result.slices.reduce((acc, slice) => acc + slice.t, 0)) < 1e-9);
+      assert.notEqual(result.totalT, computeHousehold(defaultHousehold).totalT);
+    }
+  });
+});
+
+// Accepted 065 producer totals still include the former default goods term.
+// Road slices are unchanged. Current totals differ only by that excluded term.
+const FORMER_DEFAULT_GOODS_T = 0.35 + (5 / 10) * 3.4;
 const EV_DISTANCE_BASELINE: Record<string, { road: number; total: number }> = {
   "delhi:0:0": { road: 0, total: 18.034999999999997 },
   "delhi:0:50": { road: 0, total: 18.034999999999997 },
@@ -159,7 +251,7 @@ describe("Ledger electric road-distance share keeps the existing producer result
           assert.ok(road);
           const expected = EV_DISTANCE_BASELINE[`${placeId}:${carKm}:${evShare}`];
           assert.equal(road.t, expected.road);
-          assert.equal(result.totalT, expected.total);
+          assert.ok(Math.abs(result.totalT - (expected.total - FORMER_DEFAULT_GOODS_T)) < 1e-12);
           assert.equal(result.perPersonT, result.totalT / 4);
           results.push(result);
         }
@@ -195,7 +287,6 @@ describe("Ledger electric road-distance share keeps the existing producer result
       carKm: 8000,
       evShare: 0,
       homeKwh: 3500,
-      goods: 5,
     });
     const store = readFileSync(new URL("../store/household.ts", import.meta.url), "utf8");
     assert.match(store, /\[key\]: value/);
@@ -236,8 +327,13 @@ describe("Ledger public presentation", () => {
   });
 
   it("shows the single general qualification and no suspension or history notice", () => {
-    const qualification = "This is an illustrative household estimate, not a complete audited footprint.";
+    const qualification =
+      "This illustrative estimate excludes goods impacts, which are unquantified; it is not a complete audited footprint.";
     assert.equal(calculator.split(qualification).length - 1, 1);
+    assert.equal(
+      calculator.includes("This is an illustrative household estimate, not a complete audited footprint."),
+      false,
+    );
     assert.match(calculator, /id="ledger-qualification"/);
     for (const forbidden of [
       "suspended",
@@ -279,8 +375,9 @@ describe("Ledger public presentation", () => {
     assert.match(calculator, /min=\{0\}[\s\S]{0,80}max=\{100\}[\s\S]{0,80}step=\{5\}[\s\S]{0,120}evShare/);
     assert.match(calculator, /title="Household road travel"/);
     assert.match(calculator, /aria-label="Car kilometres"/);
-    assert.match(calculator, /title="Goods, fashion, devices"/);
-    assert.match(calculator, /aria-label="Goods intensity"/);
+    assert.equal(calculator.includes("Goods, fashion, devices"), false);
+    assert.equal(calculator.includes("Goods intensity"), false);
+    assert.equal(calculator.includes("state.goods"), false);
     assert.equal(calculator.split("thumbProps").length - 1, 1);
     assert.match(slider, /thumbProps\?:/);
     assert.match(slider, /<SliderPrimitive\.Thumb[\s\S]*\{\.\.\.thumbProps\}/);
