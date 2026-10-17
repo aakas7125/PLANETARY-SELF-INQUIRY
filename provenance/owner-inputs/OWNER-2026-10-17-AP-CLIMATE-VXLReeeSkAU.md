@@ -76,3 +76,10 @@ No further Owner listening check is requested for Q1. AP may recommend no additi
 Already covered: legitimate need/final choice, desire/conditioning non-diagnosis, system participation/otherness, separate empirical/AP authority, practical economic constraints audit#186, and unverified fair-share metric boundary#185/#189. Newly investigated candidates: bounded supply-cost/system-cost evidence, fertilization/nutrition/greening distinction, rebound scope, and anti-self-denial philosophical nuance. No need for new input, calculator, source figure, AP question, Constitution change or visual merely because the video mentions it.
 
 Publish one docs-only Research task for E1–E8 (bounded to these clusters, other rows triage-only) and one docs-only AP task for the four philosophical rows/quote provenance. Specialists must compare accepted sources first, return exact evidence/access/limitations and no-addition where appropriate, and not self-merge. HQ reviews the two results separately before any cross-domain adoption or smallest justified product follow-up. No Source package/corpus/evidence registry changes and no Ledger replacement-metric work before the existing later-day direction.
+
+
+## Subsequent specialist acceptance and visual intake — 2026-10-17
+
+AP #201/PR#203 and Research #200/PR#204 are independently accepted/merged as bounded reports, with no immediate corpus/UI/registry/metric adoption. Full dispositions are in the PR reviews and task queue; original preliminary maps above remain a dated record, not upgraded silently to accepted evidence. Q1 wording remains Owner-audio-verified only.
+
+The Owner subsequently supplied the same transcript (identical fingerprint), v1/v2 frame-audit ZIPs and handoff. [Visual delta intake and gap assessment](OWNER-2026-10-17-AP-CLIMATE-VISUAL-DELTA.md) records original hashes, extraction limits, HQ representative-frame/source checks and inconsistencies. Completed reviews are not reopened. Supplemental #205 / HQ-RE-2026-10-17-004 handles only the exact1,040growth multiplier and warming-rate source/transcript distinction. No new AP caption/quote adoption or video-wide scientific endorsement.
