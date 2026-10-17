@@ -1,6 +1,6 @@
 # R3 preparation — connect the existing lifecycle guide, 2026-10-17
 
-**Status:** HQ preparation / bounded design candidate, not implementation authority. Owner's D-018 explicitly authorized R1b and narrow R2; those are now accepted. R3–R5 remain strategic candidates. CGCAW calls for preparation/next-task selection, not automatic R3 adoption. No app edit or Cursor dispatch accompanies this document.
+**Status:** Owner selected this isolated prototype on 2026-10-17 at20:58 Europe/Berlin: “YES; gO AHEAD” in reply to the precise comparison-only, production-isolated R3 prototype question. Prototype execution is now authorized; production integration is not. D-021 records this selection. Earlier candidate/gate language below describes the proposal before selection; the approved scope and mapping are unchanged.
 
 **Accepted app:** PR#202 merge38e3b2b2a7f06f6f213cf35fa71f0aa94a16aeab, app tree d48217e3efcc290bee8218b22c257ce9fa3cd0d2. Source inspected: app/src/components/smartphone-lifecycle.tsx, app/src/lib/smartphone/lifecycle-presentation.mjs, comparison/Impact call sites and current UX brief R3–R5. DescribeLifecycleGuide was executed read-only; lifecycle regression6/6 passed. This is source/structure inspection, not a new participant study or rendered prototype.
 
@@ -48,4 +48,4 @@ Only after reviewing this bounded prototype should HQ propose a minimal producti
 
 ## Remaining strategic choices
 
-Owner selection is needed to authorize this R3 prototype; R1b/R2-only implementation direction does not select it automatically. A complete R3–R5 redesign is not proposed. R4 entry changes and R5 recap/helper semantics remain unselected; the accepted voluntary participant kit remains available, with invitations arranged by Owner. No request for more source-video scanning or new scientific metrics follows from this preparation.
+Owner selection was received for this exact R3 prototype on2026-10-17. No further routine product-scope confirmation is needed for its implementation/review; production integration remains a later decision. A complete R3–R5 redesign is not proposed. R4 entry changes and R5 recap/helper semantics remain unselected; the accepted voluntary participant kit remains available, with invitations arranged by Owner. No request for more source-video scanning or new scientific metrics follows from this preparation.
