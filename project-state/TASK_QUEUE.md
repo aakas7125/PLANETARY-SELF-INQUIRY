@@ -1,5 +1,12 @@
 # Task Queue
 
+## UX addendum reconciliation — 2026-10-17
+
+Owner's real-interface/designer-reasoning addendum completed within the existing UX brief at commit 5220c64e027a21360478608278abe28ffa8f13bb: three live interface examples (OWID/GOV.UK/iFixit), two first-party documented design walkthroughs with section locators (not fabricated video timestamps), evidence-to-PSI mapping, two content-preserving result-layout alternatives, and non-participant evaluation procedures/limits. No new Issue, workstream, app change or executor wake. #194 remains first bounded implementation; stacked result cards are a later design candidate requiring exact content mapping, not authorized here.
+
+Fresh return observed: **#194 / PR #195 RETURNED_FOR_HQ_REVIEW**, reported head 964dcdb6ebb7a40299657a3725581e4ef8bd83e1. Actual source/test diff and return read; PR is draft, mergeable=false at intake. Rendered evidence, exact-head CI and remaining governance acceptance are not cleared by this research supplement. Do not duplicate or expand the cycle; reconcile on independent review. Earlier dispatched/not-yet-observed wording below is superseded by this observed return.
+
+
 ## Current priority — bounded UX evidence and comparison-first slice, 2026-10-17
 
 Current Owner direction supersedes the earlier exhausted-queue conclusion below. D-017 (`1b1af15ac718b365a74fd9ac932ac95b73ece804`) records the bounded review and narrow presentation selection. [PSI UX Evidence-to-Design Brief](PSI_UX_EVIDENCE_TO_DESIGN_BRIEF_2026-10-17.md) is complete: ten UX/method sources with evidence/access/transfer limits; five recommendations; concrete page-order wireframe; actual current source versus prior synthetic build versus preliminary human-feedback distinctions. No comprehension or accessibility-conformance claim.
