@@ -1,0 +1,3 @@
+@import "../../../app/src/styles.css";
+@source "../../../app/src/components/smartphone-lifecycle.tsx";
+@source "./";
