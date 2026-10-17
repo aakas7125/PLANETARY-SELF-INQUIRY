@@ -1,6 +1,18 @@
 # Task Queue
 
-## Current priority — 2026-10-17 comprehension pilot and scoped feedback reconciliation
+## Current priority — bounded UX evidence and comparison-first slice, 2026-10-17
+
+Current Owner direction supersedes the earlier exhausted-queue conclusion below. D-017 (`1b1af15ac718b365a74fd9ac932ac95b73ece804`) records the bounded review and narrow presentation selection. [PSI UX Evidence-to-Design Brief](PSI_UX_EVIDENCE_TO_DESIGN_BRIEF_2026-10-17.md) is complete: ten UX/method sources with evidence/access/transfer limits; five recommendations; concrete page-order wireframe; actual current source versus prior synthetic build versus preliminary human-feedback distinctions. No comprehension or accessibility-conformance claim.
+
+- Actual Owner Markdown received/read, original preserved as unverified visual reference; 51-page PDF rendered/contact-sheet reviewed with six representative pages examined at readable size. Provenance/hashes/static-only/bibliography limits in brief; no copied assets or video numbers adopted. This closes reference-pending receipt in #180, not scientific-source validation.
+- Neutral participant kit at `handoffs/cursor/HQ-CURSOR-2026-10-17-058-human-review-kit.md` refreshed under current Owner authority (commit `ef27feabfea25711736a06d0e5b10afd17dc22d6`): established/unknown, stage relationships, choice pressure and version/URL. Internal observation supplement in brief, not participant coaching. Historical #182 build audit unchanged; no participants contacted/recorded.
+- **#194 / HQ-CURSOR-2026-10-17-061 / INITIAL-1: READY_FOR_CURSOR, wake pending final identity check.** Branch `cursor/hq-cursor-2026-10-17-061-comparison-first`; lease/return use usual exact Task-ID/INITIAL-1 paths. Only R1: relocate identical unconditional comparison guide/note below form/results and add two native navigation links. Values/copy/statuses/unknowns/state/gates/AP/final choice preserved; Impact unchanged. Existing two presentation-order assertions explicitly superseded, all semantic coverage retained. Default Grok 4.7 Medium/moderate, no model exception. Independent HQ review/exact-head CI required.
+- R1b/R2–R5 compact cards/navigation/connected lifecycle/entry/closure remain candidates, not a sweeping implementation task. No new Research/AP task is justified for the selected DOM relocation. Future evidence/AP ambiguity routes to specialists before coding.
+- Owner-arranged voluntary walkthrough remains approved/primary human validation. Record actual stages/build or UNKNOWN, anonymous observations and HQ interpretation separately. No analytics, recordings, persistent personal data, purchase/retention target or contact by HQ.
+- No active Research/AP/Local Codex; accepted #189/#193/#190/#191 remain complete, old returned lease PENDING metadata does not reopen CI. PDF #157 remains backlog. Ledger replacement-metric revisit remains later-day 2026-10-19, no current action.
+- Stop condition after sole dispatch: external Cursor return and/or actual voluntary observations; inspect/review any returned result immediately. A dispatch is not observed execution/completion. Do not duplicate working/returned cycles.
+
+## Prior reconciliation — comprehension pilot and scoped feedback
 
 Owner D-014 at `00f68fe41092280cc9e4044023b47de897354873` approves the small voluntary comprehension pilot; D-015 at `772bcfdad2a2d119a1ac31e086200e787120ca72` records specialist receipt, narrow comparison-period copy selection and the genuine Ledger Owner boundary. Owner's later D-016 approval at `dd4955eaee7a9c28bd31413688f3e310220e8cde` additionally clears #189 with proposed point 6 deleted. The earlier exhausted-queue priority question is answered; do not ask it again. Success is meaningful understanding/use, not preferred purchase or feature count.
 
