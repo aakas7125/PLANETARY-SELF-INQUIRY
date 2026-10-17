@@ -86,6 +86,8 @@ export function SmartphoneSituation() {
   >("situation");
   const view = describeSituation(state);
   const resultRef = useRef<HTMLElement>(null);
+  const firstQuestionRef = useRef<HTMLLegendElement>(null);
+  const focusAfterEditRef = useRef(false);
   const comparisonView = describeComparison(comparison, {
     inquiryReviewComplete: canEnterComparison(inquiry),
     situationAnswers: state.submitted ? state.answers : null,
@@ -254,7 +256,15 @@ export function SmartphoneSituation() {
 
   useEffect(() => {
     if (step !== "situation" || !state.submitted) return;
-    resultRef.current?.scrollIntoView({ block: "nearest" });
+    resultRef.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
+  }, [state.submitted, step]);
+
+  useEffect(() => {
+    if (!focusAfterEditRef.current || state.submitted || step !== "situation") return;
+    focusAfterEditRef.current = false;
+    const target = firstQuestionRef.current;
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "nearest", behavior: "instant" });
   }, [state.submitted, step]);
 
   useEffect(() => {
@@ -445,7 +455,11 @@ export function SmartphoneSituation() {
               aria-describedby={helperId}
               className="min-w-0 scroll-mt-32 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]"
             >
-              <legend className="px-0.5 font-display text-lg leading-snug text-foreground">
+              <legend
+                ref={question.id === view.questions[0]?.id ? firstQuestionRef : undefined}
+                tabIndex={question.id === view.questions[0]?.id ? -1 : undefined}
+                className="scroll-mt-32 px-0.5 font-display text-lg leading-snug text-foreground outline-none"
+              >
                 {question.question}
               </legend>
               <p id={helperId} className="mt-2 text-sm leading-relaxed text-foreground">
@@ -497,7 +511,10 @@ export function SmartphoneSituation() {
               type="button"
               variant="outline"
               className="scroll-mt-32"
-              onClick={() => onSituation({ type: "edit" })}
+              onClick={() => {
+                focusAfterEditRef.current = true;
+                onSituation({ type: "edit" });
+              }}
             >
               {SITUATION_CHROME.edit}
             </Button>
