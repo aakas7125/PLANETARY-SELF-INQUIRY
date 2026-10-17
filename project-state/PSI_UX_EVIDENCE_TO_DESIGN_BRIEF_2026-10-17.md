@@ -125,3 +125,79 @@ Task-specific engineering: keyboard/focus and native disclosure behaviour, 320px
 ## Disposition
 
 Proceed with R1's layout-only slice under existing semantics and independent review. Refresh the neutral kit now under current Owner authority. R1b/R2–R5 remain prioritized candidates, not a blanket redesign authorization; later tasks need precise mapping and fresh intake. No fresh Research/AP task is needed for the selected DOM relocation. Real scientific/AP ambiguity routes to specialists, not Cursor invention. Default Grok 4.7 Medium with moderate reasoning is sufficient for the bounded relocation; no model-selection checkpoint or spending. Human observations remain an external dependency. Video reference receipt is complete; motion/underlying scientific-source validation is not.
+
+
+## Owner addendum reconciliation — real interfaces and designer reasoning (2026-10-17)
+
+This extends the completed brief under the same Owner direction. No new workstream, Issue, branch or executor wake. Fresh intake: #194 remains open; its sole return is PR #195 at reported head 964dcdb6ebb7a40299657a3725581e4ef8bd83e1, RETURNED_FOR_HQ_REVIEW, not accepted by this supplement. Queue still says dispatched and needs reconciliation during acceptance. Do not restart #194 or fold these candidates into it. Current accepted comparison/lifecycle source was freshly read from main; #195 remains proposed code until independently accepted.
+
+Gap assessment: U1–U10 and R1–R5 already cover literature, priority and human validation. Missing depth was real implementation inspection, first-party accounts of reasoning and two comparable result layouts. This section supplies those gaps without reopening completed Research/AP audits. No claim that a site's commercial success validates its interface. Observed pattern, designer explanation and PSI hypothesis remain separate.
+
+### Three concrete interface benchmarks
+
+Inspected live browser DOM and desktop screenshots on 17 October 2026. Precise page/element references below substitute for republishing third-party screenshots; no copied assets are needed. These were focused desktop observations, not mobile, keyboard, assistive-technology or whole-site audits.
+
+| Example / precise reference | Actual implementation observed | Why it may help / PSI mapping | Limits and transfer risks |
+|---|---|---|---|
+| B1 [OWID Life expectancy](https://ourworldindata.org/grapher/life-expectancy), figure title/definition, Table/Map/Line/Bar tabs, source footer, metadata block below figure | A definition sits above the chart; source attribution stays under it. Unit, date range and processing provenance have explicit fields below. View controls are separated from the explanatory metadata. | A PSI result should expose its meaning, unit and evidence boundary together before optional method detail. Explicit metadata can distinguish generic evidence from a phone-specific result. | This is one compatible indicator across entities; PSI has incomplete pathways and incompatible quantities. Do not transplant its multi-series chart, sortable winner appearance or imply missing values are zero. The live chart required hydration before appearing; a blank initial figure is not evidence that the interface lacks a chart. |
+| B2 [GOV.UK Check answers](https://design-system.service.gov.uk/patterns/check-answers/), embedded default example, Personal details rows | Heading, grouped question/value rows and adjacent Change links. Optional missing data appears explicitly. Accessible link names identify the field rather than repeating an ambiguous Change. | Q6 and any later closure recap can support recognition of authoritative raw answers, including uncertainty, with unambiguous edit destinations. Q6 already supplies prior answers: do not rebuild that solved feature. | This is a transactional submission pattern. PSI must not import application approval, compulsory submission or certification language. GOV.UK permits shortening question labels; PSI's protected exact questions must remain exact. Existing action-specific invalidation controls edits; no new return/edit state is selected here. |
+| B3 [iFixit Fairphone 5 battery guide, Step 2](https://www.ifixit.com/Guide/Fairphone+5+Battery+Replacement/168819#s358024), plus Steps 1–4 | Each step has a number, action heading, close-up imagery and short adjacent instructions. Step 2 shows a large selected close-up and image alternatives. The page also contains substantial shop/chat/community material. | Lifecycle R3 can pair each existing stage with one original explanatory image and live text, making the relevant object/process easy to locate. A persistent ordered overview could connect stages while details remain locally grouped. | Repair steps describe a real physical procedure; a generic lifecycle is not a traced handset or mandatory task sequence. Do not transfer completion counters, store prompts, repair guidance, copied photographs or assumed causal outcomes. The complete commercial page is not a minimalist model. |
+
+B1–B3 are inspected examples, not evidence of improved PSI comprehension. Fairphone and Baymard need not be added merely to fill a list: these three cover evidence, review and process patterns directly.
+
+### Two documented professional walkthroughs of design reasoning
+
+These are written first-party case studies, allowed by the Owner's videos-or-documented-case-studies direction. Timestamp: **not applicable**; section anchors/titles below are the precise locators. No video has been represented as watched. NN/g's Raluca Budiu progressive-disclosure video was located, but only its page summary was inspected; it is not counted as an additional walkthrough or given fabricated timecodes.
+
+**W1 — [OWID, Redesigning our interactive data visualizations](https://ourworldindata.org/redesigning-our-interactive-data-visualizations), Marwa Boukarim, Christian Swinehart and Sophia Mersmann, 18 October 2023.** Inspect the before/after figures and sections “Selecting a view”, “Highlighting the data sources” and “Enabling full-screen data exploration”. The product/engineering team explains separation of view selection from view-specific controls, retaining visible attribution with deeper metadata, and giving dense graphics more space. This provides an explicit alternative to either exposing every control or hiding all supporting information. PSI transfer: preserve source and interpretation boundaries in the result, with optional derivation below. Evidence class: practitioner implementation rationale; no controlled comprehension effect is reported in this account. Its older licensing prose differs from current site footer; reuse the principle, not its software or assets. The designer account and today's observed interface are separate snapshots.
+
+**W2 — [DWP Digital, A live service is not the end of the story](https://dwpdigital.blog.gov.uk/2016/07/08/a-live-service-is-not-the-end-of-the-story/), Mel Johnson, 8 July 2016.** Section “Using data to iterate”: users were going back through the application before submission; the team added a review summary and direct correction/return route. “Responsive design” discusses aligning browser Back with in-service Back. Reported service improvements accompany many changes; they do not isolate this pattern's effect. PSI transfer: evaluate whether people can inspect what they already entered and return predictably, rather than making them repeat the sequence. This is operational, first-party evidence, not a randomized trial and not proof of philosophical comprehension. Do not import its analytics practices or target completion rates.
+
+Trade-off reconciliation: progressive disclosure is appropriate for secondary derivation; unknowns and essential scope restrictions belong beside the result. A short interface that omits these restrictions is worse evidence communication. Progress indicators are not universally beneficial: [GOV.UK Question pages](https://design-system.service.gov.uk/patterns/question-pages/), “Progress indicators”, warns about conditional flows and mobile space. PSI should not add a mandatory eight-stage completion bar merely because iFixit numbers a procedure.
+
+### Two small alternatives for generic comparison results
+
+Design alternatives for R1b, **not implementation authority**. They retain R1's comparison-first ordering. Both use exactly the same fixture, pathway order, full accepted publicLines and SourcesAndLimits content. The cells name existing blocks, not approved replacement scientific copy. No score, new headline conclusion, total, rank, recommendation, fabricated chart or AP change. Neither hides any currently visible line in this first comparison.
+
+**Alternative A — stacked evidence cards (recommended design candidate)**
+
+| Visible card region, repeated for each selected pathway in existing order | Contents |
+|---|---|
+| Header | Existing pathway label; no winner badge |
+| Result body | Exact existing publicLines, with spacing and a readable line length; retain their order. Any existing number stays with its exact unit, generic/model scope, service sufficiency and unknown statements |
+| Evidence footer | Existing SourcesAndLimits control and its entire unchanged disclosure |
+| After all cards | Existing shared boundary, later note and Continue |
+| Separate background | Existing lifecycle guide and return link, as #194 specifies |
+
+Desktop uses one readable column rather than filling all available width with paragraphs. Mobile uses the same reading order. Benefit hypothesis: easiest scanning within a pathway, minimal content-mapping risk. Cost: comparing matching facts across cards still requires scrolling. Do not pretend typography alone resolves terminology.
+
+**Alternative B — aligned pathway panels**
+
+| Row | Panel 1: first selected pathway | Panel 2: next selected pathway |
+|---|---|---|
+| Header | Exact label | Exact label |
+| Complete body | All exact publicLines in existing order | All exact publicLines in existing order |
+| Sources | Existing full disclosure | Existing full disclosure |
+
+At wide widths use at most two columns, with the same prominence and no numerical sorting. At narrow widths stack full panels in existing pathway order. Additional selected pathways follow in successive rows. Do not align individual numbers as though they share a denominator; these are complete panels, not a quantitative comparison table. Benefit hypothesis: easier visual movement between two pathways. Costs: narrower prose, unequal panel heights and risk that juxtaposition implies comparability. Missing service must remain visibly unresolved. Reject if reflow or semantic reading order requires duplicated cards, horizontal scrolling or shortened caveats.
+
+**Recommendation:** keep #194 as the first bounded implementation; it already addresses the strongest established hierarchy problem. After acceptance, Alternative A is the lower-risk next presentation candidate. Before authorizing it, produce a line-by-line map from one actual generic fixture and one incomplete-service fixture to the proposed card regions. If meaningful grouping requires rewriting/classifying empirical assertions, route that mapping for Research review first. Do not create a new task for the same guide relocation. Alternative B remains an explicit comparison option, not a simultaneous implementation. Lifecycle redesign and closure continue as R3/R5 candidates; no new claim, AP wording or recap selection is adopted here.
+
+### What can be checked without recruiting participants
+
+| Method | Concrete procedure and record | What it establishes / cannot establish |
+|---|---|---|
+| Structured heuristic review | Apply U2/U6 plus explicit consistency, feedback, error recovery and user-control questions to comparison, lifecycle and final choice. Record route/state, exact observation, violated principle, consequence and proposed fix; distinguish observed from inferred severity. | Detects plausible usability problems. One AI reviewer is not a panel of independent experts, and a heuristic score is not comprehension evidence. |
+| Cognitive walkthrough | For empty comparison → select pathways → provide period → inspect missing-service result → explore lifecycle → return → Continue, ask at each action whether the goal, control, action and resulting feedback are discoverable. Repeat a fictional uncertain-answer/reflection path without changing protected questions. | Establishes step-by-step affordance/feedback hypotheses under stated assumptions. A reviewer imagining a novice is not an observed novice. No retention claim. |
+| Accessibility audit | Inspect labels, helper associations, heading relationships, native disclosure names/states, focus after navigation/edit, sticky-header occlusion, colour independence, contrast and keyboard operation. Use automated checks plus manual keyboard and targeted screen-reader checks where available. | Can establish specific failures/passes at named criteria and states. Automation alone cannot establish WCAG conformance or meaningful screen-reader usability. |
+| Responsive comparison | Same fixtures at 320/390/1280 CSS px and 200%/400% zoom as appropriate; inspect reading order, clipping, overflow, target visibility, long answers and source links. | Establishes tested layout behaviour. Desktop benchmark screenshots do not establish mobile performance. |
+| Technical performance | On a pinned production build, diagnose loading, interaction and layout shifts with declared device/network/cache conditions if a measured problem warrants it. | Reproducible lab diagnostics; no field-percentile Core Web Vitals or understanding claim, no analytics needed. |
+| Design-system comparison | Compare actual helper wiring, errors, Back/edit destinations and missing states to named GOV.UK examples; record justified PSI deviations. | Establishes pattern alignment, not universal correctness or authority to override AP/state contracts. |
+
+These are an evaluation plan, not newly executed PSI test results. Existing #182/#195 synthetic checks retain their exact stated coverage. For any next card implementation require same-fixture equality of all rendered publicLines/source content and evaluator outputs; unchanged unknown/incomplete/fate/raw-answer state; DOM order and source disclosure operation; keyboard, zoom/reflow, visible focus and console checks. Use only narrow meaningful regression additions and normal CI. No package/dependency or tracking change is needed.
+
+Human validation remains necessary for the separate question: can someone explain what was established, what remains unknown and who decides? The accepted voluntary kit remains active; no contact, recruitment, recording, analytics or decision-change collection is authorized.
+
+### Authority and next step
+
+This supplemental review is complete at the documented access depth. It adds no empirical/AP/product semantics, public deployment, new executor task or model exception. #194/#195 retains its independent exact-diff/evidence/CI acceptance gate; this research is not its acceptance. Any later visual-design task needs a bounded Issue, model recommendation and Owner manual model confirmation before dispatch if an alternative model materially helps. No broader redesign follows from observing three external sites.
