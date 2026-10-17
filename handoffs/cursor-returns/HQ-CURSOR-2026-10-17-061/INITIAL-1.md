@@ -50,7 +50,7 @@ Starting-main build (worktree of 42fd87c, same toolchain) and candidate build we
 - Comparison results section text (`Comparison results`, where present): identical; where absent, absent in both.
 - Form text: identical.
 - Model-guide note: identical text (present in the exact-model state only) and present in the candidate after the guide.
-- DOM order: starting main guide after form is a change only in position: starting main had guide before the form; candidate has form before results before guide in all states. Exactly one guide per page; exactly one `#comparison-lifecycle-guide` and one `#comparison-inputs`; the guide is present in empty, invalid, valid and keep-only states.
+- DOM order: starting main had the guide before the form; the candidate has form, then results (when present), then guide in all states. Position is the only difference. Exactly one guide per page; exactly one `#comparison-lifecycle-guide` and one `#comparison-inputs`; the guide is present in empty, invalid, valid and keep-only states.
 - Horizontal overflow 0; page, console and HTTP errors none.
 - All card publicLines/sourcesAndLimits/pending/model/period/service/fate text therefore remains verbatim and equally present; generic/model-specific, bracket-not-average, incomplete-service and unknown lines stay beside the cards. No new summary, total, ranking or default.
 
