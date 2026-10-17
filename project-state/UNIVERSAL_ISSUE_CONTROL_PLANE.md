@@ -404,3 +404,18 @@ Cursor must reuse the existing task Issue, deterministic implementation branch a
 The owner must not be required to act as the routine message bridge between Cursor and HQ. Owner-forwarded automation output is an emergency/bootstrap fallback, not the normal control-plane return path.
 
 This is a transport/control-plane rule only. It changes no scientific, AP, empirical, product or implementation semantics.
+
+
+## CGCAW — explicit Owner invocation, effective 2026-10-17
+
+**CGCAW** permanently means **Check GitHub and continue authorized work**. The full wording has the same force. It requests fresh repository-wide intake and a substantive authorized HQ cycle, not a status summary.
+
+Begin proportionately with open/recently updated Issues and PRs, reviews/requests/merge state, relevant CI, executor tasks, dispatches/branches/leases/returns, handoffs/decisions/queue, Constitution/governance and current accepted Owner priorities. Expand detailed diff/evidence/test review only where a decision requires it. Actual current GitHub evidence overrides stale queue/chat assumptions. A returned lease is not an active Cursor run; no duplicate wake for stale CURSOR_WORKING text.
+
+Continue actionable review/correction/acceptance/authorized merge/reconciliation/routing and the next smallest justified task through the existing workstream protocol. Issue claiming, branch creation, IN_PROGRESS or dispatch alone is not substantive completion. After each resolution, check current authority/dependencies and existing equivalents; publish/dispatch when gates pass, continue within HQ capability, and stop only at acceptance/meaningful authorized progress with an external dependency, a genuinely reserved decision, or no justified work. Do not manufacture tasks.
+
+CGCAW does not change OWNER_CONTROL.md, Constitution, scientific/AP adoption, privacy, model-selection/spending gates or independent review. Research owns science; AP owns philosophical attribution/corpus; Cursor owns bounded implementation; HQ owns integration/independent acceptance. Publication is not acceptance. Preserve raw answers, autonomy and the prohibition on automated psychological/moral diagnosis.
+
+A comprehensive sweep is required on explicit CGCAW, not every ordinary message/attachment. For other requests, use task-relevant fresh state where necessary, reuse valid evidence and avoid duplicate calls/tasks/branches/PRs.
+
+Report concisely: (A) actual relevant fresh state/blockers; (B) completed actions with links and verified coverage; (C) next-task decision and reason/gate; (D) meaningful remaining dependency/next step. Never call dispatch completed implementation or a return accepted before review; name unavailable capabilities precisely. This section records the Owner's standing operational command; it expands no substantive project authority.
