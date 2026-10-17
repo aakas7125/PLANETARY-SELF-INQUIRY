@@ -369,7 +369,8 @@ describe("controlled smartphone model evidence", () => {
     assert.equal(exactCard.decision.new.production_CO2e_kg, 32.7);
     assert.equal(exactCard.decision.replacement.new.production_CO2e_kg, 32.7);
     assert.match(exactCard.publicLines.join("\n"), /Source whole-life reference: 42\.10/);
-    assert.match(exactCard.publicLines.join("\n"), /not added to this horizon/);
+    assert.match(exactCard.publicLines.join("\n"), /not added to this comparison period/);
+    assert.doesNotMatch(exactCard.publicLines.join("\n"), /\bhorizon\b/i);
     assert.match(exactCard.publicLines.join("\n"), /not expected service/);
     assert.equal(exactCard.values.some((value) => /whole-life|use-phase|end-of-life/i.test(value.name)), false);
     assert.equal(exact.currentOwnedHistory.label, iphone.public_label);
@@ -470,7 +471,10 @@ describe("controlled smartphone model evidence", () => {
     assert.equal(owned.packageProvenance, "R&E-V0-SMARTPHONE-0.3.0");
     assert.equal(owned.packageCommit, PACKAGE_COMMIT);
     assert.match(owned.lines.join("\n"), /source-reported point/);
-    assert.match(owned.lines.join("\n"), /outside the horizon/);
+    assert.match(owned.lines.join("\n"), /Source time assumption: 3 years\. That source period is not the comparison period entered here\./);
+    assert.match(owned.lines.join("\n"), /outside the comparison period/);
+    assert.doesNotMatch(owned.lines.join("\n"), /\bhorizon\b/i);
+    assert.doesNotMatch(candidate.lines.join("\n"), /\bhorizon\b/i);
 
     assert.equal(candidate.sourceId, "S3");
     assert.equal(candidate.sourceYear, 2025);

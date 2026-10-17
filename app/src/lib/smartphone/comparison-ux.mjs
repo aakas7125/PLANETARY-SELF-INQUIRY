@@ -26,7 +26,7 @@ const SNAKE_CASE_TOKEN = /[a-z0-9]+_[a-z0-9_]+/;
 const HORIZON_LITERAL = /^(?:\d+)(?:\.\d+)?$/;
 
 export const COMPARISON_OPENING =
-  "Enter one shared horizon in years for the alternatives you compare.";
+  "Choose one period of phone use, in years, for comparing the alternatives.";
 
 export const COMPARISON_BOUNDARY =
   "This comparison does not tell you what to buy, and it does not rank the pathways.";
@@ -38,13 +38,13 @@ export const COMPARISON_ORDER_NOTE =
   "Selected pathways are shown in a fixed order. That order is not a ranking.";
 
 export const COMPARISON_HORIZON_HELPER =
-  "The same horizon is needed to compare adequate service honestly.";
+  "Every alternative you select uses this same number of years of adequate phone service for comparison. It is a period you choose, not a prediction of how long any phone will last.";
 
 export const COMPARISON_HORIZON_MISSING =
-  "No horizon yet. Nothing has been filled in for you.";
+  "No comparison period yet. Enter a number of years. Nothing is filled in for you.";
 
 export const COMPARISON_HORIZON_INVALID =
-  "This horizon cannot be used. It was not replaced with zero or a three-year default.";
+  "That number of years cannot be used. Enter a positive number using digits and, if needed, a decimal point. Nothing was replaced with zero or a default.";
 
 export const COMPARISON_NEED_PATHWAY =
   "Choose at least one pathway before anything is evaluated.";
@@ -59,7 +59,7 @@ export const COMPARISON_CHROME = Object.freeze({
   back: "Back to inquiry",
   reset: "Reset comparison",
   pathwayLegend: "Which alternatives do you want to compare?",
-  horizonLabel: "Common adequate-service horizon in years",
+  horizonLabel: "How many years of phone use would you like to compare?",
   resultHeading: "What can be said so far",
 });
 
@@ -153,7 +153,7 @@ export const REMAINING_SERVICE_LABEL =
   "How many years is the current phone expected to remain adequate without repair?";
 
 export const REMAINING_SERVICE_HELPER =
-  "This is the current phone without a repair. It is not the shared horizon, and nothing is filled in for you.";
+  "This is the current phone without a repair. It is not the comparison period, and nothing is filled in for you.";
 
 export const REPAIR_CATEGORY_LEGEND = "What kind of repair is this?";
 
@@ -164,7 +164,7 @@ export const POST_REPAIR_SERVICE_LABEL =
   "How many years of adequate service are expected after this repair?";
 
 export const POST_REPAIR_SERVICE_HELPER =
-  "This is not the shared horizon and not the current phone without a repair. Not sure stays unknown.";
+  "This is not the comparison period and not the current phone without a repair. Not sure stays unknown.";
 
 export const FACT_NOT_SURE_LABEL = "Not sure";
 
@@ -175,13 +175,13 @@ export const USED_SERVICE_LABEL =
   "How many years of adequate service are expected for this used or second-hand candidate?";
 
 export const USED_SERVICE_HELPER =
-  "This is only this used or second-hand candidate. It is not the shared horizon, and it is not the refurbished candidate. Nothing is filled in for you.";
+  "This is only this used or second-hand candidate. It is not the comparison period, and it is not the refurbished candidate. Nothing is filled in for you.";
 
 export const REFURBISHED_SERVICE_LABEL =
   "How many years of adequate service are expected for this refurbished candidate?";
 
 export const REFURBISHED_SERVICE_HELPER =
-  "This is only this refurbished candidate. It is not the shared horizon, and it is not the used or second-hand candidate. Nothing is filled in for you.";
+  "This is only this refurbished candidate. It is not the comparison period, and it is not the used or second-hand candidate. Nothing is filled in for you.";
 
 /**
  * Ordinary labels for repair facts. Only battery, display, and major-board
@@ -942,9 +942,9 @@ function sourcesAndLimitsDisclosure(meta) {
     `Manufacturer: ${meta.manufacturer}. Configuration: ${meta.configuration}`,
     `Source boundary: ${meta.boundary}.`,
     useKnown
-      ? `Source time assumption: ${meta.use_period_years} years. That source period is not the horizon entered here.`
+      ? `Source time assumption: ${meta.use_period_years} years. That source period is not the comparison period entered here.`
       : "The source use period remains unknown. It is not replaced with a number of years.",
-    "Source whole-life, use, and end-of-life values remain references outside the horizon entered here.",
+    "Source whole-life, use, and end-of-life values remain references outside the comparison period entered here.",
   ];
   if (meta.production_value_kind === "source_reported_point") {
     lines.push("Production used from this record is a source-reported point.");
@@ -1009,18 +1009,18 @@ function sourceReferenceLines(reference) {
   const lines = [];
   if (typeof reference.total_display === "string") {
     lines.push(
-      `Source whole-life reference: ${reference.total_display} kg CO2e (GWP100). It stays separate from the phase values and is not added to this horizon.`,
+      `Source whole-life reference: ${reference.total_display} kg CO2e (GWP100). It stays separate from the phase values and is not added to this comparison period.`,
     );
   }
   if (typeof reference.use_display === "string") {
     const about = reference.use_value_kind === "approximate_derived_point" ? "about " : "";
     if (reference.use_period_known === true && typeof reference.use_period_years === "number") {
       lines.push(
-        `Source use-phase reference: ${about}${reference.use_display} kg CO2e (GWP100) over the source ${reference.use_period_years}-year period. That period is not expected service, and this value is not applied to the horizon.`,
+        `Source use-phase reference: ${about}${reference.use_display} kg CO2e (GWP100) over the source ${reference.use_period_years}-year period. That period is not expected service, and this value is not applied to the comparison period.`,
       );
     } else {
       lines.push(
-        `Source use-phase reference: ${about}${reference.use_display} kg CO2e (GWP100). The accepted record does not state how many years that use covers. It is not applied to this horizon.`,
+        `Source use-phase reference: ${about}${reference.use_display} kg CO2e (GWP100). The accepted record does not state how many years that use covers. It is not applied to this comparison period.`,
       );
     }
   }
@@ -1236,7 +1236,7 @@ function secondaryServiceLines(status, decision, explicitYears) {
         "A complete service sequence is required. The next event was not supplied and was not invented.",
       );
       if (typeof decision.uncovered_service_years === "number") {
-        lines.push(`Service still uncovered on the shared horizon is ${decision.uncovered_service_years} years.`);
+        lines.push(`Service still uncovered in the comparison period is ${decision.uncovered_service_years} years.`);
       }
     } else if (
       decision.equivalent_service_established === true &&
@@ -1244,12 +1244,12 @@ function secondaryServiceLines(status, decision, explicitYears) {
     ) {
       lines.push(`Equivalent service is established for ${decision.adequate_service_coverage_years} years.`);
     } else {
-      lines.push("Equivalent service over the shared horizon is not established.");
+      lines.push("Equivalent service over the comparison period is not established.");
     }
   } else {
     lines.push("Expected adequate service for this candidate was not supplied.");
   }
-  lines.push("Expected adequate service was not copied from the shared horizon.");
+  lines.push("Expected adequate service is not assumed from the comparison period.");
   return lines;
 }
 
@@ -1655,7 +1655,7 @@ export function describeComparison(state, context = {}) {
   const horizonStatement =
     canEvaluate && horizonYears != null
       ? publicLine(
-          `The same horizon is used for every selected pathway: ${state.horizonRaw}.`,
+          `The selected comparison period is ${state.horizonRaw} years for every alternative.`,
         )
       : null;
 

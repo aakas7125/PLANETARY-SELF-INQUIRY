@@ -249,7 +249,7 @@ describe("smartphone comparison entry", () => {
     assert.equal(view.horizonYears, 2.5);
     assert.equal(
       view.horizonStatement,
-      "The same horizon is used for every selected pathway: 2.50.",
+      "The selected comparison period is 2.50 years for every alternative.",
     );
 
     const [keep, repair, used, refurbished, next] = view.evaluatorInputs;
@@ -288,6 +288,57 @@ describe("smartphone comparison entry", () => {
       assert.notEqual(pathway.label, pathway.id);
     }
     assert.equal(COMPARISON_CHROME.continueFromInquiry.includes("_"), false);
+  });
+
+  it("presents the accepted D-015 comparison-period copy without the word horizon", () => {
+    assert.equal(COMPARISON_CHROME.horizonLabel, "How many years of phone use would you like to compare?");
+    const missing = readyComparison(["keep", "new"], null);
+    assert.equal(
+      missing.opening,
+      "Choose one period of phone use, in years, for comparing the alternatives.",
+    );
+    assert.equal(
+      missing.horizonHelper,
+      "Every alternative you select uses this same number of years of adequate phone service for comparison. It is a period you choose, not a prediction of how long any phone will last.",
+    );
+    assert.equal(
+      missing.pendingNote,
+      "No comparison period yet. Enter a number of years. Nothing is filled in for you.",
+    );
+    assert.equal(missing.horizonStatement, null);
+    assert.equal(missing.horizonYears, null);
+    for (const text of ["0", "-1", "1e2", "3 years", "abc"]) {
+      const invalid = readyComparison(["keep", "new"], text);
+      assert.equal(
+        invalid.pendingNote,
+        "That number of years cannot be used. Enter a positive number using digits and, if needed, a decimal point. Nothing was replaced with zero or a default.",
+      );
+      assert.equal(invalid.horizonYears, null);
+      assert.equal(invalid.horizonStatement, null);
+    }
+    const valid = readyComparison(["keep", "repair", "used_secondhand", "refurbished", "new"], "2.50");
+    assert.equal(valid.horizonRaw, "2.50");
+    assert.equal(
+      valid.horizonStatement,
+      "The selected comparison period is 2.50 years for every alternative.",
+    );
+    for (const view of [missing, valid, readyComparison(["keep"], "0")]) {
+      const corpus = [
+        COMPARISON_CHROME.horizonLabel,
+        view.opening,
+        view.horizonHelper,
+        view.pendingNote,
+        view.horizonStatement,
+        ...view.cards.flatMap((card) => [card.label, ...card.publicLines, ...(card.sourcesAndLimits?.lines ?? [])]),
+      ]
+        .filter((line) => typeof line === "string")
+        .join("\n");
+      assert.doesNotMatch(corpus, /\bhorizon\b/i);
+    }
+    assert.match(
+      valid.cards.flatMap((card) => card.publicLines).join("\n"),
+      /Expected adequate service is not assumed from the comparison period\./,
+    );
   });
 
   it("refuses a missing or unusable horizon and never substitutes zero or three years", () => {

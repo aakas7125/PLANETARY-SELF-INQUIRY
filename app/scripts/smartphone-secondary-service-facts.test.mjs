@@ -88,7 +88,7 @@ describe("smartphone secondary candidate service facts", () => {
     assert.equal(Object.hasOwn(selected.evaluatorInputs[0].replacement, "pathway"), false);
     assert.equal(Object.hasOwn(selected.evaluatorInputs[1].replacement, "pathway"), false);
     assert.match(publicCorpus(selected), /used or second-hand candidate was not supplied|for this candidate was not supplied/);
-    assert.match(publicCorpus(selected), /was not copied from the shared horizon/);
+    assert.match(publicCorpus(selected), /Expected adequate service is not assumed from the comparison period/);
   });
 
   it("keeps raw candidate text separate from the parsed evaluator value", () => {
@@ -102,7 +102,8 @@ describe("smartphone secondary candidate service facts", () => {
     assert.notEqual(view.usedServiceField.parsedYears, view.horizonYears);
     assert.equal(view.evaluatorInputs[0].replacement.expected_adequate_service.expected_years, 1.5);
     assert.match(publicCorpus(view), /Expected adequate service for this candidate is 1\.5 years/);
-    assert.doesNotMatch(publicCorpus(view), /is 4 years/);
+    assert.doesNotMatch(publicCorpus(view), /is 4 years(?! for every alternative)/);
+    assert.match(publicCorpus(view), /The selected comparison period is 4 years for every alternative\./);
   });
 
   it("maps each candidate only to its accepted service structure and does not copy the horizon", () => {
@@ -255,7 +256,7 @@ describe("smartphone secondary candidate service facts", () => {
     assert.notEqual(decision.equivalent_service_established, true);
     assert.match(publicCorpus(view), /complete service sequence is required/);
     assert.match(publicCorpus(view), /next event was not supplied and was not invented/);
-    assert.match(publicCorpus(view), /Service still uncovered on the shared horizon is 2\.5 years/);
+    assert.match(publicCorpus(view), /Service still uncovered in the comparison period is 2\.5 years/);
     assert.doesNotMatch(publicCorpus(view), /buy new|next event is /i);
 
     const covered = present(reduceComparison(state, { type: "set_horizon", text: "1.5" }));
@@ -264,7 +265,7 @@ describe("smartphone secondary candidate service facts", () => {
     assert.equal(covered.horizonYears, 1.5);
     assert.equal(covered.cards[0].decision.service_sequence_required, undefined);
     assert.notEqual(covered.cards[0].decision.equivalent_service_established, true);
-    assert.match(publicCorpus(covered), /Equivalent service over the shared horizon is not established/);
+    assert.match(publicCorpus(covered), /Equivalent service over the comparison period is not established/);
     assert.doesNotMatch(publicCorpus(covered), /complete service sequence is required/);
   });
 
@@ -286,7 +287,7 @@ describe("smartphone secondary candidate service facts", () => {
     assert.equal(short.cards[0].values.length, 0);
     assert.equal(short.rankingPermitted, false);
     assert.match(publicCorpus(short), /Expected adequate service for this candidate is 2 years/);
-    assert.match(publicCorpus(short), /Equivalent service over the shared horizon is not established/);
+    assert.match(publicCorpus(short), /Equivalent service over the comparison period is not established/);
     assert.match(publicCorpus(short), /No generic refurbished footprint is used/);
     assert.doesNotMatch(publicCorpus(short), /complete service sequence is required/);
     assert.doesNotMatch(publicCorpus(short), PROHIBITED_RESULT);
