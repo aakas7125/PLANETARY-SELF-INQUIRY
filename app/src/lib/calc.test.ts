@@ -115,6 +115,102 @@ describe("Ledger suspended cooling add-on and unsupported metrics are excluded",
   });
 });
 
+const EV_DISTANCE_BASELINE: Record<string, { road: number; total: number }> = {
+  "delhi:0:0": { road: 0, total: 18.034999999999997 },
+  "delhi:0:50": { road: 0, total: 18.034999999999997 },
+  "delhi:0:100": { road: 0, total: 18.034999999999997 },
+  "delhi:8000:0": { road: 1.36, total: 19.394999999999996 },
+  "delhi:8000:50": { road: 1.1912, total: 19.2262 },
+  "delhi:8000:100": { road: 1.0224, total: 19.0574 },
+  "london:0:0": { road: 0, total: 16.284999999999997 },
+  "london:0:50": { road: 0, total: 16.284999999999997 },
+  "london:0:100": { road: 0, total: 16.284999999999997 },
+  "london:8000:0": { road: 1.36, total: 17.644999999999996 },
+  "london:8000:50": { road: 0.8312, total: 17.1162 },
+  "london:8000:100": { road: 0.3024, total: 16.587400000000002 },
+};
+
+function distanceFixture(placeId: string, carKm: number, evShare: number): HouseholdInput {
+  return {
+    ...defaultHousehold,
+    names: [...defaultHousehold.names],
+    placeId,
+    carKm,
+    evShare,
+  };
+}
+
+function cloneHouseholdInput(input: HouseholdInput): HouseholdInput {
+  return { ...input, names: [...input.names] };
+}
+
+describe("Ledger electric road-distance share keeps the existing producer result", () => {
+  it("deep-equals complete outputs and raw inputs for 0 and 8000 km at 0, 50, and 100 percent", () => {
+    for (const placeId of ["delhi", "london"]) {
+      for (const carKm of [0, 8000]) {
+        const results = [];
+        for (const evShare of [0, 50, 100]) {
+          const input = distanceFixture(placeId, carKm, evShare);
+          const raw = cloneHouseholdInput(input);
+          const result = computeHousehold(input);
+          assert.deepEqual(cloneHouseholdInput(input), raw);
+          assert.deepEqual(computeHousehold(cloneHouseholdInput(raw)), result);
+          const road = result.slices.find((s) => s.id === "car");
+          assert.ok(road);
+          const expected = EV_DISTANCE_BASELINE[`${placeId}:${carKm}:${evShare}`];
+          assert.equal(road.t, expected.road);
+          assert.equal(result.totalT, expected.total);
+          assert.equal(result.perPersonT, result.totalT / 4);
+          results.push(result);
+        }
+        if (carKm === 0) {
+          assert.deepEqual(results[1], results[0]);
+          assert.deepEqual(results[2], results[0]);
+        } else {
+          for (const later of [1, 2]) {
+            assert.deepEqual(
+              results[later].slices.filter((s) => s.id !== "car"),
+              results[0].slices.filter((s) => s.id !== "car"),
+            );
+            assert.deepEqual(results[later].names, results[0].names);
+            assert.deepEqual(results[later].place, results[0].place);
+            assert.equal(results[later].landM2, results[0].landM2);
+            assert.equal(results[later].waterM3, results[0].waterM3);
+            assert.notEqual(
+              results[later].slices.find((s) => s.id === "car")?.t,
+              results[0].slices.find((s) => s.id === "car")?.t,
+            );
+          }
+        }
+      }
+    }
+  });
+
+  it("reset raw input remains the existing default, including 8000 km and electric share 0", () => {
+    assert.deepEqual(defaultHousehold, {
+      names: ["You", "The one beside you", "A child", "A parent"],
+      placeId: "delhi",
+      diet: "average",
+      flightsLhe: 1,
+      carKm: 8000,
+      evShare: 0,
+      homeKwh: 3500,
+      goods: 5,
+    });
+    const store = readFileSync(new URL("../store/household.ts", import.meta.url), "utf8");
+    assert.match(store, /\[key\]: value/);
+    assert.match(store, /reset: \(\) => set\(withResult\(defaultHousehold\)\)/);
+    assert.deepEqual(
+      computeHousehold(defaultHousehold),
+      computeHousehold(distanceFixture("delhi", 8000, 0)),
+    );
+    assert.notDeepEqual(
+      computeHousehold(distanceFixture("london", 0, 100)),
+      computeHousehold(defaultHousehold),
+    );
+  });
+});
+
 describe("Ledger public presentation", () => {
   const calculator = readFileSync(new URL("../components/calculator-section.tsx", import.meta.url), "utf8");
   const orbs = readFileSync(new URL("../components/four-orbs.tsx", import.meta.url), "utf8");
@@ -157,5 +253,37 @@ describe("Ledger public presentation", () => {
 
   it("the orbs graphic no longer encodes a fair-share pressure", () => {
     assert.equal(/result|pressure/.test(orbs), false);
+  });
+
+  it("names electric road distance and associates one instruction with that slider thumb", () => {
+    const name = "Household road kilometres travelled by electric vehicle (%)";
+    const instruction =
+      "Of your household\u2019s road travel entered above for one year, what percentage is travelled in an electric vehicle? 0% means none of those kilometres; 100% means all of them.";
+    const context =
+      "An electric kilometre still carries the local grid. Quieter is not the same as disconnected.";
+    const slider = readFileSync(new URL("../components/ui/slider.tsx", import.meta.url), "utf8");
+
+    assert.equal(calculator.split(name).length - 1, 1);
+    assert.equal(calculator.split("title={EV_ROAD_SHARE_NAME}").length - 1, 1);
+    assert.equal(calculator.split('"aria-label": EV_ROAD_SHARE_NAME').length - 1, 1);
+    assert.equal(calculator.split(instruction).length - 1, 1);
+    assert.equal(calculator.split(context).length - 1, 1);
+    assert.equal(calculator.includes("Share of those kilometres electric"), false);
+    assert.equal(calculator.includes("Electric vehicle share"), false);
+    assert.equal(calculator.includes("aria-valuetext"), false);
+    assert.match(calculator, /id=\{EV_ROAD_SHARE_INSTRUCTION_ID\}/);
+    assert.match(
+      calculator,
+      /thumbProps=\{\{[\s\S]*"aria-label": EV_ROAD_SHARE_NAME,[\s\S]*"aria-describedby": EV_ROAD_SHARE_INSTRUCTION_ID,/,
+    );
+    assert.match(calculator, /min=\{0\}[\s\S]{0,80}max=\{100\}[\s\S]{0,80}step=\{5\}[\s\S]{0,120}evShare/);
+    assert.match(calculator, /title="Household road travel"/);
+    assert.match(calculator, /aria-label="Car kilometres"/);
+    assert.match(calculator, /title="Goods, fashion, devices"/);
+    assert.match(calculator, /aria-label="Goods intensity"/);
+    assert.equal(calculator.split("thumbProps").length - 1, 1);
+    assert.match(slider, /thumbProps\?:/);
+    assert.match(slider, /<SliderPrimitive\.Thumb[\s\S]*\{\.\.\.thumbProps\}/);
+    assert.equal(slider.split("thumbProps").length - 1, 3);
   });
 });

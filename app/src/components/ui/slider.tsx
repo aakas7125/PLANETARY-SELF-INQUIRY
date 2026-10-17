@@ -4,8 +4,11 @@ import { cn } from "@/lib/utils";
 
 function Slider({
   className,
+  thumbProps,
   ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
+}: React.ComponentProps<typeof SliderPrimitive.Root> & {
+  thumbProps?: React.ComponentProps<typeof SliderPrimitive.Thumb>;
+}) {
   return (
     <SliderPrimitive.Root
       className={cn(
@@ -17,7 +20,10 @@ function Slider({
       <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-muted">
         <SliderPrimitive.Range className="absolute h-full bg-primary" />
       </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb className="block size-5 rounded-full border border-primary bg-paper shadow-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none" />
+      <SliderPrimitive.Thumb
+        {...thumbProps}
+        className="block size-5 rounded-full border border-primary bg-paper shadow-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none"
+      />
     </SliderPrimitive.Root>
   );
 }
