@@ -199,3 +199,11 @@ HQ must publish separate bounded Tier-2 Issues before coding. Start with lifecyc
 - Release #200 Research for eight bounded empirical clusters and #201 AP for source/context/corpus comparison. Separate report-only branches/files, no independent self-merge or frozen package/registry/contract/UI edits. HQ independently reviews each specialist return before cross-domain adoption; do not infer a new product requirement merely from source interest.
 - No3–4tonne personal entitlement/threshold, moral/psychological emissions classifier, generic zero-emission activity or invented price admitted. Rebound is not automatically universal backfire; general power-generation cost is not household affordability. Ledger replacement-metric revisit remains deferred and existing economic audit is reused.
 - Routine UX continuation completed concurrently under D-018: #196/#197 accepted/merged72e74485668a9ef62012602c8a3975033c31b6eb after CORRECTION-1 review5558170552 and exact/post-merge CI; #198 identical-head duplicate closed. #199 R2 published and sole-dispatched6234982593 using Owner-confirmed Claude Sonnet5.5 Medium. New source review does not interrupt or expand R2.
+
+
+## D-020 — Owner standing CGCAW command and fresh-state precedence
+
+- Date:2026-10-17. Owner explicitly establishes permanent shorthand CGCAW = Check GitHub and continue authorized work. Full invocation equivalent; this Owner message itself invokes the cycle.
+- Recorded operating contract in UNIVERSAL_ISSUE_CONTROL_PLANE.md#cgcaw--explicit-owner-invocation-effective-2026-10-17. Fresh repository-wide intake on explicit invocation, substantive authorized progression, smallest justified next action, workstream independence and concise evidence/action/decision/dependency report.
+- Actual current PR/lease/head/CI evidence takes precedence over stale Issue/queue/chat status. The Owner's lead about #199/#202 return d3988721a65ab3e3ad1cabaf6dd52e49e108591c/CI39055441798 was freshly corroborated; HQ must review, not issue a duplicate wake.
+- No automatic full sweep for every attachment/message; no new scientific/AP/privacy/product authority, Constitution/OWNER_CONTROL amendment, model change/spending, recruitment or gate bypass. Existing two-task Medium override remains bounded to R1b/R2. R3–R5 preparation remains authorized, implementation selection is not inferred from CGCAW.
