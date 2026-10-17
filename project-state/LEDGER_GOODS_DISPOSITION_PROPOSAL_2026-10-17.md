@@ -1,6 +1,6 @@
 # Goods input disposition — concrete Owner decision, 2026-10-17
 
-Status: proposed product scope, not implementation authority. Research210/PR211 accepted at46bebf018a221e78007daf0f92776d9e36529d45, HQ review5559917819, mergee7c49a2b67fbc0ddfd926ff6bb7f2afe642cbdc8. HQ independently checked full report, source dependencies, all six actual fixtures and primary methodological summaries. Audit is complete; new numeric meaning has not been adopted.
+Status: Owner-approved bounded product scope,2026-10-17 at22:37 Europe/Berlin (D-023). Exact points1–5 below selected; no replacement model. Implementation still requires the bounded executable task and independent acceptance. Earlier proposal/selection wording below is historical. Research210/PR211 accepted at46bebf018a221e78007daf0f92776d9e36529d45, HQ review5559917819, mergee7c49a2b67fbc0ddfd926ff6bb7f2afe642cbdc8. HQ independently checked full report, source dependencies, all six actual fixtures and primary methodological summaries. Audit is complete; new numeric meaning has not been adopted.
 
 ## Recommendation: one bounded temporary suspension
 
