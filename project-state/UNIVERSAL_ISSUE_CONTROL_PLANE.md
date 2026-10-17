@@ -419,3 +419,15 @@ CGCAW does not change OWNER_CONTROL.md, Constitution, scientific/AP adoption, pr
 A comprehensive sweep is required on explicit CGCAW, not every ordinary message/attachment. For other requests, use task-relevant fresh state where necessary, reuse valid evidence and avoid duplicate calls/tasks/branches/PRs.
 
 Report concisely: (A) actual relevant fresh state/blockers; (B) completed actions with links and verified coverage; (C) next-task decision and reason/gate; (D) meaningful remaining dependency/next step. Never call dispatch completed implementation or a return accepted before review; name unavailable capabilities precisely. This section records the Owner's standing operational command; it expands no substantive project authority.
+
+## Autonomous continuation by default — Owner clarification 2026-10-17
+
+This clarification applies to explicit CGCAW cycles **and normal HQ execution**. A completed task, review, merge or handoff is a checkpoint, not a stopping condition or an automatic request for Owner direction.
+
+After each completion, inspect current accepted state, Owner directions, dependencies, equivalent tasks/PRs, leases/returns and queue. Determine the smallest meaningful next action. When routine, bounded, supported by accepted direction and within delegated authority, **execute it without asking**: appropriate Research/AP investigations, evidence gathering, regression/validation, reversible technical corrections/choices, task publication, gated executor dispatch, independent review, qualifying merges and reconciliation. Do not describe ordinary implementation details or permission to investigate as a major product decision merely to avoid acting. Complete substantive work within HQ capability, not only task claiming or dispatch.
+
+Investigation/publication is not adoption. New empirical/AP interpretation still requires appropriate specialist review and independent integrated acceptance. Preserve Constitution/OWNER_CONTROL, raw answers, user autonomy, uncertainty, privacy, source authority, workstream independence, model-selection/spending gates, no self-merge and exact execution-cycle/duplicate safeguards.
+
+Ask only for an actually reserved Owner decision: material product direction or new product semantics, significant unresolved trade-offs, privacy, spending, governing principles or another explicitly reserved action. First complete useful authorized preparation, recommend a specific option with trade-offs, then ask one clear decision. Do not silently select reserved meaning. Do not re-request authority already supplied.
+
+Continue through actionable authorized work until a real dependency, genuinely reserved decision or no meaningful justified work remains. State the concrete boundary; do not manufacture tasks. This section clarifies existing delegated execution and does not amend constitutional or Owner authority.
