@@ -11,7 +11,7 @@ Status: bounded source triage / candidate evidence and philosophy; **no empirica
 - Originals remain in Owner-supplied files; this public record uses necessary timestamped paraphrases and one short quotation candidate, not redistribution of the full transcript/video/audio. Exact byte fingerprints include original line endings.
 - Primary review window: approximately 45:30–59:00, with surrounding 44:18–45:31 and selected 1:02–1:07 / 1:24–1:27 / 1:49–1:54 context inspected. Owner highlight 50:31 falls between supplied segments 50:26 and 50:33; do not invent a transcript segment exactly at 50:31.
 - Transcript is credible working material for thematic research and attributed paraphrases. It mixes AP speech, a questioner relaying arguments/statistics and chapter labels; it has no authoritative speaker diarization. Do not attribute every number to AP merely because it occurs in his video.
-- Exact spoken wording is unverified at passage level. No source audio was processed; current tool discovery exposes no supported audio/transcription operation, and source-video retrieval failed. A coding agent reading this record has not thereby heard the audio. No costly Cursor audio task is requested.
+- Q1 below is **Owner-audio-verified on 2026-10-17**: the Owner listened and confirmed the quoted sentence. Other passages remain unverified for exact spoken wording. No source audio was processed by HQ; current tool discovery exposes no supported audio/transcription operation, and source-video retrieval failed. A coding agent reading this record has not thereby heard the audio. No costly Cursor audio task is requested.
 - This is not automatically P2-approved corpus material, P3 official edited transcript, or P5 secondary commentary. Preserve actual Owner-attested original-video provenance and candidate status pending AP's bounded review; do not force it into a false class. Scientific truth remains independently assessed.
 
 ## HQ empirical claim map — substantive preliminary checks
@@ -54,18 +54,22 @@ HQ additionally inspected2:01:20–2:02:22. The quota echo is pinned at2:02:05�
 
 Attribution dimensions remain distinct: Direct AP requires approved official source support and claim-version rules; AP-derived/project application must be labelled; embedded empirical assertions need their own evidence. Candidate paraphrase from this attested video is not yet an approved Direct AP corpus addition. Owner attestation is preserved while passage-level wording remains open.
 
-## One prioritized Owner listening check — does not block AP work
+## Q1 — Owner-audio-verified wording, 2026-10-17
 
-| Field | Candidate Q1 |
+The earlier listening request is resolved. This is passage-level confirmation of spoken wording, separate from corpus adoption or scientific validation.
+
+| Field | Q1 verification record |
 |---|---|
-| Timestamp | Listen approximately1:51:27–1:51:49; key sentence spans supplied1:51:35 and1:51:42 segments |
-| Transcript wording | “the field of self inquiry is not about denial of pleasure. It is about sublimation of pleasure.” |
+| Timestamp reference | Approximately 1:51:27–1:51:49; key sentence spans supplied 1:51:35 and 1:51:42 segments. These remain the original listening/transcript references, not newly measured word-level timings. |
+| Original supplied transcript wording | “the field of self inquiry is not about denial of pleasure. It is about sublimation of pleasure.” |
+| Owner-audio-verified wording | “the field of self inquiry is not about denial of pleasure. It is about sublimation of pleasure.” |
+| Verification method and date | On 2026-10-17 the Owner supplied the exact sentence and stated “I heard and Verified”. HQ records the Owner's firsthand listening confirmation; HQ did not process or independently hear the audio. |
+| Corrections | None supplied; the confirmed wording matches the original transcript sentence. Original transcript file and fingerprint remain unchanged. |
 | Context | AP contrasts forms of pleasure/joy, after examples such as running/singing/reading; this is not an emissions measurement. |
 | Intended use | A possible source note clarifying that inquiry is not blanket self-denial, only if AP finds genuine value beyond current baseline. No app quotation is selected. |
-| Specific uncertainty | Exact spoken “self inquiry”, “denial” and “sublimation”, sentence boundary; audio was not processed by HQ. No independent written repetition required. |
-| Owner action | Listen and confirm wording, provide corrected wording, or reject it. Record subsequent result as Owner-audio-verified with this timestamp, preserving original transcript separately. |
+| Review boundary | Q1's wording check is resolved. AP still assesses context, corpus overlap, source grade and whether any addition is warranted. This does not verify other transcript passages or approve corpus/UI adoption, a new AP interpretation, or empirical claims. |
 
-No other quotation verification is requested now. AP proceeds with context-aware attributed paraphrases while Q1 remains pending. If AP decides no quote adds value, it may close the candidate without requesting more listening.
+No further Owner listening check is requested for Q1. AP may recommend no addition if the quotation provides no material value. Contextual paraphrases and the remaining AP review continue.
 
 ## Integration disposition
 
