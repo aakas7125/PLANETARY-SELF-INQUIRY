@@ -99,8 +99,8 @@ export function SmartphoneComparison({
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    headingRef.current?.focus();
-    headingRef.current?.scrollIntoView({ block: "nearest" });
+    headingRef.current?.focus({ preventScroll: true });
+    headingRef.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
   }, []);
 
   return (
@@ -185,10 +185,13 @@ export function SmartphoneComparison({
               value={state.horizonRaw}
               onChange={(event) => dispatch({ type: "set_horizon", text: event.target.value })}
               aria-invalid={state.horizonRaw.trim().length > 0 && view.horizonYears == null}
+              aria-describedby="comparison-horizon-helper"
               className="mt-3 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             />
           </label>
-          <p className="mt-2 text-sm leading-relaxed text-foreground">{view.horizonHelper}</p>
+          <p id="comparison-horizon-helper" className="mt-2 text-sm leading-relaxed text-foreground">
+            {view.horizonHelper}
+          </p>
         </div>
 
         <fieldset className="min-w-0 rounded-2xl bg-paper p-4 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">

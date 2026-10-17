@@ -21,8 +21,8 @@ export function SmartphoneOtherness({
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    headingRef.current?.focus();
-    headingRef.current?.scrollIntoView({ block: "nearest" });
+    headingRef.current?.focus({ preventScroll: true });
+    headingRef.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
   }, []);
 
   return (
