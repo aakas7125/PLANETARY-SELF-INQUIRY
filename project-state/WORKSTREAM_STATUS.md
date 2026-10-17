@@ -4,8 +4,8 @@ Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs a
 
 | Workstream | Current disposition |
 |---|---|
-| Project HQ | Research211 accepted/merged; goods disposition decision prepared; independent EV task212 published with explicit model gate |
-| Cursor | #212 task065 BLOCKED model-selection; no wake/execution; #206/207 completed |
+| Project HQ | D-023 approval/model confirmation recorded; #212 released/sole-dispatched; exact goods task213 published for serial continuation |
+| Cursor | #212/task065 INITIAL-1 dispatched, claim/return not yet observed; #213/task066 approved but BLOCKED on065 acceptance, no wake |
 | Research & Evidence | #210/PR211 accepted/closed; no active Research task, no goods calibration adopted |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
