@@ -1,5 +1,14 @@
 # Task Queue
 
+## Current execution — R1b accepted, R2 ready; AP climate source intake, 2026-10-17
+
+- **#196 / canonical PR #197 ACCEPTED/closed**, final head c2fc28c84ffbd3816a75f37b0bc183fbe033c3c6, review5558170552; merged72e74485668a9ef62012602c8a3975033c31b6eb. Initial+correction source/evidence/12images reviewed; missing keyboard/reflow checks supplied. Exact-final CI39038971110 and post-mergeCI39039829618 passed. #198 identical-head duplicate closed as transport discrepancy, no second merge. Baseline320 Continue overflow/reverse-focus header occlusion retained; no whole-site/native-zoom/comprehension claim.
+- **[#199 / HQ-CURSOR-2026-10-17-063 / INITIAL-1](https://github.com/aakas7125/PLANETARY-SELF-INQUIRY/issues/199): READY_FOR_CURSOR**, wake not yet posted. R2 issued in this same acceptance cycle: existing comparison helper association, explicit Situation Edit focus restoration, immediate intentional stage arrival with existing targets. Owner-confirmed Claude Sonnet5.5 Medium; no new model question. No global CSS/scroll disabling or state/AP/result-card changes. Fresh063 identity/branch/lease checks clear; no overlapping app writer.
+- New consolidated Owner AP climate-video direction received from two actual attachments and substantively triaged: [source/claim/AP map](../provenance/owner-inputs/OWNER-2026-10-17-AP-CLIMATE-VXLReeeSkAU.md). Speaker Owner-verified; official channel Owner-attested; automatic transcript credible working material, exact audio wording unverified. Primary45:30–59:00, highlight50:31; eight empirical clusters and four philosophical rows mapped with preliminary primary-source checks/access limits. No duplicate video-ID task found.
+- Source routing next: separate docs-only Research evidence audit and AP source/corpus comparison, no source-package/UI adoption. One short1:51:27–1:51:49 listening candidate; no audio processed, no costly Cursor audio cycle. Other work proceeds while quotation wording awaits Owner confirmation. Ledger replacement metrics remain deferred; no3–4tonne allowance adopted.
+- Older R1b correction/dispatched and candidate-only statuses below are historical/superseded. No retry or replay of accepted062. R2 return remains an external executor dependency after its single wake.
+
+
 ## Current review — R1b #196 / PR #197 verification correction, 2026-10-17
 
 - INITIAL-1 returned at `86b063b00a430175374e3ce0db87d41991b13a20` (validated implementation `0f06174ea70a3c985d3777d9300448ebec191848`, evidence-only tail independently confirmed). Full one-source diff, all eight PNGs, return and lease reviewed. No producer/state/calculator/AP/source/test/lock changes. Exact-head pinned CI 39037267749/job117409518033 passed install/full tests/lint/typecheck/build. Model remains Owner-confirmed Claude Sonnet 5.5 Medium.
