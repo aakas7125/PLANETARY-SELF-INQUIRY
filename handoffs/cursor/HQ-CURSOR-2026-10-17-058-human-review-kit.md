@@ -46,14 +46,14 @@ Move on until you reach a page called "Empirical comparison". If you stop before
 1. Where on this page, if anywhere, did you choose which options to look at together? Where on this page or later, if anywhere, did you make a final choice? Did those feel like the same step or different steps?
 2. Where was the phone model asked about? If you did not know the model, what did you do, and what did the page seem to do with that?
 3. There is a place to enter a number of years. In your own words, what do you think that number is for? Did the page say anything about it, and if so, what?
-4. What did you take the numbers and ranges to mean? What did you take "not shown", "unknown", or "more information is needed" to mean?
-5. If you saw several results, how did you read them next to one another?
+4. In your own words, what, if anything, has this comparison established? What, if anything, is still unknown? What on the page led you to that reading?
+5. What did you take the numbers and ranges to mean? If you saw several results, how did you read them next to one another?
 
 ## Part 3: A phone's life and what happens to it
 
 You may find these on the comparison page, on the next page, or in a section about the stages of a phone's life. If you cannot find them, say so. That is useful to know.
 
-1. Open one stage of the phone's life. What did it tell you about phones in general, and what, if anything, did it tell you about your phone?
+1. Open one stage of the phone's life. How, if at all, do the stages seem connected? What did it tell you about phones in general, and what, if anything, did it tell you about your phone?
 2. If you were asked what you think would happen to your current phone if you got another one, what do you think that question was asking? How is that different, if at all, from something that has already happened to a phone?
 3. If you saw numbers about electronic waste, what do you think they describe? Do you think they describe your phone, phones in general, or something else?
 
@@ -76,7 +76,7 @@ Move on to the pages after the comparison. You might see pages called "Impact an
 Move on until "User choice" if you can.
 
 1. What did you think this page was asking? Who did you think makes the choice?
-2. Which options did you think you were allowed to pick?
+2. Which options did you think you were allowed to pick? Did anything on the page seem to favour or discourage a choice? What gave you that impression?
 3. What did you expect to see when you were done?
 4. Did you notice a link called "Principles" in the menu? If you opened it, what do you think it is for? What promises did you think it was making? You do not need to send anything to us.
 
@@ -110,6 +110,7 @@ If you read German well, you may open the "Deutsch (Pilot)" link on the "Princip
 
 Send whatever you like, but only these kinds of things:
 
+- the page address and the build or version if one was supplied; otherwise "not known";
 - the device and browser, roughly (for example "phone, Safari" or "laptop, Chrome");
 - the language you used;
 - which pages you reached, and whether you stopped early;
