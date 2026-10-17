@@ -1,4 +1,4 @@
-import { getPlace, type Place } from "./places";
+import { getPlace, type Place } from "./places.ts";
 
 export type Diet = "high-meat" | "average" | "low-meat" | "vegetarian" | "vegan";
 
@@ -11,7 +11,6 @@ export type HouseholdInput = {
   evShare: number;
   homeKwh: number;
   goods: number;
-  cooling: number;
 };
 
 export const defaultHousehold: HouseholdInput = {
@@ -23,7 +22,6 @@ export const defaultHousehold: HouseholdInput = {
   evShare: 0,
   homeKwh: 3500,
   goods: 5,
-  cooling: 5,
 };
 
 /** tCO2e / person / year from food. Poore & Nemecek 2018; OWID dietary footprints. */
@@ -45,12 +43,6 @@ export const dietOptions: Diet[] = [
 ];
 
 const PEOPLE = 4;
-/** 1.5°C-aligned 2030 per-capita fair share, tCO2e / yr (order of UNEP / IPCC pathways). */
-export const FAIR_SHARE_T = 2.0;
-/** Illustrative remaining 1.5°C (50%) budget from 2026, GtCO2 — IGCC updates shrink this yearly. */
-export const REMAINING_BUDGET_GT = 150;
-export const WORLD_EMISSIONS_GT = 41.6;
-export const WORLD_POPULATION = 8_200_000_000;
 
 export type Slice = {
   id: string;
@@ -67,9 +59,6 @@ export type HouseholdResult = {
   slices: Slice[];
   totalT: number;
   perPersonT: number;
-  earths: number;
-  budgetHours: number;
-  lifetimeSharePct: number;
   landM2: number;
   waterM3: number;
   seeing: string[];
@@ -85,7 +74,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
   const evKm = input.carKm * (input.evShare / 100);
   const carT = (iceKm * 0.17 + evKm * (place.gridG / 1000) * 0.18) / 1000;
   const homeT = (input.homeKwh * place.gridG) / 1_000_000;
-  const coolT = (input.cooling / 10) * 1.8;
   const goodsT = 0.35 + (input.goods / 10) * 3.4;
   const servicesT = 1.1 * PEOPLE;
 
@@ -121,7 +109,7 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
     {
       id: "home",
       label: "Home energy",
-      t: homeT + coolT,
+      t: homeT,
       inquiry: "What is the indoor climate for — health, sleep, work, comfort, or all of these?",
       lens: "Could a wish to never meet the weather be involved? It may also be heat that is simply unsafe. Either stands.",
       notice:
@@ -150,13 +138,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
 
   const totalT = slices.reduce((s, x) => s + x.t, 0);
   const perPersonT = totalT / PEOPLE;
-  const earths = perPersonT / FAIR_SHARE_T;
-
-  const worldPerSecond = (WORLD_EMISSIONS_GT * 1e9) / (365.25 * 24 * 3600);
-  const budgetHours = (totalT / worldPerSecond) / 3600;
-
-  const lifetimeT = totalT * 55;
-  const lifetimeSharePct = (lifetimeT / (REMAINING_BUDGET_GT * 1e9)) * 100;
 
   const landM2 = diet.land * PEOPLE + input.goods * 40;
   const waterM3 = diet.water * PEOPLE + input.homeKwh * 0.003;
@@ -177,11 +158,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
       "The plate is not private: feed crops, methane, and cleared land sit behind many mixed diets. An AP lens could ask whether this is simply food, or also a way of recruiting the living world. You do not have to accept the lens.",
     );
   }
-  if (input.cooling >= 6) {
-    seeing.push(
-      "Cooling the room returns heat to the street the four still walk. What is the indoor climate for? An AP lens could ask whether wanting never to meet the weather is involved. Heat that is unsafe is also an answer.",
-    );
-  }
   if (input.goods >= 7) {
     seeing.push(
       "Parcels are a large line in this ledger. What are they doing in the life of the four? An AP lens could ask whether wanting, comparison, or identity is involved. Your answer may also be no.",
@@ -197,9 +173,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
     slices,
     totalT,
     perPersonT,
-    earths,
-    budgetHours,
-    lifetimeSharePct,
     landM2,
     waterM3,
     seeing: seeing.slice(0, 5),

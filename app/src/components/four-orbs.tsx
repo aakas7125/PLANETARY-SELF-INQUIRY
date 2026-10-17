@@ -1,10 +1,8 @@
-import type { HouseholdResult } from "@/lib/calc";
+const RING_RADIUS = 78;
+const GLOW = "oklch(0.72 0.12 45)";
+const ATMOSPHERE = "oklch(0.55 0.08 150)";
 
-export function FourOrbs({ result }: { result: HouseholdResult }) {
-  const pressure = Math.min(1, result.earths / 4);
-  const ring = 78 - pressure * 10;
-  const glow = `oklch(${0.72 - pressure * 0.22} ${0.12 + pressure * 0.08} ${45 + pressure * 20})`;
-  const atmosphere = `oklch(${0.55 - pressure * 0.15} ${0.08 + pressure * 0.1} ${150 - pressure * 90})`;
+export function FourOrbs() {
 
   return (
     <svg
@@ -17,11 +15,11 @@ export function FourOrbs({ result }: { result: HouseholdResult }) {
       <circle
         cx="120"
         cy="120"
-        r={ring}
+        r={RING_RADIUS}
         fill="none"
-        stroke={atmosphere}
-        strokeWidth={10 + pressure * 8}
-        strokeOpacity={0.35 + pressure * 0.35}
+        stroke={ATMOSPHERE}
+        strokeWidth={10}
+        strokeOpacity={0.35}
       />
       <circle cx="120" cy="120" r="46" fill="var(--color-card)" stroke="currentColor" strokeOpacity="0.14" />
       <circle cx="120" cy="120" r="26" fill="none" stroke="var(--color-primary)" strokeOpacity="0.35" />
@@ -36,10 +34,10 @@ export function FourOrbs({ result }: { result: HouseholdResult }) {
           cx={x}
           cy={y}
           r="5.5"
-          fill={pressure > 0.55 ? "var(--color-clay)" : "var(--color-primary)"}
+          fill="var(--color-primary)"
         />
       ))}
-      <circle cx="120" cy="120" r="2" fill={glow} />
+      <circle cx="120" cy="120" r="2" fill={GLOW} />
     </svg>
   );
 }

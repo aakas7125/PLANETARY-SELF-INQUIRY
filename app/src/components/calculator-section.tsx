@@ -3,10 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { FourOrbs } from "@/components/four-orbs";
-import { dietFootprint, dietOptions, formatT, FAIR_SHARE_T, type Diet } from "@/lib/calc";
+import { dietFootprint, dietOptions, formatT, type Diet } from "@/lib/calc";
 import { places } from "@/lib/places";
 import { useHousehold } from "@/store/household";
 import { cn } from "@/lib/utils";
+
+const LEDGER_QUALIFICATION =
+  "This is an illustrative household estimate, not a complete audited footprint.";
 
 const SLICE_COLORS = [
   "var(--color-pine)",
@@ -21,21 +24,16 @@ function Stat({
   label,
   value,
   hint,
-  warn,
 }: {
   label: string;
   value: string;
   hint: string;
-  warn?: boolean;
 }) {
   return (
     <div className="min-w-0">
       <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
       <p
-        className={cn(
-          "mt-1 font-display text-2xl tabular-nums tracking-tight sm:text-3xl",
-          warn ? "text-clay" : "text-foreground",
-        )}
+        className="mt-1 font-display text-2xl tabular-nums tracking-tight text-foreground sm:text-3xl"
       >
         {value}
       </p>
@@ -191,22 +189,6 @@ export function CalculatorSection() {
               </div>
 
               <div>
-                <FieldLabel title="Manufactured cool" value={`${state.cooling} / 10`} />
-                <Slider
-                  min={0}
-                  max={10}
-                  step={1}
-                  value={[state.cooling]}
-                  onValueChange={([v]) => state.setField("cooling", v ?? 0)}
-                  aria-label="Cooling intensity"
-                />
-                <p className="text-xs text-muted-foreground">
-                  A private climate inside four walls, returned as heat to the street the four must
-                  still walk.
-                </p>
-              </div>
-
-              <div>
                 <FieldLabel title="Goods, fashion, devices" value={`${state.goods} / 10`} />
                 <Slider
                   min={0}
@@ -230,7 +212,7 @@ export function CalculatorSection() {
 
           <aside className="lg:sticky lg:top-20 lg:col-span-5 lg:self-start">
             <div className="rounded-3xl bg-card p-5 shadow-[0_0_0_1px_rgba(22,20,16,0.08)]">
-              <FourOrbs result={result} />
+              <FourOrbs />
               <p className="mt-1 text-center font-display text-lg">
                 Shared dependencies
               </p>
@@ -241,30 +223,23 @@ export function CalculatorSection() {
                 A household footprint can show pressure on shared systems. It cannot be converted
                 into a numerical safety score for four people.
               </p>
+              <p
+                id="ledger-qualification"
+                className="mt-2 text-center text-xs font-medium text-foreground"
+              >
+                {LEDGER_QUALIFICATION}
+              </p>
 
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <Stat
                   label="Household"
                   value={`${formatT(result.totalT)} t`}
                   hint="CO₂e / year"
-                  warn={result.earths > 1.4}
                 />
                 <Stat
                   label="Each of the four"
                   value={`${formatT(result.perPersonT)} t`}
-                  hint={`Fair share ${FAIR_SHARE_T} t`}
-                  warn={result.perPersonT > FAIR_SHARE_T}
-                />
-                <Stat
-                  label="Earths required"
-                  value={result.earths.toFixed(1)}
-                  hint="If everyone lived like this household"
-                  warn={result.earths > 1}
-                />
-                <Stat
-                  label="Budget used"
-                  value={`${result.budgetHours < 1 ? (result.budgetHours * 60).toFixed(0) + " min" : result.budgetHours.toFixed(1) + " h"}`}
-                  hint="of current global emissions, every year"
+                  hint="CO₂e / year, household total ÷ 4"
                 />
               </div>
 
