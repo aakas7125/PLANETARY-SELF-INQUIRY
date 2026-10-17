@@ -1,5 +1,10 @@
 # PSI UX Evidence-to-Design Brief — 2026-10-17
 
+## Current execution selection — Owner continuation, 2026-10-17
+
+[D-018](DECISIONS.md#d-018--owner-selected-r1b-then-bounded-r2-confirmed-cursor-model) supersedes the earlier R1b/R2 candidate-only status below. Owner selects **Alternative A for R1b**, then narrowly scoped **R2 after R1b acceptance**. The [exact R1b content mapping](PSI_R1B_CONTENT_MAPPING_2026-10-17.md) pins G1 generic component evidence, I1 missing-service and M1 source-model fixtures, preserving every displayed statement in order. No source disclosure is invented: generic source sections are null; model SourcesAndLimits is an always-visible section and stays visible. R1b is typography/spacing/whole-existing-paragraph grouping, with no producer/state/calculator/AP change. Owner manually confirmed Claude Sonnet 5.5 Medium for R1b and R2; no further routine model confirmation is needed. Higher/other settings require new Owner confirmation. #194/#195 remains accepted/closed. Earlier no-follow-on-authority wording describes the prior intake and is superseded only for these two bounded priorities. R3–R5 remain preparation candidates, not an implementation bundle.
+
+
 HQ reconciliation under the Owner's current bounded UX-research direction. This is a source-to-design decision record, not a new empirical/AP source package or an application implementation. No permanent workstream.
 
 ## Baseline and limits
