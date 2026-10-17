@@ -4,8 +4,8 @@ Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs a
 
 | Workstream | Current disposition |
 |---|---|
-| Project HQ | D-024 temporary capacity preference recorded; retained Cursor ownership and reconciled observed065 claim; independent review pending substantive return |
-| Cursor | #212/task065 PR214 CURSOR_WORKING lease observed at99a56638, return pending; #213/task066 serial blocked, no wake |
+| Project HQ | D-024 recorded; #212/PR214 accepted/merged/postmergeCIpass; #213 serial release and sole wake complete |
+| Cursor | #213/task066 INITIAL-1 dispatched (wake6240938362), claim/return not yet observed; #212/214 accepted/closed |
 | Research & Evidence | #210/PR211 accepted/closed; no active Research task, no goods calibration adopted |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
