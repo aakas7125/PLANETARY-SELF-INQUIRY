@@ -6,11 +6,11 @@ Thank you for considering this. Please read all of it before you decide.
 
 Planetary Self-Inquiry has a phone question on its website: it asks about the phone you have now and what you might do about it. We would like to learn how clear the current version is to a person who is looking at it for the first time.
 
-You are not being tested. Nobody is checking whether you understood. If something is unclear, that tells us about the website, not about you.
+This looks at how clear the website is. It does not look at your ability, and it does not look at what you would prefer to buy. You are not being scored or graded. If something is unclear, that tells us about the website, not about you.
 
 - Taking part is voluntary. You can say no, and you can stop at any point without giving a reason.
 - It takes about 10–15 minutes. You do not need to finish. Stopping early is a normal and useful result.
-- You may skip a screen, say you disagree, or say you are not sure. All of these are fine.
+- You may skip any question or activity in this walkthrough, stop at any point, say you disagree, or say you are not sure. All of these are fine. The website itself may not have a skip button on every screen, and you do not need to complete a screen in order to stop.
 - There is no right purchase and no score. Nothing here measures what you choose to do with a phone.
 - Short tasks are grouped into small parts. You can do one part, several, or only the first one.
 
@@ -45,7 +45,7 @@ Move on until you reach a page called "Empirical comparison". If you stop before
 
 1. Where on this page, if anywhere, did you choose which options to look at together? Where on this page or later, if anywhere, did you make a final choice? Did those feel like the same step or different steps?
 2. Where was the phone model asked about? If you did not know the model, what did you do, and what did the page seem to do with that?
-3. There is a place to enter a number of years. In your own words, what do you think that number is for? Try leaving it empty, then typing something that is not a number. What did the page tell you each time?
+3. There is a place to enter a number of years. In your own words, what do you think that number is for? Did the page say anything about it, and if so, what?
 4. What did you take the numbers and ranges to mean? What did you take "not shown", "unknown", or "more information is needed" to mean?
 5. If you saw several results, how did you read them next to one another?
 
@@ -97,7 +97,8 @@ If you did the parts above in your own way and you are still willing, you can tr
 1. On the first screen, answer "Yes" to all three questions.
 2. Write short, plain answers to the questions that follow. They can be made up.
 3. On the comparison page, tick "Keep the current phone", "Buy a used/second-hand phone", "Buy a refurbished phone" and "Buy a new phone". Type "4" for the number of years. Choose "I don't know / use generic smartphone evidence" if you are asked for a model. Write "2.5", "2" and "3" in the three year fields that appear.
-4. Say what you see on each page as you go.
+4. If you are willing, try the number-of-years place in two other ways: first leave it empty, then type something that is not a number. Say what you see each time.
+5. Say what you see on each page as you go.
 
 You can stop at any time here too.
 
