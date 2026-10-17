@@ -4,9 +4,9 @@ Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs a
 
 | Workstream | Current disposition |
 |---|---|
-| Project HQ | PR207 correction independently accepted/merged84a942d; recovery/Issue/queue reconciled; PR208 accepted |
+| Project HQ | D-022 continuation rule recorded; Ledger two-control source/copy mapping and six calculator fixtures complete; #210 published |
 | Cursor | #206/PR#207 CORRECTION-1 RETRY-1 accepted/closed; correct-cycle recovery succeeded; no active task |
-| Research & Evidence | #200/PR#204 and #205/PR#208 accepted/closed; visual-source delta merged61c6e939; no automatic scientific/product adoption |
+| Research & Evidence | #210 task005 READY_FOR_RESEARCH goods-scale construct/calibration audit; execution/return not yet observed. #200/#205 accepted/closed, no automatic adoption |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
 | UX continuation | Isolated R3 prototype accepted; increased page length and unverified comprehension disclosed. Current production retained; production R3 and R4/R5 remain unselected |
