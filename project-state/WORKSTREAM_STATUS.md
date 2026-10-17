@@ -14,10 +14,6 @@ Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs a
 
 ## Historical migration snapshot — 2026-09-06
 
-# Workstream Status
-
-Last updated: 2026-09-06
-
 | Workstream | Status | Repository state |
 | --- | --- | --- |
 | Canonical local governance | Active | Constitution, owner control and publication protocol present |
