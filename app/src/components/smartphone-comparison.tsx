@@ -35,6 +35,14 @@ function SourcesAndLimits({
   );
 }
 
+const GUIDE_TARGET_ID = "comparison-lifecycle-guide";
+const INPUTS_TARGET_ID = "comparison-inputs";
+const GUIDE_LINK_LABEL = "Explore the phone lifecycle and sources";
+const INPUTS_LINK_LABEL = "Back to comparison inputs";
+
+const navLinkClass =
+  "inline-block max-w-full break-words rounded-sm text-sm font-medium text-foreground underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-paper";
+
 const choiceClass = (selected: boolean) =>
   cn(
     "flex min-h-11 min-w-0 cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-sm text-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-paper",
@@ -74,6 +82,11 @@ export function SmartphoneComparison({
         {COMPARISON_CHROME.title}
       </h1>
       <p className="mt-3 max-w-xl text-base text-foreground">{view.opening}</p>
+      <p className="mt-3">
+        <a href={`#${GUIDE_TARGET_ID}`} className={navLinkClass}>
+          {GUIDE_LINK_LABEL}
+        </a>
+      </p>
 
       <nav aria-label="Smartphone inquiry stages" className="mt-6">
         <ol className="space-y-2">
@@ -95,18 +108,17 @@ export function SmartphoneComparison({
         </ol>
       </nav>
 
-      <SmartphoneLifecycleGuide />
-      {view.modelGuideNote ? (
-        <p className="mt-3 break-words text-sm leading-relaxed text-foreground">{view.modelGuideNote}</p>
-      ) : null}
-
       <form
         className="mt-8 min-w-0 space-y-4"
         autoComplete="off"
         onSubmit={(event) => event.preventDefault()}
       >
         <fieldset className="min-w-0">
-          <legend className="font-display text-lg text-foreground">
+          <legend
+            id={INPUTS_TARGET_ID}
+            tabIndex={-1}
+            className="scroll-mt-32 rounded-md font-display text-lg text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+          >
             {COMPARISON_CHROME.pathwayLegend}
           </legend>
           <p className="mt-2 text-sm leading-relaxed text-foreground">{view.selectionNote}</p>
@@ -522,6 +534,16 @@ export function SmartphoneComparison({
           </div>
         </section>
       ) : null}
+
+      <SmartphoneLifecycleGuide headingId={GUIDE_TARGET_ID} />
+      {view.modelGuideNote ? (
+        <p className="mt-3 break-words text-sm leading-relaxed text-foreground">{view.modelGuideNote}</p>
+      ) : null}
+      <p className="mt-6">
+        <a href={`#${INPUTS_TARGET_ID}`} className={navLinkClass}>
+          {INPUTS_LINK_LABEL}
+        </a>
+      </p>
     </main>
   );
 }
