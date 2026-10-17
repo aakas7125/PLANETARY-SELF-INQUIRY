@@ -74,20 +74,21 @@ export function CandidateLifecycleGuide({ headingId }: { headingId?: string } = 
           const preview = collapsedRecordLines(stage);
           const inProduction = index < PRODUCTION_STAGE_COUNT;
           const isFirst = index === 0;
-          const isLast = index === guide.stages.length - 1;
           const isLastProduction = index === PRODUCTION_STAGE_COUNT - 1;
           return (
             <li
               key={stage.id}
               data-stage-id={stage.id}
               data-production-group={inProduction ? "" : undefined}
-              className={`relative min-w-0 pl-9 ${isLast ? "" : "pb-3"} ${isLastProduction ? "pb-5" : ""}`}
+              className={`relative min-w-0 pl-9 ${index === guide.stages.length - 1 ? "" : "pb-3"} ${isLastProduction ? "pb-5" : ""}`}
             >
-              <span
-                aria-hidden="true"
-                data-rail-line=""
-                className={`absolute left-[11px] w-0.5 bg-pine/60 ${isFirst ? "top-5" : "top-0"} ${isLast ? "h-5" : "bottom-0"}`}
-              />
+              {inProduction ? (
+                <span
+                  aria-hidden="true"
+                  data-rail-line=""
+                  className={`absolute left-[11px] w-0.5 bg-pine/60 ${isFirst ? "top-5" : "top-0"} ${isLastProduction ? "h-5" : "bottom-0"}`}
+                />
+              ) : null}
               <span
                 aria-hidden="true"
                 data-rail-node=""
@@ -122,9 +123,9 @@ export function CandidateLifecycleGuide({ headingId }: { headingId?: string } = 
                         {String(index + 1).padStart(2, "0")}
                       </span>
                       <span className="mt-0.5 block break-words text-base text-foreground">{stage.label}</span>
+                      <span className="mt-1 block text-xs font-medium text-pine group-open:hidden">Show stage</span>
+                      <span className="mt-1 hidden text-xs font-medium text-pine group-open:block">Hide stage</span>
                     </span>
-                    <span className="shrink-0 text-xs font-medium text-pine group-open:hidden">Show stage</span>
-                    <span className="hidden shrink-0 text-xs font-medium text-pine group-open:inline">Hide stage</span>
                   </span>
                   {preview.length > 0 ? (
                     <span className="space-y-2 group-open:hidden">

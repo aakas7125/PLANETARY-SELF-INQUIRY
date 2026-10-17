@@ -29,6 +29,24 @@ async function open(variant, vp) {
   return { page, errors };
 }
 
+// A single-word stage label that wraps onto a second line has been split mid-word.
+const labelLines = (page) =>
+  page.evaluate(() => {
+    const out = { checked: 0, broken: [] };
+    const ol = document.querySelector("ol[aria-label='Lifecycle stages']");
+    for (const li of ol.children) {
+      const labelEl = li.querySelector("summary .text-base");
+      const text = labelEl.textContent.trim();
+      const lineHeight = parseFloat(getComputedStyle(labelEl).lineHeight);
+      const range = document.createRange();
+      range.selectNodeContents(labelEl);
+      const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size;
+      out.checked += 1;
+      if (!/\s/.test(text) && lines > 1) out.broken.push({ text, lines, lineHeight });
+    }
+    return out;
+  });
+
 const metrics = (page) =>
   page.evaluate(() => {
     const vw = document.documentElement.clientWidth;
@@ -60,34 +78,80 @@ for (const vp of VIEWPORTS) {
     const allOpen = await metrics(page);
     report.measurements.push({ viewport: vp.name, variant, closed, oneOpen, allOpen, errors });
     assert.deepEqual(errors, [], `${variant}@${vp.name} errors`);
+    report.measurements.at(-1).labelLines = await labelLines(page);
     await page.close();
   }
 }
 
-async function frame(variant, vp, name, { stage = "components", grayscale = false, scrollTo = "ol" } = {}) {
+const MEASURED_STATES = ["closed", "oneOpen", "allOpen"];
+for (const vp of VIEWPORTS) {
+  const control = report.measurements.find((m) => m.viewport === vp.name && m.variant === "control");
+  const candidate = report.measurements.find((m) => m.viewport === vp.name && m.variant === "candidate");
+  for (const state of MEASURED_STATES) {
+    const c = control[state];
+    const k = candidate[state];
+    assert.ok(
+      k.horizontalOverflowPx <= c.horizontalOverflowPx,
+      `candidate@${vp.name}/${state}: horizontal overflow ${k.horizontalOverflowPx}px exceeds control ${c.horizontalOverflowPx}px`,
+    );
+    assert.ok(
+      k.elementsOutsideViewport <= c.elementsOutsideViewport,
+      `candidate@${vp.name}/${state}: ${k.elementsOutsideViewport} clipped elements exceeds control ${c.elementsOutsideViewport}`,
+    );
+  }
+  assert.deepEqual(candidate.labelLines.broken, [], `candidate@${vp.name}: stage labels broken mid-word`);
+}
+
+async function frame(variant, vp, name, { stage = "components", grayscale = false, scrollTo = "ol", offset = 24 } = {}) {
   if (!framesDir) return;
   const { page } = await open(variant, vp);
   if (grayscale) await page.addStyleTag({ content: "html{filter:grayscale(1)}" });
   if (stage) await page.evaluate((id) => document.querySelector(`#lifecycle-panel-${id}`).closest("details").setAttribute("open", ""), stage);
-  await page.evaluate((target) => {
+  await page.evaluate(({ target, offset }) => {
     const el = target === "ol" ? document.querySelector("ol[aria-label='Lifecycle stages']") : document.querySelector(target);
     document.documentElement.style.scrollBehavior = "auto";
-    window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 24);
-  }, scrollTo);
+    window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - offset);
+  }, { target: scrollTo, offset });
   await page.waitForTimeout(150);
-  const path = join(framesDir, `INITIAL-1-${name}.png`);
+  const path = join(framesDir, `CORRECTION-1-${name}.png`);
   await page.screenshot({ path });
   report.frames.push(path);
   await page.close();
 }
 
-const tall = (w) => ({ name: String(w), width: w, height: 1400 });
-await frame("control", tall(390), "control-390-components-open");
-await frame("candidate", tall(390), "candidate-390-components-open");
-await frame("control", { name: "1280", width: 1280, height: 1300 }, "control-1280-components-open");
-await frame("candidate", { name: "1280", width: 1280, height: 1300 }, "candidate-1280-components-open");
-await frame("candidate", tall(390), "candidate-390-later-stages-collapsed", { stage: null, scrollTo: "[data-stage-id='distribution-transport']" });
-await frame("candidate", tall(320), "candidate-320-grayscale-components-open", { grayscale: true });
+const tall = (w, h = 1400) => ({ name: String(w), width: w, height: h });
+await frame("control", tall(320, 1100), "control-320-grayscale-components-open", { grayscale: true });
+await frame("candidate", tall(320, 1100), "candidate-320-grayscale-components-open", { grayscale: true });
+await frame("candidate", tall(390), "candidate-390-production-context-components-open", { stage: "components", scrollTo: "article[aria-label]", offset: 16 });
+await frame("candidate", tall(390), "candidate-390-later-stages-unconnected", { stage: null, scrollTo: "[data-stage-id='use-repair']", offset: 360 });
+await frame("candidate", { name: "1280", width: 1280, height: 1300 }, "candidate-1280-production-context-components-open", { stage: "components", scrollTo: "article[aria-label]", offset: 16 });
+
+const railStructure = {};
+for (const variant of ["candidate"]) {
+  const { page } = await open(variant, { width: 390, height: 900 });
+  railStructure[variant] = await page.evaluate(() => {
+    const items = [...document.querySelector("ol[aria-label='Lifecycle stages']").children];
+    return items.map((li) => ({
+      id: li.dataset.stageId,
+      line: !!li.querySelector("[data-rail-line]"),
+      node: !!li.querySelector("[data-rail-node]"),
+      bracket: !!li.querySelector("[data-group-bracket]"),
+    }));
+  });
+  await page.close();
+}
+report.railStructure = railStructure;
+assert.deepEqual(
+  railStructure.candidate.map((s) => s.line),
+  [true, true, true, true, false, false, false, false],
+  "connecting rail lines exist only for stages 1-4",
+);
+assert.ok(railStructure.candidate.every((s) => s.node), "every stage keeps a decorative node");
+assert.deepEqual(
+  railStructure.candidate.map((s) => s.bracket),
+  [true, true, true, true, false, false, false, false],
+  "group bracket only on stages 1-4",
+);
 
 for (const variant of ["control", "candidate"]) {
   const { page } = await open(variant, { width: 390, height: 900 });
@@ -102,19 +166,23 @@ for (const variant of ["control", "candidate"]) {
         text: (a.getAttribute("aria-label") ?? a.textContent).trim().replace(/\s+/g, " ").slice(0, 48),
         ring: cs.boxShadow !== "none" || (cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0),
         inViewportX: r.left >= 0 && r.right <= document.documentElement.clientWidth,
+        inViewportY: r.top >= 0 && r.bottom <= window.innerHeight,
         stage: a.closest("li[data-stage-id], ol > li") ? [...a.closest("ol").children].indexOf(a.closest("ol > li")) + 1 : null,
       };
     });
   await page.keyboard.press("Tab");
+  await page.waitForTimeout(400);
   trail.push(await describe());
   for (let i = 0; i < 8; i++) {
     await page.keyboard.press("Tab");
+    await page.waitForTimeout(400);
     trail.push(await describe());
   }
   const summaries = trail.filter((t) => t.tag === "SUMMARY");
   assert.equal(summaries.length, 9, `${variant}: production + 8 stage summaries reachable by Tab in order`);
   assert.ok(trail.every((t) => t.ring), `${variant}: visible focus indicator on every stop ` + JSON.stringify(trail));
   assert.ok(trail.every((t) => t.inViewportX), `${variant}: focused element horizontally inside viewport`);
+  assert.ok(trail.every((t) => t.inViewportY), `${variant}: focused element vertically inside viewport after scroll settles ` + JSON.stringify(trail));
   const stageOrder = trail.map((t) => t.stage).filter((s) => s !== null);
   assert.deepEqual(stageOrder, [1, 2, 3, 4, 5, 6, 7, 8], `${variant}: Tab order follows stages 1-8`);
 
