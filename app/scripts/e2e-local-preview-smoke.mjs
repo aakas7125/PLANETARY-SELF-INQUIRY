@@ -352,8 +352,8 @@ async function walkJourney(page, label) {
   assert((await page.locator("#remaining-service").inputValue()) === "2.50", "Remaining service was not preserved as 2.50");
   assert((await page.locator("#used-candidate-service").inputValue()) === "1.50", "Used service was not preserved as 1.50");
   assert((await page.locator("#refurbished-candidate-service").inputValue()) === "3", "Refurbished service was not preserved as 3");
-  const horizonLine = await page.getByText("The same horizon is used for every selected pathway: 4.").innerText();
-  assert(horizonLine.endsWith("4."), "Horizon statement did not keep the entered 4");
+  const horizonLine = await page.getByText("The selected comparison period is 4 years for every alternative.").innerText();
+  assert(horizonLine.includes("is 4 years"), "Comparison period statement did not keep the entered 4");
   assert(
     !(await keepWhileUnsure.innerText()).includes("not replaced with zero"),
     "A supplied remaining service was still described as replaced or withheld as zero",

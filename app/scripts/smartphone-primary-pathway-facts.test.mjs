@@ -131,7 +131,8 @@ describe("smartphone primary pathway facts", () => {
       assert.equal(input["remaining_service.without_repair.expected_years"], 2.5);
     }
     assert.match(publicCorpus(view), /Expected remaining adequate service without repair is 2\.5 years/);
-    assert.doesNotMatch(publicCorpus(view), /is 4 years/);
+    assert.doesNotMatch(publicCorpus(view), /is 4 years(?! for every alternative)/);
+    assert.match(publicCorpus(view), /The selected comparison period is 4 years for every alternative\./);
   });
 
   it("does not copy the shared horizon into remaining service or post-repair service", () => {
