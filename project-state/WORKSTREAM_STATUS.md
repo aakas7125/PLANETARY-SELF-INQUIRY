@@ -5,11 +5,11 @@ Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs a
 | Workstream | Current disposition |
 |---|---|
 | Project HQ | CGCAW fresh-state intake and R2 acceptance/merge/post-merge checks complete; D-020 standing shorthand recorded |
-| Cursor | #199/PR#202 accepted/closed at merge38e3b2b; both063 leases terminal, no active implementation or pending dispatch |
+| Cursor | #199/PR#202 accepted; #206 task064 INITIAL-1 dispatched (sole wake6239093090), awaiting observed execution/return |
 | Research & Evidence | #200/PR#204 accepted; #205 READY_FOR_RESEARCH two-claim visual delta, no execution/return currently observed |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
-| UX continuation | R3 bounded prototype mapping prepared; Owner scope selection pending, no R3–R5 implementation dispatch |
+| UX continuation | Owner selected isolated comparison-only R3 prototype (D-021); task206 dispatched. Production R3 integration and R4/R5 remain unselected |
 | Human walkthrough | Voluntary Owner-arranged review remains available; no comprehension validation or recruitment by HQ |
 
 ## Historical migration snapshot — 2026-09-06
