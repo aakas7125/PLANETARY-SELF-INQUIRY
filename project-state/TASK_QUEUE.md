@@ -1,6 +1,32 @@
 # Task Queue
 
-## Current coordination — 2026-10-16
+## Current priority — 2026-10-17 comprehension pilot and scoped feedback reconciliation
+
+Owner supplied the requested direction; D-014 is recorded at `00f68fe41092280cc9e4044023b47de897354873`. The prior exhausted-queue question below is answered, not a current blocker. Primary milestone: ordinary people can understand and meaningfully use the experience; no preferred-purchase or feature-count success metric.
+
+- #180: Reviewer B anonymous website-experience intake, PRELIMINARY. Version/deployment/device/language/stages/completion unknown; observed burden/suggestions separated from HQ interpretation. Positive exact Otherness wording retained. Independent read-only HQ source/live checks and their limits recorded there.
+- #181: distinct anonymous Reviewer C CONCEPT-only economics feedback; reviewer has NOT used website. No reported UI defect, sourced price or authority for a car vertical.
+- #182 / PR #184, `HQ-CURSOR-2026-10-17-058`, INITIAL-1: **CURSOR_WORKING / return pending**. Sole wake **6228916268**. Branch `cursor/hq-cursor-2026-10-17-058-human-review-kit`; observed head `c060e6a7c68b883ffb84fd78f7c6f9dd0bcfeaef` has matching working lease and no return. Primary bounded Tier-2 task: refreshed participant-only kit, separate internal observation template and targeted built comparison/focus/scroll baseline plus small presentation/completion candidate mapping. NO app edits, adoption, pilot execution/contact or self-merge. Default Grok 4.7 Medium/moderate; no model exception or duplicate wake.
+- #183, `HQ-AP-2026-10-17-001`, INITIAL-1: **READY_FOR_AP**, one-file proposal. First-person QSP comprehension/attribution and narrow Principles heading purpose mapping, exact old/new/source/mandatory-visible vs disclosure boundaries. Preserve original APQ1–6, positive Otherness question/gates/raw answers/choice; no direct adoption or UI redesign. No claim of active execution yet.
+- #185, `HQ-RE-2026-10-17-001`, INITIAL-1: **READY_FOR_RESEARCH**, one-file focused Ledger budget-time/cooling construct/formula/units/source audit. HQ live totals reacted while minutes stayed rounded zero; neither source correctness nor a scientifically defensible personal budget follows. Cooling is current appliance-intensity input, not measured hot/cold exposure; no conversion to 12/year or patch merely to animate output. No claim of active execution yet.
+- #186, `HQ-RE-2026-10-17-002`, INITIAL-1: **BLOCKED — PRIORITY_DEPENDENCY**, exact dependency #185 return AND HQ disposition. Then HQ releases existing Issue, not a duplicate. Separate smartphone economics coverage/optional-dimension proposal, no generic prices, financial/environmental composite, cheapest-option rule or car implementation. Published scope is not active Research execution.
+- AP and Cursor may proceed with these non-overlapping proposal/kit files while Research audits Ledger. No active Local Codex task. All new task IDs searched in Issues/PRs, all current branches/main tree and open work before publication; prior 057 returned/accepted lease prevents replay.
+- #148 remains preliminary; #157 PDF stays Owner-deferred non-executable backlog. Decision-change analytics/counter is recorded as a high-risk unapproved candidate within #180, NOT an executable task. No storage/profile/logging/analytics, Site/hosting change, homepage/Ledger/Constitution redesign or new scientific/AP semantics adopted.
+
+### Minimal sequence and validation
+
+| Order / owner | User benefit / bounded outcome | Validation / progression gate |
+|---|---|---|
+| 1 — Cursor #182, then independent HQ | Neutral ready-to-use human-review materials and concrete current comparison/navigation observations; identify clarity gaps without deleting limits. | Built current 390/1280 fixtures, source/build SHA, focus/scroll/Back/status inventory, participant/internal separation; HQ reviews exact returned head. A reproducible accepted-behavior defect can receive its own small correction before pilot completion. |
+| 2 — Owner participants, HQ intake | Actual qualitative comprehension evidence about lifecycle/fate/global context, comparison period/missing input, inquiry meaning, navigation and closure. | Owner arranges/invites; voluntary, may stop/use fictional facts. URL/version or unknown, device/language/stages/completion/anonymous observations. No coaching, raw private answers, recording or representative-study claim. Begin only with reviewed kit; Owner need not grant approval again for the already-approved priority. |
+| Parallel — AP #183 | Faithful understandable inquiry/provenance and narrowly clearer heading proposal. | Exact purpose/source/wording/counterexample mapping; HQ selects accepted equivalents, escalates only genuine new semantics; separate Tier-2 implementation after selection. |
+| Parallel — Research #185 | Establish whether public Ledger budget/cooling metrics mean and measure what their labels imply. | Source/units/dependency and deterministic cases; actual support vs illustrative/unreviewed/invalid separated. HQ reviews before any clearing implementation/new factor adoption. |
+| Later — Research #186 after #185 review | Determine whether existing practical/financial coverage is sufficient and what optional dimension would add. | Coverage/source map, non-coercion/unknown/region/currency/service/privacy boundaries. Proposal then explicit domain/product acceptance, no immediate calculator. |
+| Later — HQ bounded implementation | Plain result/key facts/detail layers and clear comparison-period language; possible private exact-answer completion slice. | #182/183 findings plus accepted contract meaning settle exact strings/fields/states first. No misleading charts, inferred motives, scored outcomes or invented viewing history. Do not wait for all pilot feedback to fix a proven existing-behavior defect; do not treat proposed copy as automatically accepted. |
+
+Current stopping dependency: actual authorized executor returns are pending; no duplicate wake or unsolicited implementation. After a return, review it in the same HQ run, merge qualifying work, reconcile and release the next determined task. Participant involvement remains Owner-arranged; do not ask the already-answered priority question again.
+
+## Prior coordination — 2026-10-16
 
 GitHub Issues, exact PR heads and durable leases/returns are the current execution authority. This queue records dependencies, not new execution or semantic authority.
 
@@ -68,11 +94,11 @@ Routine HQ state reconciliation: README's obsolete “no accepted application”
 
 Fresh post-acceptance intake inspected current Owner directions D-009–D-013, open Issues/PRs and feedback comments, exact matching lease/return, queue/decisions, workstream status, known limitations, current README authority pointers, and the accepted #168 reviewer kit. The only open entries are preliminary feedback #148, explicitly deferred PDF #157 and historic PR #1. Current handoffs are either consumed in the three D-010 slices or received with explicit non-adoption boundaries. The Research ownership audit recommends no added interaction on its evidence alone. Known limitations and historical future candidates are not newly determined tasks.
 
-**Owner-independent queue exhausted.** No additional bounded implementation, Research, AP or Local Codex task is already determined by accepted state. No new Issue, model checkpoint, duplicate wake or optional work was manufactured.
+**Historical exhausted queue (superseded by D-014 / Owner direction 2026-10-17).** At that intake, no additional bounded implementation, Research, AP or Local Codex task was already determined by accepted state. No new Issue, model checkpoint, duplicate wake or optional work was manufactured.
 
 The smallest grounded next priority decision is whether to proceed to a **small real-user walkthrough of the updated smartphone journey**, using the accepted privacy-safe #168 kit. External comprehension remains unverified. HQ has prepared the kit; actual participants/invitations need Owner direction and are not automatically authorized by preparing it. If chosen, preserve fictional-phone options, voluntary participation, anonymous paraphrases, version/device/completion limits and separate observations from interpretation. Strip bracketed HQ triage notes before participant-facing use. Any need to refresh the kit for the new lifecycle/fate/context presentation must be separately bounded; no invented feedback, contact, recording or product diagnosis.
 
-HQ should ask this specific Owner priority question in its final report and resume routing once answered. This is a proposed direction, not an adopted answer. Do not revive the resolved PDF priority or treat optional Eurostat/context candidates as blockers.
+The Owner answered YES on 2026-10-17 and supplied additional feedback; D-014 and the current priority above record routing. The former proposal is now an authorized validation priority, with Owner-arranged participants. Do not revive the resolved PDF priority or treat optional Eurostat/context candidates as blockers.
 
 Before stopping, follow the bounded next-task discovery rule in `UNIVERSAL_ISSUE_CONTROL_PLANE.md`. Public unsolicited contributions are not work authority. Do not replay historical queue entries merely because they remain in old state documents.
 
