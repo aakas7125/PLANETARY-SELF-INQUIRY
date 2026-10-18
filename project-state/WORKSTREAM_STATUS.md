@@ -1,11 +1,11 @@
 # Workstream Status
 
-Last updated:2026-10-17. Current execution is governed by the fresh Issues/PRs and TASK_QUEUE.md; the historical migration table below is not an active executor inventory.
+Last updated:2026-10-18. Current execution is governed by the fresh Issues/PRs and TASK_QUEUE.md; the historical migration table below is not an active executor inventory.
 
 | Workstream | Current disposition |
 |---|---|
-| Project HQ | PR215 source/tests/CI/eight images reviewed; bounded settled-chart evidence correction requested/routed |
-| Cursor | #213/PR215 CORRECTION-1 dispatched (wake6241964148); current-cycle claim/return not yet observed; no initial replay |
+| Project HQ | PR215 correction accepted/merged with exact/postmergeCIpassed; Issue/feedback/queue reconciled; bounded remaining-thumb task216 routed |
+| Cursor | #216/task067 INITIAL-1 dispatched (wake6245876408); claim/return not yet observed. #213/215 accepted/closed |
 | Research & Evidence | #210/PR211 accepted/closed; no active Research task, no goods calibration adopted |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
