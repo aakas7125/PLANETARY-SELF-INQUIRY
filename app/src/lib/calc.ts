@@ -10,7 +10,6 @@ export type HouseholdInput = {
   carKm: number;
   evShare: number;
   homeKwh: number;
-  goods: number;
 };
 
 export const defaultHousehold: HouseholdInput = {
@@ -21,7 +20,6 @@ export const defaultHousehold: HouseholdInput = {
   carKm: 8000,
   evShare: 0,
   homeKwh: 3500,
-  goods: 5,
 };
 
 /** tCO2e / person / year from food. Poore & Nemecek 2018; OWID dietary footprints. */
@@ -74,7 +72,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
   const evKm = input.carKm * (input.evShare / 100);
   const carT = (iceKm * 0.17 + evKm * (place.gridG / 1000) * 0.18) / 1000;
   const homeT = (input.homeKwh * place.gridG) / 1_000_000;
-  const goodsT = 0.35 + (input.goods / 10) * 3.4;
   const servicesT = 1.1 * PEOPLE;
 
   const slices: Slice[] = [
@@ -116,15 +113,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
         "The grid and the outdoor heat island are not a separate climate. Cooling the room returns heat to the street.",
     },
     {
-      id: "goods",
-      label: "Goods",
-      t: goodsT,
-      inquiry: "What role do these parcels play — need, gift, boredom, comparison, or unclear?",
-      lens: "An AP lens could ask whether a purchase is trying to complete something. Your answer may be no.",
-      notice:
-        "A shirt still has a factory, a river, and a landfill, whether or not they appear in the photograph of the four.",
-    },
-    {
       id: "services",
       label: "Shared systems",
       t: servicesT,
@@ -139,7 +127,8 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
   const totalT = slices.reduce((s, x) => s + x.t, 0);
   const perPersonT = totalT / PEOPLE;
 
-  const landM2 = diet.land * PEOPLE + input.goods * 40;
+  // Diet land only. Goods land is excluded and unquantified, so this is not a complete household land figure.
+  const landM2 = diet.land * PEOPLE;
   const waterM3 = diet.water * PEOPLE + input.homeKwh * 0.003;
 
   const ranked = [...slices].sort((a, b) => b.t - a.t);
@@ -156,11 +145,6 @@ export function computeHousehold(input: HouseholdInput): HouseholdResult {
   if (input.diet === "high-meat" || input.diet === "average") {
     seeing.push(
       "The plate is not private: feed crops, methane, and cleared land sit behind many mixed diets. An AP lens could ask whether this is simply food, or also a way of recruiting the living world. You do not have to accept the lens.",
-    );
-  }
-  if (input.goods >= 7) {
-    seeing.push(
-      "Parcels are a large line in this ledger. What are they doing in the life of the four? An AP lens could ask whether wanting, comparison, or identity is involved. Your answer may also be no.",
     );
   }
   seeing.push(
