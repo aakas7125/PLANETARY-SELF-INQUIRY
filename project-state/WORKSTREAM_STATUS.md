@@ -4,12 +4,12 @@ Last updated:2026-10-18. Current execution is governed by the fresh Issues/PRs a
 
 | Workstream | Current disposition |
 |---|---|
-| Project HQ | PR215 correction accepted/merged with exact/postmergeCIpassed; Issue/feedback/queue reconciled; bounded remaining-thumb task216 routed |
-| Cursor | #216/task067 INITIAL-1 dispatched (wake6245876408); claim/return not yet observed. #213/215 accepted/closed |
+| Project HQ | #216/PR217 accepted/merged with exact/postmergeCIpass; R4 source entry mapping and unprimed-evidence gap prepared |
+| Cursor | #216/PR217 accepted/closed; no active task or wake |
 | Research & Evidence | #210/PR211 accepted/closed; no active Research task, no goods calibration adopted |
 | AP Framework & Corpus | #201/PR#203 accepted, no immediate corpus/UI addition and no active AP task |
 | Local Codex | No active authorized PSI task observed |
-| UX continuation | Isolated R3 prototype accepted; increased page length and unverified comprehension disclosed. Current production retained; production R3 and R4/R5 remain unselected |
+| UX continuation | R4 source preparation complete; unprimed homepage observation remains human dependency. R3 production and R4/R5 implementation unselected |
 | Human walkthrough | Voluntary Owner-arranged review remains available; no comprehension validation or recruitment by HQ |
 
 ## Historical migration snapshot — 2026-09-06
