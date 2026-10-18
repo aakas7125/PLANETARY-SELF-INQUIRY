@@ -48,6 +48,11 @@ const EV_ROAD_SHARE_INSTRUCTION =
 const EV_ROAD_SHARE_CONTEXT =
   "An electric kilometre still carries the local grid. Quieter is not the same as disconnected.";
 
+const FLIGHTS_THUMB_NAME = "Long-haul-equivalent flights per year";
+const FLIGHTS_HELPER_ID = "ledger-flights-helper";
+const ROAD_THUMB_NAME = "Household road travel (kilometres per year)";
+const HOME_THUMB_NAME = "Home electricity (kilowatt-hours per year)";
+
 function FieldLabel({
   title,
   value,
@@ -140,9 +145,12 @@ export function CalculatorSection() {
                   step={1}
                   value={[state.flightsLhe]}
                   onValueChange={([v]) => state.setField("flightsLhe", v ?? 0)}
-                  aria-label="Flights"
+                  thumbProps={{
+                    "aria-label": FLIGHTS_THUMB_NAME,
+                    "aria-describedby": FLIGHTS_HELPER_ID,
+                  }}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p id={FLIGHTS_HELPER_ID} className="text-xs text-muted-foreground">
                   One long-haul return ≈ 1.7 tCO₂e including warming from high-altitude effects.
                   A Delhi–London return is about one unit.
                 </p>
@@ -159,7 +167,9 @@ export function CalculatorSection() {
                   step={500}
                   value={[state.carKm]}
                   onValueChange={([v]) => state.setField("carKm", v ?? 0)}
-                  aria-label="Car kilometres"
+                  thumbProps={{
+                    "aria-label": ROAD_THUMB_NAME,
+                  }}
                 />
               </div>
 
@@ -193,7 +203,9 @@ export function CalculatorSection() {
                   step={100}
                   value={[state.homeKwh]}
                   onValueChange={([v]) => state.setField("homeKwh", v ?? 500)}
-                  aria-label="Home electricity"
+                  thumbProps={{
+                    "aria-label": HOME_THUMB_NAME,
+                  }}
                 />
               </div>
             </div>
