@@ -1,6 +1,6 @@
 # R4 preparation — homepage entry and an unprimed first action,2026-10-18
 
-Status: completed read-only HQ preparation under D-018/D-022 and UX brief R4. No homepage/copy/navigation implementation selected. Source baseline: accepted PR217 merged4e9db6adf5b4d2da9c9135bd0eb1de72deac68e; the four entry files below are unchanged by the Ledger accessibility PR. Inspection is source/route mapping, not a new rendered homepage test or participant session.
+Status: completed read-only HQ preparation under D-018/D-022 and UX brief R4. No homepage/copy/navigation implementation selected. Source baseline: accepted PR217 merge `d4e9db6adf5b4d2da9c9135bd0eb1de72deac68e`; the four entry files below are unchanged by the Ledger accessibility PR. Inspection is source/route mapping, not a new rendered homepage test or participant session.
 
 ## Exact current entry inventory
 
