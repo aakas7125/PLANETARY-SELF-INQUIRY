@@ -374,13 +374,53 @@ describe("Ledger public presentation", () => {
     );
     assert.match(calculator, /min=\{0\}[\s\S]{0,80}max=\{100\}[\s\S]{0,80}step=\{5\}[\s\S]{0,120}evShare/);
     assert.match(calculator, /title="Household road travel"/);
-    assert.match(calculator, /aria-label="Car kilometres"/);
+    assert.equal(calculator.includes('aria-label="Car kilometres"'), false);
     assert.equal(calculator.includes("Goods, fashion, devices"), false);
     assert.equal(calculator.includes("Goods intensity"), false);
     assert.equal(calculator.includes("state.goods"), false);
-    assert.equal(calculator.split("thumbProps").length - 1, 1);
+    assert.equal(calculator.split("thumbProps").length - 1, 4);
     assert.match(slider, /thumbProps\?:/);
     assert.match(slider, /<SliderPrimitive\.Thumb[\s\S]*\{\.\.\.thumbProps\}/);
     assert.equal(slider.split("thumbProps").length - 1, 3);
+  });
+
+  it("names the remaining three ledger thumbs and associates the existing flight helper once", () => {
+    const flights = "Long-haul-equivalent flights per year";
+    const road = "Household road travel (kilometres per year)";
+    const home = "Home electricity (kilowatt-hours per year)";
+    const helper =
+      "One long-haul return \u2248 1.7 tCO\u2082e including warming from high-altitude effects.\n                  A Delhi\u2013London return is about one unit.";
+
+    assert.equal(calculator.split(flights).length - 1, 1);
+    assert.equal(calculator.split(road).length - 1, 1);
+    assert.equal(calculator.split(home).length - 1, 1);
+    assert.equal(calculator.split(helper).length - 1, 1);
+    assert.match(calculator, /title="Long-haul-equivalent flights \/ year"/);
+    assert.match(calculator, /title="Household road travel"/);
+    assert.match(calculator, /title="Home electricity"/);
+    assert.equal(calculator.includes('aria-label="Flights"'), false);
+    assert.equal(calculator.includes('aria-label="Car kilometres"'), false);
+    assert.equal(calculator.includes('aria-label="Home electricity"'), false);
+    assert.equal(calculator.includes("Goods, fashion, devices"), false);
+    assert.equal(calculator.includes("state.goods"), false);
+    assert.match(
+      calculator,
+      /thumbProps=\{\{[\s\S]*"aria-label": FLIGHTS_THUMB_NAME,[\s\S]*"aria-describedby": FLIGHTS_HELPER_ID,/,
+    );
+    assert.match(calculator, /id=\{FLIGHTS_HELPER_ID\}/);
+    assert.equal(calculator.split("FLIGHTS_HELPER_ID").length - 1, 3);
+    assert.match(
+      calculator,
+      /min=\{0\}[\s\S]{0,40}max=\{12\}[\s\S]{0,40}step=\{1\}[\s\S]{0,220}FLIGHTS_THUMB_NAME/,
+    );
+    assert.match(
+      calculator,
+      /min=\{0\}[\s\S]{0,40}max=\{40000\}[\s\S]{0,40}step=\{500\}[\s\S]{0,180}"aria-label": ROAD_THUMB_NAME/,
+    );
+    assert.match(
+      calculator,
+      /min=\{500\}[\s\S]{0,40}max=\{12000\}[\s\S]{0,40}step=\{100\}[\s\S]{0,180}"aria-label": HOME_THUMB_NAME/,
+    );
+    assert.equal(calculator.split('"aria-describedby"').length - 1, 2);
   });
 });
