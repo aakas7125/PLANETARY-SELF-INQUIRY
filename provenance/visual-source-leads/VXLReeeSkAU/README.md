@@ -4,7 +4,7 @@
 
 This directory is evidence level 1. It is frame-observed source-lead preservation. It is not scientifically verified, not accepted PSI evidence, and not AP corpus. Publishing these files does not accept any row.
 
-Publication of this text package: 2026-10-26. The audit itself is the October 2026 sampled 720p pass and targeted 1080p follow-up by Grok Bot New Bot. That byline is the publication record of who produced the audit. The preserved originals do not contain it.
+Publication of this text package: 2026-10-26. The audit itself is the October 2026 sampled 720p pass and targeted 1080p follow-up by Grok Bot New Bot. The Owner confirms that Grok Bot used Cursor Agent for this GitHub publication; the Cursor commit is the same producer's publication route, not a separate scientific or AP authority. The byline is the publication record of who produced the audit. The seven audit text files do not contain it. See the manifest for the difference between committed-file hashes and the earlier uploaded-archive hashes.
 
 ## Video identity
 
