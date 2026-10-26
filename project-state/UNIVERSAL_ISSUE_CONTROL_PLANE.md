@@ -14,6 +14,10 @@ The durable loop is:
 
 `HQ → GitHub Issue → target workstream → GitHub result/status → HQ or next workstream`
 
+## Fresh Research/AP specialist execution instances
+
+Before delegating substantive Research & Evidence or AP Framework & Corpus work to a newly deployed agent, HQ and that agent follow [Specialist agent onboarding and HQ attestation](SPECIALIST_AGENT_ONBOARDING.md). The task Issue or handoff records pinned references, actual agent reads and missing context before execution, then HQ verifies the returned work independently. This is an operational check within the existing workstreams and authority model.
+
 ## Issue classes
 
 ### Executable task
