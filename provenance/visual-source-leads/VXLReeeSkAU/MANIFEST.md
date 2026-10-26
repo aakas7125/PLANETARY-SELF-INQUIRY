@@ -2,7 +2,7 @@
 
 Publication date: 2026-10-26.
 
-This manifest records the text files published under `provenance/visual-source-leads/VXLReeeSkAU/`. The seven audit originals were copied byte for byte. SHA-256 below was recomputed after that copy and matches the authorized digests. Observations inside those originals were not rewritten.
+This manifest records the text files published under `provenance/visual-source-leads/VXLReeeSkAU/`. The producer reports copying seven audit text files byte for byte from its working environment. The SHA-256 values below were computed for these files and independently recomputed by HQ from this PR's committed bytes. The 2026-10-17 Owner intake records hashes for the uploaded handoff and ZIP archives, not these seven individual files; this PR alone cannot independently prove byte identity with files inside those earlier uploads. Observations inside the seven published audit files were not rewritten.
 
 `README.md` was written for this publication. Its digest is included. The digest of `MANIFEST.md` is not embedded in this file, because writing it would change the bytes. Recompute it from the committed file with `sha256sum MANIFEST.md`.
 
