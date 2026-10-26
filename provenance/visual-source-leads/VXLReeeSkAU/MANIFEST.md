@@ -17,7 +17,7 @@ This manifest records the text files published under `provenance/visual-source-l
 | `unresolved-references.md` | Authoritative unresolved-references upload (720p; header states no 1080p re-read). | 1345 | `9665a1f3bdc5681afc05aca8b13c3148e171c80633b85f20c4dd44bb92c4200d` |
 | `CHANGELOG_v2.md` | Authoritative v2 changelog upload. | 3554 | `44a8ccdf2d3174b4c9a73ec8e3e9ba16b9a34e6256845087c4efac9747ead884` |
 | `local-screenshot-inventory.md` | Authoritative upload of `LOCAL_SCREENSHOT_INVENTORY.md`, published under this filename. Hashes of local-only screenshots. The image bytes are not in the repository. | 9410 | `03570d3ede741de4c00f08867acac5703a4783de57544c3ca8c3366e296c69f3` |
-| `README.md` | Written for this publication. Status, scope, limitations, and links. | 8855 | `6e2629bca4b3ae610aba76688b2585ae7ef2db170675a8b73aad2037b98932f8` |
+| `README.md` | Written for this publication. Status, scope, limitations, and links. | 9147 | `a732da584526640e6e1cd5ce8a1ae52252daf429c3046fb520eb7305526916a8` |
 
 ## Local-only images
 
