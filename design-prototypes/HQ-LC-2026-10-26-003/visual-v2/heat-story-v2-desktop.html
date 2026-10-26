@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PSI Heat Story Visual V2 — Desktop</title>
+<style>
+  :root {
+    --bg: #f6f1e8;
+    --card: #fffdf8;
+    --ink: #2a241c;
+    --muted: #6b5f52;
+    --line: #d9cfc0;
+    --warm: #c47a3a;
+    --warm-soft: #f3e4d2;
+    --green: #4a6b4e;
+    --green-soft: #e4eee5;
+    --science: #3d5a73;
+    --science-soft: #e6eef4;
+    --ap: #7a5c3a;
+    --ap-soft: #f3ebe0;
+    --psi: #5a4a6b;
+    --psi-soft: #eee8f3;
+    --warn: #8a5a2b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  .page {
+    width: 1440px;
+    padding: 28px 32px 24px;
+    background: linear-gradient(180deg, #f8f3eb 0%, #f1e8db 100%);
+  }
+  .eyebrow {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0 0 18px;
+    max-width: 980px;
+    line-height: 1.45;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 0 rgba(42,36,28,0.04);
+  }
+  .panel-head {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+  .badge {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge-hyp { background: var(--warm-soft); color: var(--warn); }
+  .badge-sci { background: var(--science-soft); color: var(--science); }
+  .badge-psi { background: var(--psi-soft); color: var(--psi); }
+  .badge-ap { background: var(--ap-soft); color: var(--ap); }
+
+  /* Scene illustration */
+  .scene-art {
+    height: 168px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(255,220,160,0.35) 0%, rgba(255,255,255,0) 42%),
+      linear-gradient(180deg, #9ec4e6 0%, #d7e6f0 38%, #c9d98a 38%, #b7c96f 72%, #9aa85a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .scene-art::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 18px, rgba(90,70,40,0.08) 18px 19px),
+      radial-gradient(ellipse at 70% 18%, rgba(255,255,255,0.55), transparent 45%);
+  }
+  .sun {
+    position: absolute; top: 14px; right: 22px; width: 28px; height: 28px;
+    border-radius: 50%; background: #f2c15a; box-shadow: 0 0 24px 10px rgba(242,193,90,0.45);
+  }
+  .crop-row {
+    position: absolute; left: 8%; right: 8%; height: 10px; border-radius: 999px;
+    background: linear-gradient(90deg, #6f8f3f, #8aaa4a, #6f8f3f);
+    box-shadow: 0 8px 0 #5f7d35, 0 16px 0 #6f8f3f, 0 24px 0 #5f7d35;
+    opacity: 0.85;
+  }
+  .crop-row.a { bottom: 54px; }
+  .crop-row.b { bottom: 34px; opacity: 0.7; transform: scaleX(0.96); }
+  .worker {
+    position: absolute; bottom: 26px; width: 12px; height: 26px;
+    background: #2b241d; border-radius: 3px 3px 2px 2px; opacity: 0.72;
+    z-index: 2;
+  }
+  .worker::before {
+    content: ""; position: absolute; top: 6px; left: -6px; width: 14px; height: 3px;
+    background: #2b241d; border-radius: 2px; transform: rotate(-28deg); opacity: 0.8;
+  }
+  .worker::after {
+    content: ""; position: absolute; top: -8px; left: 2px; width: 8px; height: 8px;
+    border-radius: 50%; background: #2b241d;
+  }
+  .worker.w1 { left: 30%; }
+  .worker.w2 { left: 56%; height: 24px; opacity: 0.62; }
+  .worker.w2::before { transform: rotate(24deg); left: 4px; }
+  .tree {
+    position: absolute; bottom: 58px; width: 18px; height: 34px;
+    background: #4d6a3d; border-radius: 40% 40% 20% 20%; opacity: 0.7;
+  }
+  .tree.t1 { left: 10%; }
+  .tree.t2 { right: 14%; height: 28px; }
+  .caption {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+  .note {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* Work branches */
+  .heat-box {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    background: var(--warm-soft);
+    border: 1px solid #e6d0b4;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .branch-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .path {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    min-height: 168px;
+  }
+  .path A, .path-a { background: var(--green-soft); border-color: #c7d9c9; }
+  .path-b { background: #f7ebe1; border-color: #e7d2bd; }
+  .path h3 {
+    margin: 0 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .path-a h3 { color: var(--green); }
+  .path-b h3 { color: var(--warn); }
+  .path ul {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .path li { margin-bottom: 4px; }
+  .connector {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin: -2px 0;
+  }
+
+  /* Evidence */
+  .stat {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    background: #fbfaf7;
+  }
+  .stat .num {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--science);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .stat .label {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .qualify {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 11.5px;
+    line-height: 1.4;
+    background: var(--science-soft);
+    border-left: 3px solid var(--science);
+    padding: 8px 10px;
+    border-radius: 0 8px 8px 0;
+    color: var(--science);
+  }
+
+  /* Food pathway strip inside scene/work area */
+  .pathway {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--muted);
+    background: #faf7f1;
+    border: 1px dashed #d5c9b6;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .pathway span.step {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 8px;
+    color: var(--ink);
+  }
+  .pathway .arrow { color: #a89278; }
+
+  /* Inquiry */
+  .question {
+    font-size: 16px;
+    line-height: 1.45;
+    margin: 0;
+    padding: 14px;
+    background: var(--psi-soft);
+    border: 1px solid #d8cee6;
+    border-radius: 12px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .layers {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    display: grid;
+    gap: 6px;
+  }
+  .layer {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 8px;
+    align-items: start;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .layer strong {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .footer {
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .source-strip {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+  .source-strip strong { color: var(--ink); }
+  .boundary {
+    background: #fff8ef;
+    border: 1px solid #ead7be;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--warn);
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <p class="eyebrow">Planetary Self-Inquiry · Offline vision prototype V2 · Not public product copy</p>
+    <h1>Heat, outdoor work, and everyday lives</h1>
+    <p class="subtitle">A conditional dependency to examine — not a verdict. Environmental conditions can affect outdoor work involved in growing food, which can relate to systems that help sustain daily life. Outcomes depend on adaptation, protections, and whether work can be made up.</p>
+
+    <div class="grid">
+      <!-- SCENE -->
+      <section class="panel">
+        <div class="panel-head">
+          <span>1 · Scene</span>
+          <span class="badge badge-hyp">Hypothetical</span>
+        </div>
+        <div class="panel-body">
+          <div class="scene-art" aria-hidden="true">
+            <div class="sun"></div>
+            <div class="tree t1"></div>
+            <div class="tree t2"></div>
+            <div class="crop-row a"></div>
+            <div class="crop-row b"></div>
+            <div class="worker w1"></div>
+            <div class="worker w2"></div>
+          </div>
+          <p class="caption">Ordinary outdoor agricultural work on a very hot day. Distant, anonymous figures only — not documented individuals from any study.</p>
+          <div class="pathway" title="Illustrative pathway only">
+            <span class="step">Field / harvest</span>
+            <span class="arrow">→</span>
+            <span class="step">Food systems</span>
+            <span class="arrow">→</span>
+            <span class="step">Everyday food</span>
+          </div>
+          <p class="note">Illustrative pathway — not proof that this field supplies any particular visitor’s food.</p>
+        </div>
+      </section>
+
+      <!-- WORK -->
+      <section class="panel">
+        <div class="panel-head">
+          <span>2 · Work</span>
+          <span class="badge badge-hyp">Conditional</span>
+        </div>
+        <div class="panel-body">
+          <div class="heat-box">Heat can make some outdoor work unsafe or difficult</div>
+          <div class="connector">What happens next depends on the job, protections, and schedule</div>
+          <div class="branch-wrap">
+            <div class="path path-a">
+              <h3>Path A · Can adapt</h3>
+              <ul>
+                <li>Shift working hours</li>
+                <li>Take breaks</li>
+                <li>Use suitable protections</li>
+                <li>Work may still be completed</li>
+              </ul>
+            </div>
+            <div class="path path-b">
+              <h3>Path B · Cannot adapt enough</h3>
+              <ul>
+                <li>Work may slow or pause</li>
+                <li>Some working capacity may be lost</li>
+                <li>Possible earnings or production pressure <em>if</em> work cannot be made up</li>
+              </ul>
+            </div>
+          </div>
+          <p class="note">Neither path is automatic. Early or late hours are not guaranteed safe. Possible consequences beyond the worker are not inevitable.</p>
+        </div>
+      </section>
+
+      <!-- EVIDENCE -->
+      <section class="panel">
+        <div class="panel-head">
+          <span>3 · Evidence</span>
+          <span class="badge badge-sci">Science</span>
+        </div>
+        <div class="panel-body">
+          <p class="caption" style="font-family:'IBM Plex Sans',system-ui,sans-serif;font-weight:600;">Lancet Countdown 2025 — India</p>
+          <div class="stat">
+            <div class="num">247 billion</div>
+            <div class="label">Potential labour hours lost to heat exposure in 2024 (modelled national estimate).</div>
+          </div>
+          <div class="stat">
+            <div class="num">66%</div>
+            <div class="label">Of those modelled potential hours were in agriculture.</div>
+          </div>
+          <div class="qualify">
+            Modelled national <strong>potential</strong> — not a payroll count, not measured missed shifts, and not observed losses for any particular household or farm.
+          </div>
+          <p class="note">Source framing: Lancet Countdown India data sheet (indicator on heat and labour). No invented chart axes.</p>
+        </div>
+      </section>
+
+      <!-- INQUIRY -->
+      <section class="panel">
+        <div class="panel-head">
+          <span>4 · Inquiry</span>
+          <span class="badge badge-psi">PSI interpretation</span>
+        </div>
+        <div class="panel-body">
+          <p class="question">What, if anything, does this connection between outdoor working conditions and daily life suggest about the well-being of people you care about?</p>
+          <div class="layers">
+            <div class="layer">
+              <strong class="badge badge-sci">Science</strong>
+              <span>Lancet modelled evidence and its limits (Panel 3).</span>
+            </div>
+            <div class="layer">
+              <strong class="badge badge-ap">AP</strong>
+              <span>Separate official edited article discussing heat and outdoor work — not a verified spoken quotation; not the Lancet model.</span>
+            </div>
+            <div class="layer">
+              <strong class="badge badge-psi">PSI</strong>
+              <span>Your interpretation. No required answer. Not a scientific finding and not AP’s words.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <div class="source-strip">
+        <strong>Sources (review only):</strong>
+        Story prototype HQ-LC-2026-10-26-003 · Research #229/PR230 · AP #231/PR232 ·
+        Lancet Countdown 2025 India data sheet ·
+        Acharya Prashant official Pioneer article (17 Oct 2026) as separate AP context.
+      </div>
+      <div class="boundary">
+        Offline vision-review artifact. Not accepted public PSI copy. Not a website feature. Scene video held out of this comprehension-test version.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
