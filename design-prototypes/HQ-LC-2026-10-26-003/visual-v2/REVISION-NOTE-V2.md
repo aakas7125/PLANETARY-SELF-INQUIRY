@@ -53,3 +53,14 @@
 
 ## Publication boundary
 No repo merge, no app change, no AP corpus edit. Return for Owner / Vision Manager inspection only.
+
+
+## Presentation cleanup after Vision Manager return (2026-10-26)
+
+**Disposition received:** Approved for a small offline static comprehension pilot. Not approved as public product copy. No substantive V3 before human comprehension evidence. Scene video remains held.
+
+**Cleanup applied (presentation only):**
+- Cropped unnecessary bottom whitespace from desktop and mobile PNG exports.
+- Increased size of source/qualification/footer/layer text for phone readability.
+
+No scientific values, AP wording, or PSI inquiry question changed.

@@ -26,3 +26,10 @@
 ## Vision Manager review ask
 
 Please review whether V2 is ready for a first-time comprehension check (static visual only). Feedback can be pasted back to the Owner for Grok Bot follow-up.
+
+
+## Vision Manager disposition (2026-10-26)
+
+**APPROVED FOR A SMALL OFFLINE STATIC COMPREHENSION PILOT. NOT APPROVED AS PUBLIC PRODUCT COPY.**
+
+Presentation cleanup applied after review: cropped bottom whitespace; larger source/qualification text on phone. Scene video remains held. No V3 redesign before human comprehension evidence. HQ may independently accept the PR as an offline prototype under existing governance; Vision approval does not authorize website integration.

@@ -34,3 +34,7 @@ Confusion that treats the figure as observed family losses, collapses Science/AP
 
 ## Out of scope for this artifact
 No recruitment, no public copy, no website feature, no new scientific investigation. If a future test needs the exact Lancet indicator codes spoken aloud, reopen the India data sheet; V2 already uses the accepted story’s figures and definitions.
+
+## Vision Manager disposition (2026-10-26)
+
+Approved for a small offline static comprehension pilot; not public product copy. Main open question: whether uncoached visitors understand the wider dependency (not only that heat affects agricultural work). After pilot feedback, decide whether V3 is warranted.
